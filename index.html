@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ailaa — Projen localhost'ta çürümesin</title>
+<meta name="description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için mağaza. Yükle, paylaş, kazan.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ailaa">
+<meta property="og:title" content="Ailaa — Projen localhost'ta çürümesin">
+<meta property="og:description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için mağaza. Yükle, paylaş, kazan.">
+<meta property="og:url" content="https://ailaa.io/">
+<meta property="og:image" content="https://ailaa.io/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ailaa — Projen localhost'ta çürümesin">
+<meta name="twitter:description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için mağaza.">
+<meta name="twitter:image" content="https://ailaa.io/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14182B;
+    --bg-raised: #1E2340;
+    --bg-raised-2: #262B4D;
+    --line: #333a63;
+    --text: #ECEAF7;
+    --text-muted: #8B90B3;
+    --amber: #F5A93B;
+    --coral: #FF6F59;
+    --mint: #59D8C7;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{color:inherit; text-decoration:none;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 24px;}
+
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 42px 42px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(20,24,43,0.8);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px;
+    max-width:1120px; margin:0 auto;
+    gap:12px;
+  }
+  .logo{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700; font-size:1.3rem; letter-spacing:-0.02em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo::before{
+    content:"";
+    width:10px; height:10px; border-radius:3px;
+    background:var(--amber);
+    display:inline-block;
+    box-shadow:0 0 12px var(--amber);
+  }
+  .nav-links{display:flex; gap:28px; font-size:0.92rem; color:var(--text-muted);}
+  .nav-links a:hover{color:var(--text);}
+  .nav-right{display:flex; align-items:center; gap:10px;}
+  .nav-cta{
+    font-size:0.88rem; font-weight:600;
+    background:var(--amber); color:#1a1508;
+    padding:9px 18px; border-radius:8px;
+    white-space:nowrap;
+  }
+  .nav-upload{
+    font-size:0.85rem; font-weight:700;
+    background:var(--amber); color:#1a1508;
+    padding:9px 16px; border-radius:8px; white-space:nowrap;
+    box-shadow:0 0 18px -6px var(--amber);
+  }
+  /* language switcher — now lives in the footer */
+  .lang-switch{
+    display:inline-flex; gap:2px;
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:3px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    margin-bottom:16px;
+  }
+  .lang-switch button{
+    background:none; border:none; cursor:pointer;
+    color:var(--text-muted);
+    padding:5px 9px; border-radius:6px;
+    font-family:inherit; font-size:inherit; font-weight:500;
+  }
+  .lang-switch button.active{
+    background:var(--amber); color:#1a1508;
+  }
+  .lang-switch button:focus-visible{outline:2px solid var(--mint); outline-offset:1px;}
+  @media (max-width:720px){
+    .nav-links{display:none;}
+    .nav-cta{display:none;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative; z-index:1;
+    padding:90px 24px 60px;
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem; color:var(--mint);
+    letter-spacing:0.12em; text-transform:uppercase;
+    margin-bottom:22px;
+    display:inline-flex; align-items:center; gap:8px;
+    border:1px solid rgba(89,216,199,0.35);
+    padding:6px 14px; border-radius:100px;
+    background:rgba(89,216,199,0.06);
+  }
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(2.2rem, 5.5vw, 4rem);
+    letter-spacing:-0.03em;
+    line-height:1.08;
+    max-width:820px; margin:0 auto 22px;
+  }
+  h1 .strike{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:400;
+    color:var(--text-muted);
+    text-decoration:line-through;
+    text-decoration-color:var(--coral);
+    text-decoration-thickness:2px;
+  }
+  .hero p.sub{
+    color:var(--text-muted);
+    font-size:1.08rem;
+    max-width:560px; margin:0 auto 40px;
+  }
+
+  .terminal{
+    max-width:640px; margin:0 auto 8px;
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.5);
+    text-align:left;
+  }
+  .terminal-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:12px 16px;
+    background:var(--bg-raised-2);
+    border-bottom:1px solid var(--line);
+  }
+  .dot{width:10px; height:10px; border-radius:50%;}
+  .dot.r{background:#ff5f57;} .dot.y{background:#febc2e;} .dot.g{background:#28c840;}
+  .terminal-url{
+    margin-left:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.82rem; color:var(--text-muted);
+  }
+  .terminal-body{padding:22px 20px; font-family:'JetBrains Mono', monospace; font-size:0.86rem;}
+  .terminal-body .out{color:var(--mint);}
+  .terminal-body .cursor{
+    display:inline-block; width:8px; height:16px; background:var(--amber);
+    vertical-align:middle; margin-left:2px;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  .arrow-down{
+    text-align:center; margin:18px 0 34px;
+    color:var(--text-muted); font-family:'JetBrains Mono', monospace; font-size:0.85rem;
+  }
+
+  .waitlist{
+    max-width:460px; margin:0 auto;
+    display:flex; gap:10px;
+  }
+  .waitlist input{
+    flex:1;
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:13px 16px;
+    border-radius:9px;
+    font-size:0.95rem;
+    outline:none;
+  }
+  .waitlist input:focus{border-color:var(--amber);}
+  .waitlist input::placeholder{color:var(--text-muted);}
+  .waitlist button{
+    background:var(--amber); color:#1a1508;
+    border:none; font-weight:600; font-size:0.95rem;
+    padding:13px 22px; border-radius:9px; cursor:pointer;
+    white-space:nowrap;
+    transition:transform .15s ease;
+  }
+  .waitlist button:hover{transform:translateY(-1px);}
+  .waitlist button:focus-visible, .waitlist input:focus-visible{outline:2px solid var(--mint); outline-offset:2px;}
+  .form-note{
+    text-align:center; font-size:0.8rem; color:var(--text-muted);
+    margin-top:12px; font-family:'JetBrains Mono', monospace;
+  }
+  .form-note.success{color:var(--mint);}
+
+  .hero-demo{margin-top:34px; display:flex; flex-direction:column; align-items:center; gap:12px;}
+  .hero-demo-label{font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--mint); letter-spacing:0.04em;}
+  .hero-demo-btn{
+    display:inline-block; background:transparent; color:var(--mint);
+    border:1px solid var(--mint); font-weight:600; font-size:0.98rem;
+    padding:13px 28px; border-radius:11px; cursor:pointer;
+    transition:all .18s ease; box-shadow:0 0 24px -8px rgba(89,216,199,0.5);
+  }
+  .hero-demo-btn:hover{background:var(--mint); color:#082420; transform:translateY(-2px);}
+
+  @media (max-width:520px){
+    .waitlist{flex-direction:column;}
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section{position:relative; z-index:1; padding:70px 24px;}
+  .section-head{max-width:640px; margin:0 auto 44px; text-align:center;}
+  .section-head .eyebrow.coral{color:var(--coral); border-color:rgba(255,111,89,0.35); background:rgba(255,111,89,0.06);}
+  .section-head .eyebrow.amber{color:var(--amber); border-color:rgba(245,169,59,0.35); background:rgba(245,169,59,0.06);}
+  .section-head h2{
+    font-family:'Space Grotesk', sans-serif; font-weight:600;
+    font-size:clamp(1.6rem, 3.5vw, 2.3rem); letter-spacing:-0.02em;
+    margin-bottom:14px;
+  }
+  .section-head p{color:var(--text-muted); font-size:1rem;}
+
+  .graveyard-row{
+    display:flex; gap:16px; overflow-x:auto; padding:6px 4px 20px;
+    max-width:1000px; margin:0 auto;
+  }
+  .ghost-card{
+    flex:0 0 200px;
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    filter:grayscale(0.6);
+    opacity:0.65;
+  }
+  .ghost-card .url{font-family:'JetBrains Mono', monospace; font-size:0.72rem; color:var(--text-muted); margin-bottom:10px;}
+  .ghost-card .bar{height:6px; border-radius:3px; background:var(--bg-raised-2); margin-bottom:8px;}
+  .ghost-card .bar:nth-child(3){width:70%;}
+  .ghost-card .tag{
+    display:inline-block; margin-top:10px;
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem;
+    color:var(--coral); border:1px solid rgba(255,111,89,0.4);
+    padding:2px 8px; border-radius:100px;
+  }
+
+  .steps{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:24px;
+    max-width:960px; margin:0 auto;
+  }
+  @media (max-width:800px){ .steps{grid-template-columns:1fr;} }
+  .step{
+    background:var(--bg-raised); border:1px solid var(--line);
+    border-radius:var(--radius); padding:28px 24px;
+  }
+  .step .num{
+    font-family:'JetBrains Mono', monospace; font-size:0.85rem;
+    color:var(--amber); margin-bottom:14px; display:block;
+  }
+  .step h3{
+    font-family:'Space Grotesk', sans-serif; font-weight:600;
+    font-size:1.15rem; margin-bottom:8px;
+  }
+  .step p{color:var(--text-muted); font-size:0.92rem;}
+
+  .shelf{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
+    gap:18px; max-width:1000px; margin:0 auto;
+    perspective:1000px;
+  }
+  .cart{
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    transition:transform .25s ease, box-shadow .25s ease;
+    cursor:pointer;
+  }
+  .cart:hover{
+    transform:translateY(-6px) rotate(-1deg);
+    box-shadow:0 20px 40px -15px rgba(0,0,0,0.55);
+    border-color:var(--amber);
+  }
+  .cart-art{height:120px; position:relative;}
+  .cart-art span{
+    position:absolute; bottom:8px; left:10px;
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem;
+    background:rgba(0,0,0,0.35); padding:2px 8px; border-radius:100px;
+  }
+  .cart-info{padding:14px 14px 16px;}
+  .cart-info h4{font-family:'Space Grotesk', sans-serif; font-size:0.98rem; margin-bottom:4px;}
+  .cart-info p{font-family:'JetBrains Mono', monospace; font-size:0.72rem; color:var(--text-muted);}
+  .cart-info .price{color:var(--mint); font-weight:600;}
+
+  .final{
+    text-align:center;
+    background:linear-gradient(180deg, transparent, rgba(245,169,59,0.05));
+  }
+  .final h2{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:clamp(1.7rem, 4vw, 2.6rem); letter-spacing:-0.02em;
+    max-width:600px; margin:0 auto 16px;
+  }
+  .final p{color:var(--text-muted); max-width:480px; margin:0 auto 34px;}
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:32px 24px;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem; color:var(--text-muted);
+    position:relative; z-index:1;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Netlify'ın formu tanıması için gizli form. Görünmez ama şart. -->
+<form name="waitlist" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="email" name="email">
+  <input type="text" name="lang">
+  <input type="text" name="bot-field">
+</form>
+
+<header>
+  <nav>
+    <div class="logo">ailaa</div>
+    <div class="nav-links">
+      <a href="#nasil" data-i18n="nav_how">Nasıl çalışır</a>
+      <a href="#galeri" data-i18n="nav_gallery">Galeri</a>
+      <a href="#katil" data-i18n="nav_join">Katıl</a>
+    </div>
+    <div class="nav-right">
+      <a href="/auth" id="loginLink" class="home-link" style="font-size:0.88rem; color:var(--text-muted); margin-right:4px;" data-i18n="nav_login">Giriş</a>
+      <a href="/upload" class="nav-upload" data-i18n="nav_upload">+ Yükle</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow" data-i18n="hero_eyebrow">● konsept — erken erişim listesi açık</span>
+    <h1 data-i18n-html="hero_title">Projen <span class="strike">localhost:3000</span>'ta değil,<br>bir vitrinde yaşasın.</h1>
+    <p class="sub" data-i18n="hero_sub">AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.</p>
+
+    <div class="terminal" aria-hidden="true">
+      <div class="terminal-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="terminal-url">localhost:3000</span>
+      </div>
+      <div class="terminal-body">
+        <div>$ npm run build <span class="out" data-i18n="term_ok">✓ derlendi</span></div>
+        <div>$ deploy --where=?<span class="cursor"></span></div>
+      </div>
+    </div>
+    <div class="arrow-down" data-i18n="hero_arrow">↓ ailaa.io/senin-proje-adin ↓</div>
+
+    <form class="waitlist" id="waitlistForm">
+      <input type="email" id="email" name="email" data-i18n-placeholder="form_placeholder" placeholder="e-posta adresin" required aria-label="E-mail">
+      <button type="submit" data-i18n="form_btn">Erken erişime katıl</button>
+    </form>
+    <p class="form-note" id="formNote" data-i18n="form_note">İlk 100 kişiye öncelikli erişim veriyoruz.</p>
+
+    <div class="hero-demo">
+      <span class="hero-demo-label" data-i18n="hero_demo_label">✦ oynanabilir ilk oyunu şimdi dene</span>
+      <a href="/demo" class="hero-demo-btn" data-i18n="hero_demo_btn">▶ Canlı demoyu keşfet</a>
+    </div>
+  </div>
+</section>
+
+<section id="mezarlik">
+  <div class="section-head">
+    <span class="eyebrow coral" data-i18n="grave_eyebrow">yerel mezarlık</span>
+    <h2 data-i18n="grave_title">Şu an tarayıcı sekmelerinde çürüyen projeler var.</h2>
+    <p data-i18n="grave_sub">Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzel oldu. Sonra... hiçbir şey. Link kimseyle paylaşılmadı, sunucu hiç açılmadı.</p>
+  </div>
+  <div class="graveyard-row">
+    <div class="ghost-card">
+      <div class="url">localhost:5173</div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <span class="tag" data-i18n="tag1">yayınlanmadı</span>
+    </div>
+    <div class="ghost-card">
+      <div class="url">127.0.0.1:8000</div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <span class="tag" data-i18n="tag2">unutuldu</span>
+    </div>
+    <div class="ghost-card">
+      <div class="url">localhost:3000</div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <span class="tag" data-i18n="tag3">3 ay önce</span>
+    </div>
+    <div class="ghost-card">
+      <div class="url">localhost:4200</div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <span class="tag" data-i18n="tag4">yarım kaldı</span>
+    </div>
+  </div>
+</section>
+
+<section id="nasil">
+  <div class="section-head">
+    <span class="eyebrow amber" data-i18n="steps_eyebrow">süreç</span>
+    <h2 data-i18n="steps_title">Üç adımda localhost'tan çıkış</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <span class="num">01</span>
+      <h3 data-i18n="step1_t">Yükle</h3>
+      <p data-i18n="step1_p">Projeni sürükle bırak. Hangi araçla yaptığın fark etmez.</p>
+    </div>
+    <div class="step">
+      <span class="num">02</span>
+      <h3 data-i18n="step2_t">Güvenli sandbox'ta yayınlan</h3>
+      <p data-i18n="step2_p">Ailaa projeni izole bir ortamda barındırır. Sunucu, domain, SSL — hepsi otomatik.</p>
+    </div>
+    <div class="step">
+      <span class="num">03</span>
+      <h3 data-i18n="step3_t">Paylaş ya da sat</h3>
+      <p data-i18n="step3_p">Herkese açık bir link al. İstersen ücretsiz yayınla, istersen fiyat koy.</p>
+    </div>
+  </div>
+</section>
+
+<section id="galeri">
+  <div class="section-head">
+    <span class="eyebrow" data-i18n="gal_eyebrow">önizleme</span>
+    <h2 data-i18n="gal_title">Vitrin böyle görünecek</h2>
+    <p data-i18n="gal_sub">Aşağıdakiler örnek — Ailaa henüz erken erişim aşamasında.</p>
+  </div>
+  <div class="shelf">
+    <div class="cart">
+      <div class="cart-art" style="background:linear-gradient(135deg,#F5A93B,#FF6F59);"><span data-i18n="cat_game">oyun</span></div>
+      <div class="cart-info"><h4 data-i18n="g1_t">Piksel Zindanı</h4><p><span data-i18n="g1_g">rogue-lite</span> · <span class="price" data-i18n="free">ücretsiz</span></p></div>
+    </div>
+    <div class="cart">
+      <div class="cart-art" style="background:linear-gradient(135deg,#59D8C7,#2B7A78);"><span data-i18n="cat_tool">araç</span></div>
+      <div class="cart-info"><h4 data-i18n="g2_t">Not Asistanı</h4><p><span data-i18n="g2_g">verimlilik</span> · <span class="price">$3</span></p></div>
+    </div>
+    <div class="cart">
+      <div class="cart-art" style="background:linear-gradient(135deg,#8B5CF6,#F5A93B);"><span data-i18n="cat_game">oyun</span></div>
+      <div class="cart-info"><h4 data-i18n="g3_t">Uzay Tüccarı</h4><p><span data-i18n="g3_g">strateji</span> · <span class="price">$5</span></p></div>
+    </div>
+    <div class="cart">
+      <div class="cart-art" style="background:linear-gradient(135deg,#FF6F59,#8B5CF6);"><span data-i18n="cat_tool">araç</span></div>
+      <div class="cart-info"><h4 data-i18n="g4_t">Tarif Defteri</h4><p><span data-i18n="g4_g">yaşam tarzı</span> · <span class="price" data-i18n="free">ücretsiz</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="final" id="katil">
+  <div class="wrap">
+    <h2 data-i18n="final_title">Sıradaki proje, sonuncu localhost olsun.</h2>
+    <p data-i18n="final_sub">Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.</p>
+    <form class="waitlist" id="waitlistForm2">
+      <input type="email" id="email2" name="email" data-i18n-placeholder="form_placeholder" placeholder="e-posta adresin" required aria-label="E-mail">
+      <button type="submit" data-i18n="form_btn2">Katıl</button>
+    </form>
+    <p class="form-note" id="formNote2"></p>
+  </div>
+</section>
+
+<footer>
+  <div class="lang-switch" role="group" aria-label="Language / Dil / Sprache">
+    <button type="button" data-lang="tr">TR</button>
+    <button type="button" data-lang="en">EN</button>
+    <button type="button" data-lang="de">DE</button>
+  </div>
+  <br>
+  <span data-i18n="footer">ailaa © 2026 — konsept aşamasında, sevgiyle inşa ediliyor.</span>
+</footer>
+
+<script>
+/* ============================================================
+   ÇEVİRİLER — üç dilin tüm metinleri burada.
+   Yeni dil eklemek istersen: yeni bir anahtar ("fr" gibi) aç,
+   aynı alanları doldur, GEO_MAP'e ülke kodlarını ekle.
+   ============================================================ */
+const I18N = {
+  tr: {
+    nav_how: "Nasıl çalışır", nav_gallery: "Galeri", nav_join: "Katıl", nav_cta: "Erken erişim", nav_login: "Giriş", nav_account: "Hesabım", nav_admin: "🛡 Admin", nav_upload: "+ Yükle",
+    hero_eyebrow: "● konsept — erken erişim listesi açık",
+    hero_title: 'Projen <span class="strike">localhost:3000</span>\'ta değil,<br>bir vitrinde yaşasın.',
+    hero_sub: "AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.",
+    term_ok: "✓ derlendi",
+    hero_arrow: "↓ ailaa.io/senin-proje-adin ↓",
+    hero_demo_label: "✦ oynanabilir ilk oyunu şimdi dene",
+    hero_demo_btn: "▶ Canlı demoyu keşfet",
+    form_placeholder: "e-posta adresin",
+    form_btn: "Erken erişime katıl", form_btn2: "Katıl",
+    form_note: "İlk 100 kişiye öncelikli erişim veriyoruz.",
+    form_success: "Listeye eklendin. Sırada yerin hazır. ✓",
+    form_error: "Bir şeyler ters gitti, tekrar dener misin?",
+    grave_eyebrow: "yerel mezarlık",
+    grave_title: "Şu an tarayıcı sekmelerinde çürüyen projeler var.",
+    grave_sub: "Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzel oldu. Sonra... hiçbir şey. Link kimseyle paylaşılmadı, sunucu hiç açılmadı.",
+    tag1: "yayınlanmadı", tag2: "unutuldu", tag3: "3 ay önce", tag4: "yarım kaldı",
+    steps_eyebrow: "süreç", steps_title: "Üç adımda localhost'tan çıkış",
+    step1_t: "Yükle", step1_p: "Projeni sürükle bırak. Hangi araçla yaptığın fark etmez.",
+    step2_t: "Güvenli sandbox'ta yayınlan", step2_p: "Ailaa projeni izole bir ortamda barındırır. Sunucu, domain, SSL — hepsi otomatik.",
+    step3_t: "Paylaş ya da sat", step3_p: "Herkese açık bir link al. İstersen ücretsiz yayınla, istersen fiyat koy.",
+    gal_eyebrow: "önizleme", gal_title: "Vitrin böyle görünecek",
+    gal_sub: "Aşağıdakiler örnek — Ailaa henüz erken erişim aşamasında.",
+    gal_cta: "Canlı demoyu keşfet →",
+    cat_game: "oyun", cat_tool: "araç", free: "ücretsiz",
+    g1_t: "Piksel Zindanı", g1_g: "rogue-lite",
+    g2_t: "Not Asistanı", g2_g: "verimlilik",
+    g3_t: "Uzay Tüccarı", g3_g: "strateji",
+    g4_t: "Tarif Defteri", g4_g: "yaşam tarzı",
+    final_title: "Sıradaki proje, sonuncu localhost olsun.",
+    final_sub: "Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.",
+    footer: "ailaa © 2026 — konsept aşamasında, sevgiyle inşa ediliyor."
+  },
+  en: {
+    nav_how: "How it works", nav_gallery: "Gallery", nav_join: "Join", nav_cta: "Early access", nav_login: "Log in", nav_account: "My account", nav_admin: "🛡 Admin", nav_upload: "+ Upload",
+    hero_eyebrow: "● concept — early access list is open",
+    hero_title: 'Your project deserves a storefront,<br>not <span class="strike">localhost:3000</span>.',
+    hero_sub: "Publish, share, and even sell the games and apps you built with AI — in seconds. No deploy headaches, no server hassle.",
+    term_ok: "✓ compiled",
+    hero_arrow: "↓ ailaa.io/your-project-name ↓",
+    hero_demo_label: "✦ try the first playable game now",
+    hero_demo_btn: "▶ Explore the live demo",
+    form_placeholder: "your email address",
+    form_btn: "Join early access", form_btn2: "Join",
+    form_note: "The first 100 people get priority access.",
+    form_success: "You're on the list. Your spot is saved. ✓",
+    form_error: "Something went wrong — mind trying again?",
+    grave_eyebrow: "local graveyard",
+    grave_title: "Right now, projects are rotting away in browser tabs.",
+    grave_sub: "You built something with AI over a weekend. It worked, it was good. Then... nothing. The link was never shared, the server never went live.",
+    tag1: "never shipped", tag2: "forgotten", tag3: "3 months ago", tag4: "abandoned",
+    steps_eyebrow: "the process", steps_title: "Escape localhost in three steps",
+    step1_t: "Upload", step1_p: "Drag and drop your project. Doesn't matter which tool you built it with.",
+    step2_t: "Go live in a secure sandbox", step2_p: "Ailaa hosts your project in an isolated environment. Server, domain, SSL — all automatic.",
+    step3_t: "Share or sell", step3_p: "Get a public link. Publish it for free, or put a price on it.",
+    gal_eyebrow: "preview", gal_title: "This is what the storefront will look like",
+    gal_sub: "These are examples — Ailaa is still in early access.",
+    gal_cta: "Explore the live demo →",
+    cat_game: "game", cat_tool: "tool", free: "free",
+    g1_t: "Pixel Dungeon", g1_g: "rogue-lite",
+    g2_t: "Note Assistant", g2_g: "productivity",
+    g3_t: "Space Trader", g3_g: "strategy",
+    g4_t: "Recipe Book", g4_g: "lifestyle",
+    final_title: "Make your next project the last localhost.",
+    final_sub: "Join the early access list and be the first to know when Ailaa opens.",
+    footer: "ailaa © 2026 — a concept in progress, built with love."
+  },
+  de: {
+    nav_how: "So funktioniert's", nav_gallery: "Galerie", nav_join: "Mitmachen", nav_cta: "Früher Zugang", nav_login: "Anmelden", nav_account: "Mein Konto", nav_admin: "🛡 Admin", nav_upload: "+ Hochladen",
+    hero_eyebrow: "● konzept — early-access-liste ist offen",
+    hero_title: 'Dein Projekt verdient ein Schaufenster,<br>nicht <span class="strike">localhost:3000</span>.',
+    hero_sub: "Veröffentliche, teile und verkaufe deine mit KI erstellten Spiele und Apps — in Sekunden. Kein Deploy-Stress, kein Server-Ärger.",
+    term_ok: "✓ kompiliert",
+    hero_arrow: "↓ ailaa.io/dein-projekt-name ↓",
+    hero_demo_label: "✦ teste jetzt das erste spielbare Spiel",
+    hero_demo_btn: "▶ Live-Demo entdecken",
+    form_placeholder: "deine E-Mail-Adresse",
+    form_btn: "Early Access sichern", form_btn2: "Mitmachen",
+    form_note: "Die ersten 100 Personen erhalten bevorzugten Zugang.",
+    form_success: "Du stehst auf der Liste. Dein Platz ist reserviert. ✓",
+    form_error: "Etwas ist schiefgelaufen — versuchst du es nochmal?",
+    grave_eyebrow: "lokaler friedhof",
+    grave_title: "Gerade jetzt verrotten Projekte in Browser-Tabs.",
+    grave_sub: "Du hast an einem Wochenende etwas mit KI gebaut. Es lief, es war gut. Und dann... nichts. Der Link wurde nie geteilt, der Server ging nie online.",
+    tag1: "nie veröffentlicht", tag2: "vergessen", tag3: "vor 3 Monaten", tag4: "aufgegeben",
+    steps_eyebrow: "der prozess", steps_title: "In drei Schritten raus aus localhost",
+    step1_t: "Hochladen", step1_p: "Zieh dein Projekt einfach rein. Egal, mit welchem Tool du es gebaut hast.",
+    step2_t: "Live in einer sicheren Sandbox", step2_p: "Ailaa hostet dein Projekt in einer isolierten Umgebung. Server, Domain, SSL — alles automatisch.",
+    step3_t: "Teilen oder verkaufen", step3_p: "Erhalte einen öffentlichen Link. Veröffentliche kostenlos oder setze einen Preis.",
+    gal_eyebrow: "vorschau", gal_title: "So wird das Schaufenster aussehen",
+    gal_sub: "Das sind Beispiele — Ailaa ist noch im Early Access.",
+    gal_cta: "Live-Demo entdecken →",
+    cat_game: "spiel", cat_tool: "tool", free: "kostenlos",
+    g1_t: "Pixel-Dungeon", g1_g: "rogue-lite",
+    g2_t: "Notiz-Assistent", g2_g: "produktivität",
+    g3_t: "Weltraumhändler", g3_g: "strategie",
+    g4_t: "Rezeptbuch", g4_g: "lifestyle",
+    final_title: "Mach dein nächstes Projekt zum letzten localhost.",
+    final_sub: "Trag dich in die Early-Access-Liste ein und erfahre als Erster, wenn Ailaa startet.",
+    footer: "ailaa © 2026 — ein Konzept in Arbeit, mit Liebe gebaut."
+  }
+};
+
+/* Ülke kodu → dil eşlemesi. Listede olmayan her ülke İngilizce görür. */
+const GEO_MAP = {
+  TR: "tr", CY: "tr",                                  // Türkçe
+  DE: "de", AT: "de", CH: "de", LI: "de", LU: "de"     // Almanca
+};
+const DEFAULT_LANG = "en";
+let currentLang = "tr";
+
+function applyLang(lang){
+  if(!I18N[lang]) lang = DEFAULT_LANG;
+  currentLang = lang;
+  const dict = I18N[lang];
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => {
+    const key = el.getAttribute("data-i18n-html");
+    if(dict[key] !== undefined) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if(dict[key] !== undefined) el.placeholder = dict[key];
+  });
+  document.querySelectorAll(".lang-switch button").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.lang === lang);
+  });
+  try{ localStorage.setItem("ailaa_lang", lang); }catch(e){}
+}
+
+/* Dil tespiti sırası:
+   1. Kullanıcı daha önce elle dil seçtiyse → onu kullan
+   2. IP'den ülke tespiti (ipapi.co, ücretsiz)
+   3. IP servisi cevap vermezse → tarayıcı dili
+   4. Hiçbiri olmazsa → İngilizce                     */
+async function detectLang(){
+  try{
+    const saved = localStorage.getItem("ailaa_lang");
+    if(saved && I18N[saved]){ applyLang(saved); return; }
+  }catch(e){}
+
+  let lang = null;
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 3000);
+    const res = await fetch("https://ipapi.co/json/", {signal: ctrl.signal});
+    clearTimeout(t);
+    if(res.ok){
+      const data = await res.json();
+      if(data && data.country_code) lang = GEO_MAP[data.country_code] || DEFAULT_LANG;
+    }
+  }catch(e){ /* IP servisi engellenmiş/yavaş olabilir, sorun değil */ }
+
+  if(!lang){
+    const nav = (navigator.language || "en").slice(0,2).toLowerCase();
+    lang = I18N[nav] ? nav : DEFAULT_LANG;
+  }
+  applyLang(lang);
+}
+
+/* Elle dil değiştirme */
+document.querySelectorAll(".lang-switch button").forEach(btn => {
+  btn.addEventListener("click", () => applyLang(btn.dataset.lang));
+});
+
+detectLang();
+
+/* ---------- Waitlist (Netlify Forms) ---------- */
+function encode(data){
+  return Object.keys(data)
+    .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(data[k]))
+    .join("&");
+}
+
+async function handleWaitlist(formId, inputId, noteId){
+  const form = document.getElementById(formId);
+  const note = document.getElementById(noteId);
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById(inputId).value.trim();
+    if(!email) return;
+
+    note.classList.remove('success');
+    note.textContent = "...";
+
+    try{
+      const res = await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: encode({
+          "form-name": "waitlist",
+          "email": email,
+          "lang": currentLang
+        })
+      });
+      if(res.ok){
+        note.textContent = I18N[currentLang].form_success;
+        note.classList.add('success');
+        form.reset();
+      } else {
+        note.textContent = I18N[currentLang].form_error;
+      }
+    } catch(err){
+      note.textContent = I18N[currentLang].form_error;
+      console.error(err);
+    }
+  });
+}
+handleWaitlist('waitlistForm', 'email', 'formNote');
+handleWaitlist('waitlistForm2', 'email2', 'formNote2');
+</script>
+
+<!-- Giriş durumu kontrolü: giriş yapılmışsa "Giriş" linkini "Hesabım" yapar -->
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(async function(){
+  try{
+    const url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
+    if(!url || url.includes("BURAYA") || !key || key.includes("BURAYA")) return;
+    if(typeof supabase==="undefined") return;
+    const { createClient } = supabase;
+    const db = createClient(url, key);
+    const { data } = await db.auth.getSession();
+    const link = document.getElementById("loginLink");
+    if(link && data.session && data.session.user){
+      const admin = window.AILAA_ADMIN_UID && !String(window.AILAA_ADMIN_UID).includes("BURAYA") && data.session.user.id === window.AILAA_ADMIN_UID;
+      if(admin){ link.setAttribute("data-i18n","nav_admin"); link.href="/admin"; link.style.color="var(--amber)"; }
+      else { link.setAttribute("data-i18n","nav_account"); link.style.color="var(--mint)"; }
+      applyLang(currentLang);
+    }
+  }catch(e){ /* config yoksa sessizce geç */ }
+})();
+</script>
+
+</body>
+</html>

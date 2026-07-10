@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ailaa — Geliştirici Profili</title>
+<meta property="og:site_name" content="Ailaa">
+<meta property="og:title" content="Ailaa — Geliştirici Profili">
+<meta property="og:image" content="https://ailaa.io/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14182B; --bg-raised:#1E2340; --bg-raised-2:#262B4D;
+    --line:#333a63; --text:#ECEAF7; --text-muted:#8B90B3;
+    --amber:#F5A93B; --coral:#FF6F59; --mint:#59D8C7; --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased;}
+  a{color:inherit; text-decoration:none;}
+  body::before{content:""; position:fixed; inset:0;
+    background-image:linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:42px 42px; pointer-events:none; z-index:0;}
+  header{position:sticky; top:0; z-index:50; background:rgba(20,24,43,0.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  nav{display:flex; align-items:center; justify-content:space-between; padding:14px 20px; max-width:900px; margin:0 auto;}
+  .logo{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.2rem; display:flex; align-items:center; gap:8px;}
+  .logo::before{content:""; width:10px; height:10px; border-radius:3px; background:var(--amber); box-shadow:0 0 12px var(--amber);}
+  .back{font-size:0.88rem; color:var(--text-muted);}
+  .back:hover{color:var(--text);}
+  main{max-width:900px; margin:0 auto; padding:32px 20px 80px; position:relative; z-index:1;}
+
+  .profile-card{background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); padding:28px; display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;}
+  .avatar{width:84px; height:84px; border-radius:20px; display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:2.2rem; color:#fff; flex-shrink:0;
+    text-shadow:0 2px 8px rgba(0,0,0,0.35);}
+  .p-info{flex:1; min-width:220px;}
+  .p-info h1{font-family:'Space Grotesk',sans-serif; font-size:1.5rem; letter-spacing:-0.02em;}
+  .p-info .joined{font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text-muted); margin-top:2px;}
+  .p-info .bio{margin-top:10px; color:var(--text-muted); font-size:0.92rem; white-space:pre-wrap; word-break:break-word;}
+  .p-stats{display:flex; gap:22px; margin-top:16px; font-family:'JetBrains Mono',monospace; font-size:0.82rem;}
+  .p-stats b{display:block; font-size:1.15rem; color:var(--amber);}
+  .p-stats .m b{color:var(--mint);}
+
+  .edit-btn{background:var(--bg-raised-2); border:1px solid var(--line); color:var(--text); padding:9px 16px; border-radius:9px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit;}
+  .edit-box{display:none; margin-top:16px; width:100%;}
+  .edit-box.open{display:block;}
+  .edit-box label{display:block; font-size:0.8rem; color:var(--text-muted); margin:12px 0 5px;}
+  .edit-box input, .edit-box textarea{width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:9px; font-size:0.9rem; outline:none; font-family:inherit;}
+  .edit-box input:focus, .edit-box textarea:focus{border-color:var(--amber);}
+  .edit-box textarea{min-height:80px; resize:vertical;}
+  .edit-box .save{margin-top:14px; background:var(--amber); color:#1a1508; border:none; padding:10px 22px; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit;}
+  .msg{font-size:0.82rem; margin-top:10px; min-height:1.2em;}
+  .msg.err{color:var(--coral);} .msg.ok{color:var(--mint);}
+
+  h2.section{font-family:'Space Grotesk',sans-serif; font-size:1.1rem; margin:36px 0 16px;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:16px;}
+  .proj{background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:transform .15s, border-color .15s;}
+  .proj:hover{transform:translateY(-3px); border-color:var(--amber);}
+  .proj .art{height:90px; display:flex; align-items:center; justify-content:center; font-size:2rem;}
+  .proj .in{padding:12px 14px;}
+  .proj h4{font-size:0.95rem; font-family:'Space Grotesk',sans-serif;}
+  .proj .st{font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--text-muted); margin-top:6px; display:flex; gap:10px;}
+  .proj .st .v{color:var(--amber);}
+  .empty{color:var(--text-muted); font-size:0.9rem; padding:20px 0;}
+  .notfound{text-align:center; padding:80px 20px; color:var(--text-muted);}
+  footer{text-align:center; padding:30px; color:var(--text-muted); font-size:0.8rem;}
+</style>
+</head>
+<body>
+<header>
+  <nav>
+    <a href="/" class="logo">ailaa</a>
+    <a href="/demo" class="back">← <span id="backTxt">Mağaza</span></a>
+  </nav>
+</header>
+
+<main>
+  <div id="content"><div class="empty" id="loadingTxt">Yükleniyor...</div></div>
+</main>
+
+<footer>ailaa © 2026</footer>
+
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ---- Dil ---- */
+const I18N={
+  tr:{back:"Mağaza", loading:"Yükleniyor...", notfound:"Bu kullanıcı bulunamadı.", joined:"katılım", projects:"Projeleri",
+      votes:"toplam oy", plays:"oynanma", count:"proje", no_proj:"Henüz yayınlanmış proje yok.",
+      edit:"Profili düzenle", u_label:"Kullanıcı adı", b_label:"Hakkında", save:"Kaydet",
+      saved:"Kaydedildi ✓", err:"Kaydedilemedi — kullanıcı adı alınmış olabilir.", free:"Ücretsiz"},
+  en:{back:"Store", loading:"Loading...", notfound:"User not found.", joined:"joined", projects:"Projects",
+      votes:"total votes", plays:"plays", count:"projects", no_proj:"No published projects yet.",
+      edit:"Edit profile", u_label:"Username", b_label:"About", save:"Save",
+      saved:"Saved ✓", err:"Could not save — username may be taken.", free:"Free"},
+  de:{back:"Store", loading:"Lädt...", notfound:"Benutzer nicht gefunden.", joined:"dabei seit", projects:"Projekte",
+      votes:"Stimmen", plays:"Spiele", count:"Projekte", no_proj:"Noch keine Projekte veröffentlicht.",
+      edit:"Profil bearbeiten", u_label:"Benutzername", b_label:"Über mich", save:"Speichern",
+      saved:"Gespeichert ✓", err:"Speichern fehlgeschlagen — Name evtl. vergeben.", free:"Kostenlos"}
+};
+function pickLang(){
+  try{ const s=localStorage.getItem("ailaa_lang"); if(s&&I18N[s]) return s; }catch(e){}
+  const n=(navigator.language||"tr").slice(0,2).toLowerCase();
+  return I18N[n]?n:"en";
+}
+const L=I18N[pickLang()];
+document.getElementById("backTxt").textContent=L.back;
+document.getElementById("loadingTxt").textContent=L.loading;
+
+const GRADIENTS=["linear-gradient(135deg,#F5A93B,#FF6F59)","linear-gradient(135deg,#59D8C7,#2B7A78)","linear-gradient(135deg,#8B5CF6,#F5A93B)","linear-gradient(135deg,#FF6F59,#8B5CF6)","linear-gradient(135deg,#3B82F6,#59D8C7)","linear-gradient(135deg,#F5A93B,#8B5CF6)","linear-gradient(135deg,#EC4899,#F5A93B)","linear-gradient(135deg,#59D8C7,#3B82F6)","linear-gradient(135deg,#6366F1,#EC4899)"];
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function hashCode(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return Math.abs(h); }
+function fmtDate(s){ try{ return new Date(s).toLocaleDateString(); }catch(e){ return ""; } }
+
+const URL_=window.AILAA_SUPABASE_URL, KEY_=window.AILAA_SUPABASE_KEY;
+const configured = URL_ && !String(URL_).includes("BURAYA") && KEY_ && !String(KEY_).includes("BURAYA") && typeof supabase!=="undefined";
+let db=null, me=null;
+if(configured){ db = supabase.createClient(URL_, KEY_); }
+
+async function init(){
+  const wrap=document.getElementById("content");
+  if(!configured){ wrap.innerHTML=`<div class="notfound">${L.notfound}</div>`; return; }
+
+  try{ const { data } = await db.auth.getSession(); if(data && data.session) me = data.session.user; }catch(e){}
+
+  const uname=new URLSearchParams(location.search).get("u");
+  let profile=null;
+  try{
+    if(uname){
+      const r = await db.from("profiles").select("*").eq("username", uname).maybeSingle();
+      profile = r.data;
+    } else if(me){
+      const r = await db.from("profiles").select("*").eq("id", me.id).maybeSingle();
+      profile = r.data;
+    }
+  }catch(e){}
+  if(!profile){ wrap.innerHTML=`<div class="notfound">${L.notfound}</div>`; return; }
+
+  // projeler + istatistikler
+  let projects=[];
+  try{
+    const r = await db.from("projects")
+      .select("id,title,category,price,created_at,plays")
+      .eq("user_id", profile.id).eq("status","approved")
+      .order("created_at",{ascending:false});
+    projects = r.data || [];
+  }catch(e){}
+  let statMap={};
+  try{
+    const ids=projects.map(p=>p.id);
+    if(ids.length){
+      const r = await db.from("project_stats").select("*").in("project_id", ids);
+      (r.data||[]).forEach(s=>{ statMap[s.project_id]=s; });
+    }
+  }catch(e){}
+
+  const totVotes = projects.reduce((t,p)=>t+((statMap[p.id]||{}).votes||0),0);
+  const totPlays = projects.reduce((t,p)=>t+(p.plays||0),0);
+  const grad = GRADIENTS[hashCode(profile.username)%GRADIENTS.length];
+  const isMe = me && me.id===profile.id;
+
+  wrap.innerHTML=`
+    <div class="profile-card">
+      <div class="avatar" style="background:${grad}">${esc(profile.username.charAt(0).toUpperCase())}</div>
+      <div class="p-info">
+        <h1>@${esc(profile.username)}</h1>
+        <div class="joined">${L.joined}: ${fmtDate(profile.created_at)}</div>
+        ${profile.bio ? `<div class="bio">${esc(profile.bio)}</div>` : ""}
+        <div class="p-stats">
+          <span><b>${projects.length}</b>${L.count}</span>
+          <span><b>${totVotes}</b>${L.votes}</span>
+          <span class="m"><b>${totPlays}</b>${L.plays}</span>
+        </div>
+        ${isMe ? `
+        <div style="margin-top:16px;"><button class="edit-btn" id="editBtn">✎ ${L.edit}</button></div>
+        <div class="edit-box" id="editBox">
+          <label>${L.u_label}</label>
+          <input type="text" id="eUser" maxlength="24" value="${esc(profile.username)}">
+          <label>${L.b_label}</label>
+          <textarea id="eBio" maxlength="300">${esc(profile.bio||"")}</textarea>
+          <button class="save" id="saveBtn">${L.save}</button>
+          <div class="msg" id="eMsg"></div>
+        </div>` : ""}
+      </div>
+    </div>
+    <h2 class="section">🎮 ${L.projects} (${projects.length})</h2>
+    <div class="grid" id="grid">${projects.length ? "" : `<div class="empty">${L.no_proj}</div>`}</div>`;
+
+  const grid=document.getElementById("grid");
+  projects.forEach(p=>{
+    const st=statMap[p.id]||{votes:0};
+    const g=GRADIENTS[Math.abs(p.id)%GRADIENTS.length];
+    const d=document.createElement("a");
+    d.className="proj";
+    d.href="/demo?p=c"+p.id;
+    d.innerHTML=`<div class="art" style="background:${g}">${p.category==="tool"?"🛠️":"🎮"}</div>
+      <div class="in"><h4>${esc(p.title)}</h4>
+      <div class="st"><span class="v">▲ ${st.votes}</span><span>▶ ${p.plays||0}</span><span>${p.price>0?("$"+p.price):L.free}</span></div></div>`;
+    grid.appendChild(d);
+  });
+
+  if(isMe){
+    document.getElementById("editBtn").addEventListener("click",()=>document.getElementById("editBox").classList.toggle("open"));
+    document.getElementById("saveBtn").addEventListener("click", async ()=>{
+      const u=document.getElementById("eUser").value.trim().toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,24);
+      const b=document.getElementById("eBio").value.trim().slice(0,300);
+      const m=document.getElementById("eMsg");
+      if(!u || u.length<3){ m.textContent=L.err; m.className="msg err"; return; }
+      try{
+        const { error } = await db.from("profiles").update({ username:u, bio:b }).eq("id", me.id);
+        if(error){ m.textContent=L.err; m.className="msg err"; return; }
+        m.textContent=L.saved; m.className="msg ok";
+        history.replaceState(null,"","/profile?u="+encodeURIComponent(u));
+        setTimeout(init, 800);
+      }catch(e){ m.textContent=L.err; m.className="msg err"; }
+    });
+  }
+}
+init();
+</script>
+</body>
+</html>

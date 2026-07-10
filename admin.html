@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ailaa — Moderasyon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#14182B;--bg-raised:#1E2340;--bg-raised-2:#262B4D;--line:#333a63;--text:#ECEAF7;--text-muted:#8B90B3;--amber:#F5A93B;--coral:#FF6F59;--mint:#59D8C7;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.5;min-height:100vh;}
+  a{color:inherit;text-decoration:none;}
+  header{position:sticky;top:0;z-index:50;background:rgba(20,24,43,0.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;max-width:1000px;margin:0 auto;}
+  .logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.3rem;display:flex;align-items:center;gap:8px;}
+  .logo::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--amber);box-shadow:0 0 12px var(--amber);}
+  .logo .tag{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--coral);border:1px solid rgba(255,111,89,0.4);padding:2px 7px;border-radius:100px;margin-left:6px;}
+  .home-link{font-size:0.88rem;color:var(--text-muted);}
+  main{max-width:1000px;margin:0 auto;padding:30px 20px;}
+  h2{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;margin:26px 0 14px;}
+  .gate{text-align:center;padding:60px 20px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+  .panel.hidden{display:none;}
+  .item{background:var(--bg-raised);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .item .info h4{font-family:'Space Grotesk',sans-serif;font-size:1rem;margin-bottom:3px;}
+  .item .info .meta{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-muted);word-break:break-all;}
+  .item .info .meta a{color:var(--mint);text-decoration:underline;}
+  .item .acts{display:flex;gap:6px;flex:none;}
+  .item button{background:var(--bg-raised-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:0.76rem;padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;}
+  .item button.del:hover{border-color:var(--coral);color:var(--coral);}
+  .empty{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--text-muted);padding:14px;}
+  .rep{border-left:3px solid var(--coral);}
+  .badge{font-family:'JetBrains Mono',monospace;font-size:0.68rem;background:rgba(255,111,89,0.15);color:var(--coral);padding:2px 8px;border-radius:100px;}
+  .item button.ok{border-color:rgba(89,216,199,0.5);color:var(--mint);}
+  .item button.ok:hover{background:rgba(89,216,199,0.12);}
+  .item iframe{width:100%;height:220px;border:1px solid var(--line);border-radius:8px;margin-top:10px;background:#000;}
+  .item .info{flex:1;min-width:0;}
+  .stats-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:24px;}
+  .stat-box{background:var(--bg-raised);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;}
+  .stat-box b{display:block;font-family:'Space Grotesk',sans-serif;font-size:1.5rem;color:var(--amber);}
+  .stat-box span{font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text-muted);}
+  .config-warn{background:rgba(255,111,89,0.1);border:1px solid rgba(255,111,89,0.4);border-radius:10px;padding:14px;font-size:0.82rem;color:var(--coral);font-family:'JetBrains Mono',monospace;margin-bottom:20px;display:none;}
+  .config-warn.show{display:block;}
+</style>
+</head>
+<body>
+<header>
+  <nav>
+    <a href="/" class="logo">ailaa <span class="tag">admin</span></a>
+    <a href="/demo" class="home-link">← Mağaza</a>
+  </nav>
+</header>
+
+<main>
+  <div class="config-warn" id="configWarn"></div>
+  <div class="gate" id="gate">...</div>
+
+  <div class="panel hidden" id="panel">
+    <div class="stats-strip" id="statsStrip"></div>
+
+    <h2>⏳ <span>Onay bekleyenler</span> (<span id="pendCount">0</span>)</h2>
+    <div id="pending"></div>
+
+    <h2>🚩 <span id="repTitle">Şikayetler</span> (<span id="repCount">0</span>)</h2>
+    <div id="reports"></div>
+
+    <h2>📦 <span id="projTitle">Yayındaki projeler</span> (<span id="projCount">0</span>)</h2>
+    <div id="projects"></div>
+  </div>
+</main>
+
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const URL_=window.AILAA_SUPABASE_URL, KEY_=window.AILAA_SUPABASE_KEY, ADMIN=window.AILAA_ADMIN_UID;
+const configured = URL_ && !String(URL_).includes("BURAYA") && KEY_ && !String(KEY_).includes("BURAYA") && typeof supabase!=="undefined";
+let db=null;
+if(configured){ db = supabase.createClient(URL_, KEY_); }
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(s){ try{ return new Date(s).toLocaleString(); }catch(e){ return ""; } }
+function pathFromUrl(url){ try{ const p=String(url).split("/games/")[1]; return p?decodeURIComponent(p):null; }catch(e){ return null; } }
+
+async function loadReports(){
+  const wrap=document.getElementById("reports");
+  try{
+    const { data, error } = await db.from("reports").select("*").order("created_at",{ascending:false});
+    if(error){ wrap.innerHTML=`<div class="empty">İzin yok ya da tablo eksik.</div>`; return; }
+    document.getElementById("repCount").textContent = data ? data.length : 0;
+    if(!data||!data.length){ wrap.innerHTML=`<div class="empty">Şikayet yok. 🎉</div>`; return; }
+    wrap.innerHTML = data.map(r=>`<div class="item rep">
+      <div class="info">
+        <h4><span class="badge">${esc(r.reason||"?")}</span></h4>
+        <div class="meta">proje #${esc(r.project_id)} · ${fmtDate(r.created_at)}</div>
+      </div>
+      <div class="acts"><button class="del" data-rep="${r.id}">Kaldır</button></div>
+    </div>`).join("");
+    wrap.querySelectorAll("[data-rep]").forEach(b=>b.addEventListener("click", async ()=>{
+      try{ await db.from("reports").delete().eq("id", b.dataset.rep); loadReports(); }catch(e){}
+    }));
+  }catch(e){ wrap.innerHTML=`<div class="empty">Hata.</div>`; }
+}
+
+async function loadStats(){
+  const wrap=document.getElementById("statsStrip");
+  try{
+    const [proj, pend, votes, comm, prof] = await Promise.all([
+      db.from("projects").select("id",{count:"exact",head:true}).eq("status","approved"),
+      db.from("projects").select("id",{count:"exact",head:true}).eq("status","pending"),
+      db.from("votes").select("id",{count:"exact",head:true}),
+      db.from("comments").select("id",{count:"exact",head:true}),
+      db.from("profiles").select("id",{count:"exact",head:true}),
+    ]);
+    wrap.innerHTML = `
+      <div class="stat-box"><b>${proj.count??0}</b><span>yayında</span></div>
+      <div class="stat-box"><b>${pend.count??0}</b><span>onay bekliyor</span></div>
+      <div class="stat-box"><b>${prof.count??0}</b><span>üye</span></div>
+      <div class="stat-box"><b>${votes.count??0}</b><span>oy</span></div>
+      <div class="stat-box"><b>${comm.count??0}</b><span>yorum</span></div>`;
+  }catch(e){ wrap.innerHTML=""; }
+}
+
+async function loadPending(){
+  const wrap=document.getElementById("pending");
+  try{
+    const { data, error } = await db.from("projects").select("*").eq("status","pending").order("created_at",{ascending:true});
+    if(error){ wrap.innerHTML=`<div class="empty">İzin yok ya da tablo eksik. (supabase_setup.sql çalıştırıldı mı?)</div>`; return; }
+    document.getElementById("pendCount").textContent = data ? data.length : 0;
+    if(!data||!data.length){ wrap.innerHTML=`<div class="empty">Kuyruk boş. 🎉</div>`; return; }
+    wrap.innerHTML = data.map(p=>`<div class="item" data-pend="${p.id}">
+      <div class="info">
+        <h4>${esc(p.title)}</h4>
+        <div class="meta">${esc(p.category)} · $${p.price||0}${p.buy_url?` · <a href="${esc(p.buy_url)}" target="_blank" rel="noopener">satış linki</a>`:""} · ${fmtDate(p.created_at)}<br>${esc(p.description||"").slice(0,160)}</div>
+        <iframe src="${esc(p.file_url)}" sandbox="allow-scripts" loading="lazy" title="önizleme"></iframe>
+      </div>
+      <div class="acts">
+        <button class="ok" data-approve="${p.id}">✓ Onayla</button>
+        <button class="del" data-reject="${p.id}">✗ Reddet</button>
+      </div>
+    </div>`).join("");
+    wrap.querySelectorAll("[data-approve]").forEach(b=>b.addEventListener("click", async ()=>{
+      b.disabled=true;
+      try{ await db.from("projects").update({status:"approved"}).eq("id", b.dataset.approve); loadPending(); loadProjects(); loadStats(); }catch(e){ b.disabled=false; }
+    }));
+    wrap.querySelectorAll("[data-reject]").forEach(b=>b.addEventListener("click", async ()=>{
+      if(!confirm("Bu projeyi reddetmek istediğine emin misin?")) return;
+      b.disabled=true;
+      try{ await db.from("projects").update({status:"rejected"}).eq("id", b.dataset.reject); loadPending(); loadStats(); }catch(e){ b.disabled=false; }
+    }));
+  }catch(e){ wrap.innerHTML=`<div class="empty">Hata.</div>`; }
+}
+
+async function loadProjects(){
+  const wrap=document.getElementById("projects");
+  try{
+    const { data, error } = await db.from("projects").select("*").eq("status","approved").order("created_at",{ascending:false});
+    if(error){ wrap.innerHTML=`<div class="empty">İzin yok ya da tablo eksik.</div>`; return; }
+    document.getElementById("projCount").textContent = data ? data.length : 0;
+    if(!data||!data.length){ wrap.innerHTML=`<div class="empty">Henüz proje yok.</div>`; return; }
+    wrap.innerHTML = data.map(p=>`<div class="item">
+      <div class="info">
+        <h4>${esc(p.title)}</h4>
+        <div class="meta">${esc(p.category)} · $${p.price||0} · ${fmtDate(p.created_at)}<br><a href="${esc(p.file_url)}" target="_blank" rel="noopener">dosyayı aç</a></div>
+      </div>
+      <div class="acts"><button class="del" data-proj="${p.id}" data-url="${esc(p.file_url)}">Sil</button></div>
+    </div>`).join("");
+    wrap.querySelectorAll("[data-proj]").forEach(b=>b.addEventListener("click", ()=>delProject(b.dataset.proj, b.dataset.url)));
+  }catch(e){ wrap.innerHTML=`<div class="empty">Hata.</div>`; }
+}
+
+async function delProject(id, url){
+  if(!confirm("Bu projeyi kalıcı olarak silmek istediğine emin misin?")) return;
+  try{
+    const path=pathFromUrl(url);
+    if(path){ await db.storage.from("games").remove([path]); }
+    await db.from("projects").delete().eq("id", id);
+    loadProjects();
+  }catch(e){ alert("Silinemedi."); }
+}
+
+async function init(){
+  if(!configured){
+    const w=document.getElementById("configWarn"); w.textContent="⚠ Supabase bilgileri eksik (config.js)."; w.classList.add("show");
+    document.getElementById("gate").textContent=""; return;
+  }
+  if(!ADMIN || String(ADMIN).includes("BURAYA")){
+    document.getElementById("gate").textContent="⚠ Admin UID ayarlanmamış (config.js → AILAA_ADMIN_UID)."; return;
+  }
+  const { data } = await db.auth.getSession();
+  const user = data.session && data.session.user;
+  if(!user){ document.getElementById("gate").innerHTML='Bu sayfa için giriş yapmalısın. <a href="/auth" style="color:var(--mint);text-decoration:underline;">Giriş</a>'; return; }
+  if(user.id !== ADMIN){ document.getElementById("gate").textContent="⛔ Bu sayfaya erişim yetkin yok."; return; }
+  // yetkili
+  document.getElementById("gate").style.display="none";
+  document.getElementById("panel").classList.remove("hidden");
+  loadStats(); loadPending(); loadReports(); loadProjects();
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ailaa — Proje Yükle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14182B; --bg-raised:#1E2340; --bg-raised-2:#262B4D;
+    --line:#333a63; --text:#ECEAF7; --text-muted:#8B90B3;
+    --amber:#F5A93B; --coral:#FF6F59; --mint:#59D8C7; --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column;}
+  a{color:inherit; text-decoration:none;}
+  body::before{content:""; position:fixed; inset:0; background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px); background-size:42px 42px; pointer-events:none; z-index:0;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(20,24,43,0.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  nav{display:flex; align-items:center; justify-content:space-between; padding:14px 20px; max-width:1120px; margin:0 auto;}
+  .logo{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.3rem; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px;}
+  .logo::before{content:""; width:10px; height:10px; border-radius:3px; background:var(--amber); box-shadow:0 0 12px var(--amber);}
+  .home-link{font-size:0.88rem; color:var(--text-muted);}
+  .home-link:hover{color:var(--text);}
+
+  main{flex:1; position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:20px; padding:36px 20px;}
+  .card{background:var(--bg-raised); border:1px solid var(--line); border-radius:18px; width:100%; max-width:480px; padding:30px 26px; box-shadow:0 30px 60px -20px rgba(0,0,0,0.5);}
+  .card h1{font-family:'Space Grotesk',sans-serif; font-size:1.5rem; letter-spacing:-0.02em; margin-bottom:6px;}
+  .card .sub{color:var(--text-muted); font-size:0.9rem; margin-bottom:24px;}
+
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:0.82rem; color:var(--text-muted); margin-bottom:7px; font-weight:500;}
+  .field input[type=text], .field input[type=number], .field textarea{
+    width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text);
+    padding:12px 14px; border-radius:10px; font-size:0.95rem; outline:none; font-family:inherit;
+  }
+  .field textarea{resize:vertical; min-height:80px;}
+  .field input:focus, .field textarea:focus{border-color:var(--amber);}
+  .field input::placeholder, .field textarea::placeholder{color:var(--text-muted);}
+
+  .cat-toggle{display:flex; gap:8px;}
+  .cat-toggle button{flex:1; background:var(--bg); border:1px solid var(--line); color:var(--text-muted); padding:11px; border-radius:10px; font-family:inherit; font-size:0.9rem; font-weight:600; cursor:pointer;}
+  .cat-toggle button.active{background:var(--amber); color:#1a1508; border-color:var(--amber);}
+
+  .file-drop{
+    border:1.5px dashed var(--line); border-radius:12px; padding:22px 16px; text-align:center; cursor:pointer;
+    transition:border-color .15s ease; background:var(--bg);
+  }
+  .file-drop:hover{border-color:var(--mint);}
+  .file-drop.has-file{border-color:var(--mint); border-style:solid;}
+  .file-drop .fd-icon{font-size:1.6rem; margin-bottom:8px;}
+  .file-drop .fd-text{font-size:0.88rem; color:var(--text-muted);}
+  .file-drop .fd-name{font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:var(--mint); margin-top:8px; word-break:break-all;}
+  .file-drop input[type=file]{display:none;}
+  .hint{font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--text-muted); margin-top:7px; line-height:1.5;}
+
+  .submit-btn{width:100%; background:var(--amber); color:#1a1508; border:none; font-weight:700; font-size:0.98rem; padding:14px; border-radius:11px; cursor:pointer; font-family:inherit; margin-top:8px; transition:transform .15s ease;}
+  .submit-btn:hover{transform:translateY(-1px);}
+  .submit-btn:disabled{opacity:0.6; cursor:default; transform:none;}
+
+  .msg{margin-top:16px; font-size:0.86rem; text-align:center; font-family:'JetBrains Mono',monospace; line-height:1.6; min-height:1em;}
+  .msg.error{color:var(--coral);}
+  .msg.success{color:var(--mint);}
+  .msg.info{color:var(--text-muted);}
+  .msg a{color:var(--mint); text-decoration:underline;}
+
+  .gate{text-align:center; padding:20px 0; display:none;}
+  .gate.show{display:block;}
+  .gate p{color:var(--text-muted); margin-bottom:18px;}
+  .gate a.btn{display:inline-block; background:var(--amber); color:#1a1508; font-weight:600; padding:12px 24px; border-radius:10px;}
+  .form-wrap.hidden{display:none;}
+
+  /* içerik kuralları + onay */
+  .rules{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:18px;}
+  .rules-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.92rem; margin-bottom:8px;}
+  .rules ul{list-style:none; margin:0 0 12px; padding:0;}
+  .rules li{font-size:0.8rem; color:var(--text-muted); padding-left:16px; position:relative; margin-bottom:5px; line-height:1.5;}
+  .rules li::before{content:"•"; position:absolute; left:2px; color:var(--coral);}
+  .agree{display:flex; align-items:flex-start; gap:9px; cursor:pointer; font-size:0.85rem; color:var(--text);}
+  .agree input{margin-top:2px; width:16px; height:16px; accent-color:var(--amber); flex:none;}
+
+  /* Projelerim listesi */
+  .mp-row{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;}
+  .mp-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+  .mp-info h4{font-family:'Space Grotesk',sans-serif; font-size:1rem; margin-bottom:3px;}
+  .mp-info .mp-meta{font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--text-muted);}
+  .mp-info .mp-meta .price{color:var(--mint);}
+  .mp-actions{display:flex; gap:6px; flex:none;}
+  .mp-actions button{background:var(--bg-raised-2); border:1px solid var(--line); color:var(--text); font-family:inherit; font-size:0.75rem; padding:7px 11px; border-radius:8px; cursor:pointer; white-space:nowrap;}
+  .mp-actions .del:hover{border-color:var(--coral); color:var(--coral);}
+  .mp-actions .edit:hover{border-color:var(--amber); color:var(--amber);}
+  .mp-edit{margin-top:12px; display:none; flex-direction:column; gap:9px;}
+  .mp-edit.open{display:flex;}
+  .mp-edit input, .mp-edit textarea{width:100%; background:var(--bg-raised); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:9px; font-size:0.9rem; font-family:inherit; outline:none;}
+  .mp-edit input:focus, .mp-edit textarea:focus{border-color:var(--amber);}
+  .mp-edit textarea{resize:vertical; min-height:60px;}
+  .mp-edit .row2{display:flex; gap:8px;}
+  .mp-edit .save{background:var(--amber); color:#1a1508; border:none; font-weight:700; padding:10px; border-radius:9px; cursor:pointer; font-family:inherit; flex:1;}
+  .mp-edit .cancel{background:var(--bg-raised-2); border:1px solid var(--line); color:var(--text); padding:10px 14px; border-radius:9px; cursor:pointer; font-family:inherit;}
+  .mp-empty{font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:var(--text-muted); text-align:center; padding:16px 8px;}
+
+  .config-warn{background:rgba(255,111,89,0.1); border:1px solid rgba(255,111,89,0.4); border-radius:10px; padding:14px; font-size:0.82rem; color:var(--coral); font-family:'JetBrains Mono',monospace; line-height:1.6; margin-bottom:20px; display:none;}
+  .config-warn.show{display:block;}
+
+  footer{border-top:1px solid var(--line); padding:24px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text-muted); position:relative; z-index:1;}
+  .lang-switch{display:inline-flex; gap:2px; background:var(--bg-raised); border:1px solid var(--line); border-radius:8px; padding:3px; margin-bottom:14px;}
+  .lang-switch button{background:none; border:none; cursor:pointer; color:var(--text-muted); padding:5px 9px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:500;}
+  .lang-switch button.active{background:var(--amber); color:#1a1508;}
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="/" class="logo">ailaa</a>
+    <a href="/demo" class="home-link" data-i18n="to_store">← Mağaza</a>
+  </nav>
+</header>
+
+<main>
+  <div class="card">
+    <div class="config-warn" id="configWarn"></div>
+
+    <!-- giriş yapılmamışsa -->
+    <div class="gate" id="gate">
+      <p data-i18n="gate_text">Proje yüklemek için önce giriş yapmalısın.</p>
+      <a href="/auth" class="btn" data-i18n="gate_btn">Giriş yap</a>
+    </div>
+
+    <!-- yükleme formu -->
+    <div class="form-wrap" id="formWrap">
+      <h1 data-i18n="title">Projeni yükle</h1>
+      <p class="sub" data-i18n="subtitle">Tek dosyalık HTML oyununu/uygulamanı yükle, mağazada yayınlansın.</p>
+
+      <div class="field">
+        <label data-i18n="f_title">Proje adı</label>
+        <input type="text" id="pTitle" data-i18n-placeholder="ph_title" placeholder="Örn: Neon Kaçış">
+      </div>
+
+      <div class="field">
+        <label data-i18n="f_cat">Kategori</label>
+        <div class="cat-toggle" id="catToggle">
+          <button type="button" data-cat="game" class="active" data-i18n="cat_game">Oyun</button>
+          <button type="button" data-cat="tool" data-i18n="cat_tool">Araç</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label data-i18n="f_price">Fiyat (0 = ücretsiz)</label>
+        <input type="number" id="pPrice" min="0" max="999" value="0">
+      </div>
+
+      <div class="field" id="buyUrlField" style="display:none;">
+        <label data-i18n="f_buyurl">Satış linki (Shopier / Gumroad / Lemon Squeezy)</label>
+        <input type="url" id="pBuyUrl" placeholder="https://...">
+        <div class="hint" data-i18n="buyurl_hint">Ücretli projelerde ödeme, senin satış sayfanda tamamlanır. Ailaa alıcıyı bu linke yönlendirir.</div>
+      </div>
+
+      <div class="field">
+        <label data-i18n="f_desc">Açıklama</label>
+        <textarea id="pDesc" data-i18n-placeholder="ph_desc" placeholder="Projeni birkaç cümleyle anlat..."></textarea>
+      </div>
+
+      <div class="field">
+        <label data-i18n="f_file">Dosya</label>
+        <label class="file-drop" id="fileDrop">
+          <div class="fd-icon">📄</div>
+          <div class="fd-text" id="fdText" data-i18n="fd_text">Dokun ve HTML dosyanı seç</div>
+          <div class="fd-name" id="fdName"></div>
+          <input type="file" id="pFile" accept=".html,text/html">
+        </label>
+        <div class="hint" data-i18n="file_hint">Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 5 MB.</div>
+      </div>
+
+      <div class="field">
+        <label data-i18n="f_cover">Kapak görseli (isteğe bağlı)</label>
+        <label class="file-drop" id="coverDrop">
+          <div class="fd-icon">🖼️</div>
+          <div class="fd-text" id="cdText" data-i18n="cd_text">Dokun ve bir kapak resmi seç</div>
+          <div class="fd-name" id="cdName"></div>
+          <input type="file" id="pCover" accept="image/png,image/jpeg,image/webp">
+        </label>
+        <div class="hint" data-i18n="cover_hint">PNG/JPG/WEBP. En fazla 2 MB. Boş bırakırsan renkli bir kart kullanılır.</div>
+      </div>
+
+      <div class="rules" id="rulesBox">
+        <div class="rules-title" data-i18n="rules_title">Yükleme kuralları</div>
+        <ul>
+          <li data-i18n="rule1">Zararlı, kötü amaçlı veya virüs içeren kod yükleme.</li>
+          <li data-i18n="rule2">Başkasının telifli içeriğini (karakter, marka, kod) izinsiz kullanma.</li>
+          <li data-i18n="rule3">Cinsel, şiddet içeren veya nefret söylemi barındıran içerik yasak.</li>
+          <li data-i18n="rule4">Yüklediğin içerikten sen sorumlusun.</li>
+        </ul>
+        <label class="agree">
+          <input type="checkbox" id="agree">
+          <span data-i18n="agree_text">Kuralları okudum ve kabul ediyorum.</span>
+        </label>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" data-i18n="btn_publish">Yayınla</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+
+  <!-- PROJELERİM -->
+  <div class="card" id="myCard" style="display:none;">
+    <h1 style="font-size:1.25rem;" data-i18n="mp_title">Projelerim</h1>
+    <p class="sub" data-i18n="mp_sub">Yüklediğin projeleri buradan yönet.</p>
+    <div id="myList"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="lang-switch" role="group" aria-label="Language">
+    <button type="button" data-lang="tr">TR</button>
+    <button type="button" data-lang="en">EN</button>
+    <button type="button" data-lang="de">DE</button>
+  </div>
+  <br>
+  <span data-i18n="footer">ailaa © 2026</span>
+</footer>
+
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = window.AILAA_SUPABASE_URL || "BURAYA_PROJE_URL";
+const SUPABASE_KEY = window.AILAA_SUPABASE_KEY || "BURAYA_PUBLISHABLE_KEY";
+
+const I18N = {
+  tr:{
+    to_store:"← Mağaza",
+    title:"Projeni yükle", subtitle:"Tek dosyalık HTML oyununu/uygulamanı yükle, mağazada yayınlansın.",
+    gate_text:"Proje yüklemek için önce giriş yapmalısın.", gate_btn:"Giriş yap",
+    f_title:"Proje adı", ph_title:"Örn: Neon Kaçış",
+    f_cat:"Kategori", cat_game:"Oyun", cat_tool:"Araç",
+    f_price:"Fiyat (0 = ücretsiz)", f_desc:"Açıklama", ph_desc:"Projeni birkaç cümleyle anlat...",
+    f_file:"Dosya", fd_text:"Dokun ve HTML dosyanı seç",
+    file_hint:"Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 5 MB.",
+    btn_publish:"Yayınla", footer:"ailaa © 2026",
+    m_need_title:"Proje adı gerekli.", m_need_file:"Bir HTML dosyası seç.",
+    m_bad_type:"Sadece .html dosyası yükleyebilirsin.", m_too_big:"Dosya çok büyük (en fazla 5 MB).",
+    m_uploading:"Yükleniyor...", m_saving:"Kaydediliyor...",
+    m_success:"✅ Gönderildi! Moderasyon onayından sonra mağazada görünecek. ", m_view:"Mağazaya git",
+    f_buyurl:"Satış linki (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"Ücretli projelerde ödeme, senin satış sayfanda tamamlanır. Ailaa alıcıyı bu linke yönlendirir.", m_need_buyurl:"Ücretli proje için geçerli bir satış linki (https://...) gerekli.",
+    st_pending:"⏳ onay bekliyor", st_approved:"✓ yayında", st_rejected:"✗ reddedildi",
+    mp_title:"Projelerim", mp_sub:"Yüklediğin projeleri buradan yönet.", mp_empty:"Henüz proje yüklemedin.",
+    mp_edit:"Düzenle", mp_del:"Sil", mp_save:"Kaydet", mp_cancel:"İptal",
+    mp_confirm:"Bu projeyi silmek istediğine emin misin?", mp_deleting:"Siliniyor...", mp_saving:"Kaydediliyor...",
+    mp_updated:"Güncellendi ✓", mp_err:"İşlem başarısız, tekrar dene.",
+    mp_e_title:"Başlık", mp_e_price:"Fiyat", mp_e_desc:"Açıklama",
+    rules_title:"Yükleme kuralları", agree_text:"Kuralları okudum ve kabul ediyorum.", m_need_agree:"Devam etmek için kuralları kabul et.",
+    f_cover:"Kapak görseli (isteğe bağlı)", cd_text:"Dokun ve bir kapak resmi seç", cover_hint:"PNG/JPG/WEBP. En fazla 2 MB. Boş bırakırsan renkli bir kart kullanılır.",
+    rule1:"Zararlı, kötü amaçlı veya virüs içeren kod yükleme.", rule2:"Başkasının telifli içeriğini (karakter, marka, kod) izinsiz kullanma.", rule3:"Cinsel, şiddet içeren veya nefret söylemi barındıran içerik yasak.", rule4:"Yüklediğin içerikten sen sorumlusun.",
+    m_err_upload:"Dosya yüklenemedi, tekrar dene.", m_err_save:"Kaydedilemedi, tekrar dene.",
+    e_config:"⚠ Supabase bilgileri girilmemiş (config.js)."
+  },
+  en:{
+    to_store:"← Store",
+    title:"Publish your project", subtitle:"Upload your single-file HTML game/app and go live in the store.",
+    gate_text:"You need to log in first to upload a project.", gate_btn:"Log in",
+    f_title:"Project name", ph_title:"e.g. Neon Run",
+    f_cat:"Category", cat_game:"Game", cat_tool:"Tool",
+    f_price:"Price (0 = free)", f_desc:"Description", ph_desc:"Describe your project in a few sentences...",
+    f_file:"File", fd_text:"Tap to choose your HTML file",
+    file_hint:"Must be a single .html file (all code inside). Max 5 MB.",
+    btn_publish:"Publish", footer:"ailaa © 2026",
+    m_need_title:"Project name required.", m_need_file:"Choose an HTML file.",
+    m_bad_type:"You can only upload a .html file.", m_too_big:"File too large (max 5 MB).",
+    m_uploading:"Uploading...", m_saving:"Saving...",
+    m_success:"✅ Submitted! It will appear in the store after moderation approval. ", m_view:"Go to store",
+    f_buyurl:"Checkout link (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"For paid projects, payment is completed on your own checkout page. Ailaa sends buyers to this link.", m_need_buyurl:"A valid checkout link (https://...) is required for paid projects.",
+    st_pending:"⏳ pending review", st_approved:"✓ live", st_rejected:"✗ rejected",
+    mp_title:"My Projects", mp_sub:"Manage the projects you uploaded.", mp_empty:"You haven't uploaded any project yet.",
+    mp_edit:"Edit", mp_del:"Delete", mp_save:"Save", mp_cancel:"Cancel",
+    mp_confirm:"Are you sure you want to delete this project?", mp_deleting:"Deleting...", mp_saving:"Saving...",
+    mp_updated:"Updated ✓", mp_err:"Action failed, try again.",
+    mp_e_title:"Title", mp_e_price:"Price", mp_e_desc:"Description",
+    rules_title:"Upload rules", agree_text:"I have read and accept the rules.", m_need_agree:"Accept the rules to continue.",
+    f_cover:"Cover image (optional)", cd_text:"Tap to choose a cover image", cover_hint:"PNG/JPG/WEBP. Max 2 MB. If empty, a colored card is used.",
+    rule1:"Do not upload harmful, malicious or virus code.", rule2:"Do not use others' copyrighted content (characters, brands, code) without permission.", rule3:"No sexual, violent or hateful content.", rule4:"You are responsible for what you upload.",
+    m_err_upload:"Upload failed, try again.", m_err_save:"Could not save, try again.",
+    e_config:"⚠ Supabase details missing (config.js)."
+  },
+  de:{
+    to_store:"← Shop",
+    title:"Veröffentliche dein Projekt", subtitle:"Lade dein HTML-Spiel/deine App (eine Datei) hoch und geh im Shop live.",
+    gate_text:"Du musst dich zuerst anmelden, um ein Projekt hochzuladen.", gate_btn:"Anmelden",
+    f_title:"Projektname", ph_title:"z.B. Neon Run",
+    f_cat:"Kategorie", cat_game:"Spiel", cat_tool:"Tool",
+    f_price:"Preis (0 = kostenlos)", f_desc:"Beschreibung", ph_desc:"Beschreibe dein Projekt in ein paar Sätzen...",
+    f_file:"Datei", fd_text:"Tippe, um deine HTML-Datei zu wählen",
+    file_hint:"Muss eine einzelne .html-Datei sein (gesamter Code enthalten). Max 5 MB.",
+    btn_publish:"Veröffentlichen", footer:"ailaa © 2026",
+    m_need_title:"Projektname erforderlich.", m_need_file:"Wähle eine HTML-Datei.",
+    m_bad_type:"Du kannst nur eine .html-Datei hochladen.", m_too_big:"Datei zu groß (max 5 MB).",
+    m_uploading:"Wird hochgeladen...", m_saving:"Wird gespeichert...",
+    m_success:"✅ Eingereicht! Nach der Moderationsfreigabe erscheint es im Shop. ", m_view:"Zum Shop",
+    f_buyurl:"Verkaufslink (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"Bei bezahlten Projekten erfolgt die Zahlung auf deiner eigenen Verkaufsseite. Ailaa leitet Käufer zu diesem Link.", m_need_buyurl:"Für bezahlte Projekte ist ein gültiger Verkaufslink (https://...) erforderlich.",
+    st_pending:"⏳ wartet auf Freigabe", st_approved:"✓ live", st_rejected:"✗ abgelehnt",
+    mp_title:"Meine Projekte", mp_sub:"Verwalte deine hochgeladenen Projekte.", mp_empty:"Du hast noch kein Projekt hochgeladen.",
+    mp_edit:"Bearbeiten", mp_del:"Löschen", mp_save:"Speichern", mp_cancel:"Abbrechen",
+    mp_confirm:"Möchtest du dieses Projekt wirklich löschen?", mp_deleting:"Wird gelöscht...", mp_saving:"Wird gespeichert...",
+    mp_updated:"Aktualisiert ✓", mp_err:"Aktion fehlgeschlagen, versuche es erneut.",
+    mp_e_title:"Titel", mp_e_price:"Preis", mp_e_desc:"Beschreibung",
+    rules_title:"Upload-Regeln", agree_text:"Ich habe die Regeln gelesen und akzeptiere sie.", m_need_agree:"Akzeptiere die Regeln, um fortzufahren.",
+    f_cover:"Titelbild (optional)", cd_text:"Tippe, um ein Titelbild zu wählen", cover_hint:"PNG/JPG/WEBP. Max 2 MB. Wenn leer, wird eine farbige Karte verwendet.",
+    rule1:"Lade keinen schädlichen, bösartigen oder Virus-Code hoch.", rule2:"Verwende keine urheberrechtlich geschützten Inhalte anderer ohne Erlaubnis.", rule3:"Keine sexuellen, gewalttätigen oder hasserfüllten Inhalte.", rule4:"Du bist für deine Uploads verantwortlich.",
+    m_err_upload:"Upload fehlgeschlagen, versuche es erneut.", m_err_save:"Speichern fehlgeschlagen, versuche es erneut.",
+    e_config:"⚠ Supabase-Daten fehlen (config.js)."
+  }
+};
+const GEO_MAP={TR:"tr",CY:"tr",DE:"de",AT:"de",CH:"de",LI:"de",LU:"de"};
+let currentLang="tr", category="game", selectedFile=null;
+
+function t(k){ return I18N[currentLang][k]; }
+function applyLang(lang){
+  if(!I18N[lang]) lang="en";
+  currentLang=lang;
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ const k=el.getAttribute("data-i18n"); if(I18N[lang][k]!==undefined) el.textContent=I18N[lang][k]; });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{ const k=el.getAttribute("data-i18n-placeholder"); if(I18N[lang][k]!==undefined) el.placeholder=I18N[lang][k]; });
+  document.querySelectorAll(".lang-switch button").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
+  try{ localStorage.setItem("ailaa_lang",lang); }catch(e){}
+}
+async function detectLang(){
+  try{ const s=localStorage.getItem("ailaa_lang"); if(s&&I18N[s]){ applyLang(s); return; } }catch(e){}
+  let lang=null;
+  try{
+    const c=new AbortController(); const tm=setTimeout(()=>c.abort(),3000);
+    const r=await fetch("https://ipapi.co/json/",{signal:c.signal}); clearTimeout(tm);
+    if(r.ok){ const d=await r.json(); if(d&&d.country_code) lang=GEO_MAP[d.country_code]||"en"; }
+  }catch(e){}
+  if(!lang){ const n=(navigator.language||"en").slice(0,2).toLowerCase(); lang=I18N[n]?n:"en"; }
+  applyLang(lang);
+}
+document.querySelectorAll(".lang-switch button").forEach(b=>b.addEventListener("click",()=>applyLang(b.dataset.lang)));
+
+// kategori seçimi
+document.getElementById("catToggle").addEventListener("click",(e)=>{
+  const btn=e.target.closest("button"); if(!btn) return;
+  category=btn.dataset.cat;
+  document.querySelectorAll("#catToggle button").forEach(b=>b.classList.toggle("active",b===btn));
+});
+
+// dosya seçimi
+const fileInput=document.getElementById("pFile");
+fileInput.addEventListener("change",()=>{
+  selectedFile = fileInput.files[0] || null;
+  const drop=document.getElementById("fileDrop");
+  const name=document.getElementById("fdName");
+  if(selectedFile){ drop.classList.add("has-file"); name.textContent="✓ "+selectedFile.name; }
+  else { drop.classList.remove("has-file"); name.textContent=""; }
+});
+
+// kapak görseli seçimi
+let selectedCover=null;
+const coverInput=document.getElementById("pCover");
+coverInput.addEventListener("change",()=>{
+  selectedCover = coverInput.files[0] || null;
+  const drop=document.getElementById("coverDrop");
+  const name=document.getElementById("cdName");
+  if(selectedCover){ drop.classList.add("has-file"); name.textContent="✓ "+selectedCover.name; }
+  else { drop.classList.remove("has-file"); name.textContent=""; }
+});
+
+function setMsg(text,type,html){ const m=document.getElementById("msg"); if(html){ m.innerHTML=text; } else { m.textContent=text||""; } m.className="msg"+(type?" "+type:""); }
+
+// Supabase
+const configured = !SUPABASE_URL.includes("BURAYA") && !SUPABASE_KEY.includes("BURAYA");
+let db=null, currentUser=null;
+if(configured){ const { createClient } = supabase; db = createClient(SUPABASE_URL, SUPABASE_KEY); }
+
+function slugify(s){ return (s||"file").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40) || "file"; }
+
+// fiyat > 0 ise satış linki alanını göster
+document.getElementById("pPrice").addEventListener("input",()=>{
+  const p=parseInt(document.getElementById("pPrice").value)||0;
+  document.getElementById("buyUrlField").style.display = p>0 ? "block" : "none";
+});
+
+document.getElementById("submitBtn").addEventListener("click", async ()=>{
+  if(!configured || !db){ setMsg(t("e_config"),"error"); return; }
+  const title=document.getElementById("pTitle").value.trim();
+  const desc=document.getElementById("pDesc").value.trim();
+  const price=parseInt(document.getElementById("pPrice").value)||0;
+  const buyUrl=document.getElementById("pBuyUrl").value.trim();
+  if(!title){ setMsg(t("m_need_title"),"error"); return; }
+  if(price>0 && !/^https:\/\/.+\..+/.test(buyUrl)){ setMsg(t("m_need_buyurl"),"error"); return; }
+  if(!selectedFile){ setMsg(t("m_need_file"),"error"); return; }
+  if(!document.getElementById("agree").checked){ setMsg(t("m_need_agree"),"error"); return; }
+  if(!/\.html?$/i.test(selectedFile.name)){ setMsg(t("m_bad_type"),"error"); return; }
+  if(selectedFile.size > 5*1024*1024){ setMsg(t("m_too_big"),"error"); return; }
+
+  const btn=document.getElementById("submitBtn");
+  btn.disabled=true; setMsg(t("m_uploading"),"info");
+  try{
+    const path = currentUser.id + "/" + Date.now() + "_" + slugify(title) + ".html";
+    const up = await db.storage.from("games").upload(path, selectedFile, { contentType:"text/html", upsert:false });
+    if(up.error){ setMsg(t("m_err_upload"),"error"); btn.disabled=false; return; }
+
+    const pub = db.storage.from("games").getPublicUrl(path);
+    const fileUrl = pub.data.publicUrl;
+
+    // kapak görseli (varsa) yükle
+    let coverUrl = null;
+    if(selectedCover && selectedCover.size <= 2*1024*1024){
+      const ext = (selectedCover.name.split(".").pop()||"png").toLowerCase();
+      const cpath = currentUser.id + "/covers/" + Date.now() + "_" + slugify(title) + "." + ext;
+      const cup = await db.storage.from("games").upload(cpath, selectedCover, { contentType:selectedCover.type||"image/png", upsert:false });
+      if(!cup.error){ coverUrl = db.storage.from("games").getPublicUrl(cpath).data.publicUrl; }
+    }
+
+    setMsg(t("m_saving"),"info");
+    const ins = await db.from("projects").insert({
+      user_id: currentUser.id, title, description: desc, category, price,
+      file_url: fileUrl, cover_url: coverUrl, buy_url: (price>0 ? buyUrl : null), status: "pending"
+    });
+    if(ins.error){ setMsg(t("m_err_save"),"error"); btn.disabled=false; return; }
+
+    setMsg(t("m_success")+`<a href="/demo">${t("m_view")}</a>`, "success", true);
+    // formu sıfırla
+    document.getElementById("pTitle").value="";
+    document.getElementById("pDesc").value="";
+    document.getElementById("pPrice").value="0";
+    document.getElementById("pBuyUrl").value="";
+    document.getElementById("buyUrlField").style.display="none";
+    fileInput.value=""; selectedFile=null;
+    document.getElementById("fileDrop").classList.remove("has-file");
+    document.getElementById("fdName").textContent="";
+    coverInput.value=""; selectedCover=null;
+    document.getElementById("coverDrop").classList.remove("has-file");
+    document.getElementById("cdName").textContent="";
+    loadMyProjects();  // listeyi tazele
+  }catch(e){ setMsg(t("m_err_save"),"error"); console.error(e); }
+  btn.disabled=false;
+});
+
+/* ===== PROJELERİM: listele / sil / düzenle ===== */
+function fmtDate(s){ try{ return new Date(s).toLocaleDateString(); }catch(e){ return ""; } }
+function pathFromUrl(url){ try{ const p=String(url).split("/games/")[1]; return p?decodeURIComponent(p):null; }catch(e){ return null; } }
+
+async function loadMyProjects(){
+  if(!db || !currentUser) return;
+  const wrap=document.getElementById("myList");
+  document.getElementById("myCard").style.display="block";
+  wrap.innerHTML=`<div class="mp-empty">...</div>`;
+  try{
+    const { data, error } = await db.from("projects")
+      .select("id,title,description,category,price,file_url,created_at,status,buy_url")
+      .eq("user_id", currentUser.id).order("created_at",{ascending:false});
+    if(error){ wrap.innerHTML=`<div class="mp-empty">${t("mp_err")}</div>`; return; }
+    if(!data || !data.length){ wrap.innerHTML=`<div class="mp-empty">${t("mp_empty")}</div>`; return; }
+    wrap.innerHTML = data.map(p=>{
+      const catLabel = p.category==="tool" ? t("cat_tool") : t("cat_game");
+      const priceLabel = (p.price>0) ? ("$"+p.price) : (currentLang==="tr"?"Ücretsiz":currentLang==="de"?"Kostenlos":"Free");
+      const stKey = p.status==="approved" ? "st_approved" : (p.status==="rejected" ? "st_rejected" : "st_pending");
+      const stColor = p.status==="approved" ? "var(--mint)" : (p.status==="rejected" ? "var(--coral)" : "var(--amber)");
+      return `<div class="mp-row" data-id="${p.id}">
+        <div class="mp-head">
+          <div class="mp-info">
+            <h4>${esc(p.title)}</h4>
+            <div class="mp-meta">${catLabel} · <span class="price">${priceLabel}</span> · ${fmtDate(p.created_at)} · <span style="color:${stColor}; font-weight:600;">${t(stKey)}</span></div>
+          </div>
+          <div class="mp-actions">
+            <button class="edit" data-act="edit">${t("mp_edit")}</button>
+            <button class="del" data-act="del">${t("mp_del")}</button>
+          </div>
+        </div>
+        <div class="mp-edit" data-edit>
+          <input type="text" data-e="title" value="${esc(p.title)}" placeholder="${t("mp_e_title")}">
+          <input type="number" data-e="price" min="0" value="${p.price||0}" placeholder="${t("mp_e_price")}">
+          <textarea data-e="desc" placeholder="${t("mp_e_desc")}">${esc(p.description||"")}</textarea>
+          <div class="row2">
+            <button class="save" data-act="save">${t("mp_save")}</button>
+            <button class="cancel" data-act="cancel">${t("mp_cancel")}</button>
+          </div>
+          <div class="msg" data-rowmsg></div>
+        </div>
+      </div>`;
+    }).join("");
+    // olayları bağla
+    wrap.querySelectorAll(".mp-row").forEach(row=>{
+      const id=row.getAttribute("data-id");
+      const p=data.find(x=>String(x.id)===String(id));
+      row.querySelector('[data-act="edit"]').addEventListener("click",()=> row.querySelector("[data-edit]").classList.toggle("open"));
+      row.querySelector('[data-act="cancel"]').addEventListener("click",()=> row.querySelector("[data-edit]").classList.remove("open"));
+      row.querySelector('[data-act="del"]').addEventListener("click",()=> deleteProject(p, row));
+      row.querySelector('[data-act="save"]').addEventListener("click",()=> saveProject(p, row));
+    });
+  }catch(e){ wrap.innerHTML=`<div class="mp-empty">${t("mp_err")}</div>`; }
+}
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function deleteProject(p, row){
+  if(!confirm(t("mp_confirm"))) return;
+  const rowmsg=row.querySelector("[data-rowmsg]");
+  try{
+    // önce depodan dosyayı sil
+    const path=pathFromUrl(p.file_url);
+    if(path){ await db.storage.from("games").remove([path]); }
+    // sonra veritabanı kaydını sil
+    const { error } = await db.from("projects").delete().eq("id", p.id);
+    if(error){ alert(t("mp_err")); return; }
+    row.remove();
+    if(!document.querySelectorAll(".mp-row").length){ document.getElementById("myList").innerHTML=`<div class="mp-empty">${t("mp_empty")}</div>`; }
+  }catch(e){ alert(t("mp_err")); }
+}
+
+async function saveProject(p, row){
+  const box=row.querySelector("[data-edit]");
+  const title=box.querySelector('[data-e="title"]').value.trim();
+  const price=parseInt(box.querySelector('[data-e="price"]').value)||0;
+  const desc=box.querySelector('[data-e="desc"]').value.trim();
+  const rowmsg=row.querySelector("[data-rowmsg]");
+  if(!title){ rowmsg.textContent=t("m_need_title"); rowmsg.className="msg error"; return; }
+  rowmsg.textContent=t("mp_saving"); rowmsg.className="msg info";
+  try{
+    const { error } = await db.from("projects").update({ title, price, description:desc }).eq("id", p.id);
+    if(error){ rowmsg.textContent=t("mp_err"); rowmsg.className="msg error"; return; }
+    rowmsg.textContent=t("mp_updated"); rowmsg.className="msg success";
+    setTimeout(loadMyProjects, 700);
+  }catch(e){ rowmsg.textContent=t("mp_err"); rowmsg.className="msg error"; }
+}
+
+// başlangıç: dil + giriş kontrolü
+async function init(){
+  await detectLang();
+  if(!configured){
+    const w=document.getElementById("configWarn"); w.textContent=t("e_config"); w.classList.add("show");
+    document.getElementById("formWrap").classList.add("hidden");
+    return;
+  }
+  const { data } = await db.auth.getSession();
+  if(data.session && data.session.user){
+    currentUser = data.session.user;
+    document.getElementById("formWrap").classList.remove("hidden");
+    document.getElementById("gate").classList.remove("show");
+    loadMyProjects();
+  } else {
+    document.getElementById("formWrap").classList.add("hidden");
+    document.getElementById("gate").classList.add("show");
+    document.getElementById("myCard").style.display="none";
+  }
+}
+init();
+</script>
+
+</body>
+</html>
