@@ -1136,18 +1136,21 @@ document.querySelectorAll(".lang-switch button").forEach(btn => {
 detectLang();
 
 /* ---------- LOADING SCREEN ---------- */
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    document.getElementById('loader').classList.add('done');
-  }, 1800);
-});
-// Fallback: 3 saniye içinde load event çalışmazsa loader'ı zorla kapat
-setTimeout(() => {
+// Loader'ı hemen kapat, sayfa hazır olunca
+(function(){
   var loader = document.getElementById('loader');
-  if(loader && !loader.classList.contains('done')){
-    loader.classList.add('done');
+  if(!loader) return;
+  // Sayfa tamamen yüklenince kapat
+  window.addEventListener('load', function(){
+    setTimeout(function(){ loader.classList.add('done'); }, 1200);
+  });
+  // Fallback: 2.5 saniye sonra mutlaka kapat
+  setTimeout(function(){ loader.classList.add('done'); }, 2500);
+  // DOM hazır olunca erken kapatmaya çalış
+  if(document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(function(){ loader.classList.add('done'); }, 1500);
   }
-}, 3000);
+})();
 
 /* ---------- CUSTOM CURSOR ---------- */
 const cursor = document.getElementById('cursor');
@@ -1185,27 +1188,23 @@ const revealObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
 /* ---------- ANIMATED COUNTERS ---------- */
-const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if(entry.isIntersecting){
-      const el = entry.target;
-      const target = parseInt(el.dataset.count);
-      const suffix = el.dataset.suffix || '';
-      const duration = 2000;
-      const start = performance.now();
-      function update(now){
-        const progress = Math.min((now - start) / duration, 1);
-        const ease = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.floor(ease * target).toLocaleString() + suffix;
-        if(progress < 1) requestAnimationFrame(update);
-      }
-      requestAnimationFrame(update);
-      counterObserver.unobserve(el);
+function animateCounters(){
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    const duration = 2000;
+    const start = performance.now();
+    function update(now){
+      const progress = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.floor(ease * target).toLocaleString() + suffix;
+      if(progress < 1) requestAnimationFrame(update);
     }
+    requestAnimationFrame(update);
   });
-}, { threshold: 0.5 });
-
-document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+}
+// Sayfa yüklenince 1 saniye sonra sayaçları başlat
+setTimeout(animateCounters, 1000);
 
 /* ---------- BACK TO TOP ---------- */
 const backToTop = document.getElementById('backToTop');
