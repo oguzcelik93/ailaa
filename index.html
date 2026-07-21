@@ -61,10 +61,6 @@
     transition:opacity 0.6s ease, visibility 0.6s ease;
   }
   #loader.done{opacity:0; visibility:hidden; pointer-events:none;}
-/* Fallback: JS çalışmazsa 3s sonra otomatik gizle */
-@media (scripting: none){
-  #loader{display:none !important;}
-}
   .loader-logo{
     font-family:'Space Grotesk', sans-serif;
     font-weight:700; font-size:2rem; letter-spacing:-0.02em;
@@ -936,7 +932,7 @@ const I18N = {
   tr: {
     nav_how: "Nasıl çalışır", nav_gallery: "Galeri", nav_join: "Katıl", nav_cta: "Erken erişim", nav_login: "Giriş", nav_account: "Hesabım", nav_admin: "🛡 Admin", nav_upload: "+ Yükle",
     hero_eyebrow: "● konsept — erken erişim listesi açık",
-    hero_title: 'Projen <span class="strike">localhost:3000</span>'ta değil,<br>bir vitrinde yaşasın.',
+    hero_title: `Projen <span class="strike">localhost:3000</span>'ta değil,<br>bir vitrinde yaşasın.`,
     hero_sub: "AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.",
     term_ok: "✓ derlendi",
     hero_arrow: "↓ ailaa.io/senin-proje-adin ↓",
@@ -967,11 +963,11 @@ const I18N = {
     g3_t: "Uzay Tüccarı", g3_g: "strateji",
     g4_t: "Tarif Defteri", g4_g: "yaşam tarzı",
     testi_eyebrow: "geribildirim", testi_title: "Geliştiriciler ne diyor?",
-    testi1_text: ""Hafta sonu Claude ile bir oyun yaptım. Ailaa sayesinde 5 dakikada yayında. Arkadaşlarım hâlâ 'nasıl yaptın?' diye soruyor."",
+    testi1_text: `"Hafta sonu Claude ile bir oyun yaptım. Ailaa sayesinde 5 dakikada yayında. Arkadaşlarım hâlâ 'nasıl yaptın?' diye soruyor."`,
     testi1_name: "Emre K.", testi1_role: "Vibe Coder",
-    testi2_text: ""Deploy konusunda hiçbir fikrim yoktu. Ailaa'ya sürükleyip bıraktım, link hazır. Bu kadar basit olmamalıydı."",
+    testi2_text: `"Deploy konusunda hiçbir fikrim yoktu. Ailaa'ya sürükleyip bıraktım, link hazır. Bu kadar basit olmamalıydı."`,
     testi2_name: "Selin A.", testi2_role: "Frontend Developer",
-    testi3_text: ""Ürettiğim küçük araçları satmaya başladım. Ailaa olmasaydı bunlar hâlâ Downloads klasöründe çürüyordu."",
+    testi3_text: `"Ürettiğim küçük araçları satmaya başladım. Ailaa olmasaydı bunlar hâlâ Downloads klasöründe çürüyordu."`,
     testi3_name: "Burak Y.", testi3_role: "Indie Maker",
     final_title: "Sıradaki proje, sonuncu localhost olsun.",
     final_sub: "Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.",
@@ -1013,11 +1009,11 @@ const I18N = {
     g3_t: "Space Trader", g3_g: "strategy",
     g4_t: "Recipe Book", g4_g: "lifestyle",
     testi_eyebrow: "feedback", testi_title: "What developers are saying",
-    testi1_text: ""Built a game with Claude over the weekend. Ailaa had it live in 5 minutes. Friends still ask 'how did you do that?'"",
+    testi1_text: `"Built a game with Claude over the weekend. Ailaa had it live in 5 minutes. Friends still ask 'how did you do that?'"`,
     testi1_name: "Emre K.", testi1_role: "Vibe Coder",
-    testi2_text: ""I had zero idea about deployment. Dragged and dropped into Ailaa, link was ready. It shouldn't be this easy."",
+    testi2_text: `"I had zero idea about deployment. Dragged and dropped into Ailaa, link was ready. It shouldn't be this easy."`,
     testi2_name: "Selin A.", testi2_role: "Frontend Developer",
-    testi3_text: ""Started selling my small tools. Without Ailaa they'd still be rotting in the Downloads folder."",
+    testi3_text: `"Started selling my small tools. Without Ailaa they'd still be rotting in the Downloads folder."`,
     testi3_name: "Burak Y.", testi3_role: "Indie Maker",
     final_title: "Make your next project the last localhost.",
     final_sub: "Join the early access list and be the first to know when Ailaa opens.",
@@ -1059,11 +1055,11 @@ const I18N = {
     g3_t: "Weltraumhändler", g3_g: "strategie",
     g4_t: "Rezeptbuch", g4_g: "lifestyle",
     testi_eyebrow: "feedback", testi_title: "Was Entwickler sagen",
-    testi1_text: ""Habe ein Spiel mit Claude am Wochenende gebaut. Ailaa hatte es in 5 Minuten live. Freunde fragen immer noch 'wie hast du das gemacht?'"",
+    testi1_text: `"Habe ein Spiel mit Claude am Wochenende gebaut. Ailaa hatte es in 5 Minuten live. Freunde fragen immer noch 'wie hast du das gemacht?'"`,
     testi1_name: "Emre K.", testi1_role: "Vibe Coder",
-    testi2_text: ""Ich hatte keine Ahnung von Deployment. Reinziehen, loslassen — Link war da. Es sollte nicht so einfach sein."",
+    testi2_text: `"Ich hatte keine Ahnung von Deployment. Reinziehen, loslassen — Link war da. Es sollte nicht so einfach sein."`,
     testi2_name: "Selin A.", testi2_role: "Frontend Developer",
-    testi3_text: ""Habe angefangen, meine kleinen Tools zu verkaufen. Ohne Ailaa würden sie immer noch im Downloads-Ordner verrotten."",
+    testi3_text: `"Habe angefangen, meine kleinen Tools zu verkaufen. Ohne Ailaa würden sie immer noch im Downloads-Ordner verrotten."`,
     testi3_name: "Burak Y.", testi3_role: "Indie Maker",
     final_title: "Mach dein nächstes Projekt zum letzten localhost.",
     final_sub: "Trag dich in die Early-Access-Liste ein und erfahre als Erster, wenn Ailaa startet.",
@@ -1135,21 +1131,15 @@ document.querySelectorAll(".lang-switch button").forEach(btn => {
 
 detectLang();
 
-/* ---------- LOADING SCREEN ---------- */
-// Loader'ı hemen kapat, sayfa hazır olunca
+/* ---------- LOADING SCREEN (sağlam: hiçbir kaynağa takılıp kalmaz) ---------- */
 (function(){
-  var loader = document.getElementById('loader');
-  if(!loader) return;
-  // Sayfa tamamen yüklenince kapat
-  window.addEventListener('load', function(){
-    setTimeout(function(){ loader.classList.add('done'); }, 1200);
-  });
-  // Fallback: 2.5 saniye sonra mutlaka kapat
-  setTimeout(function(){ loader.classList.add('done'); }, 2500);
-  // DOM hazır olunca erken kapatmaya çalış
-  if(document.readyState === 'complete' || document.readyState === 'interactive'){
-    setTimeout(function(){ loader.classList.add('done'); }, 1500);
-  }
+  var done=false;
+  function hideLoader(){ if(done) return; done=true; var l=document.getElementById('loader'); if(l) l.classList.add('done'); }
+  // her hâlükârda en geç 2 saniyede kapan (Supabase/font takılsa bile)
+  setTimeout(hideLoader, 2000);
+  // sayfa zaten hazırsa hemen kapat, değilse yüklenince kısa süre sonra
+  if(document.readyState==='complete'){ setTimeout(hideLoader, 400); }
+  else { window.addEventListener('load', function(){ setTimeout(hideLoader, 400); }); }
 })();
 
 /* ---------- CUSTOM CURSOR ---------- */
@@ -1188,23 +1178,27 @@ const revealObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
 /* ---------- ANIMATED COUNTERS ---------- */
-function animateCounters(){
-  document.querySelectorAll('[data-count]').forEach(el => {
-    const target = parseInt(el.dataset.count);
-    const suffix = el.dataset.suffix || '';
-    const duration = 2000;
-    const start = performance.now();
-    function update(now){
-      const progress = Math.min((now - start) / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.floor(ease * target).toLocaleString() + suffix;
-      if(progress < 1) requestAnimationFrame(update);
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      const el = entry.target;
+      const target = parseInt(el.dataset.count);
+      const suffix = el.dataset.suffix || '';
+      const duration = 2000;
+      const start = performance.now();
+      function update(now){
+        const progress = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(ease * target).toLocaleString() + suffix;
+        if(progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+      counterObserver.unobserve(el);
     }
-    requestAnimationFrame(update);
   });
-}
-// Sayfa yüklenince 1 saniye sonra sayaçları başlat
-setTimeout(animateCounters, 1000);
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
 
 /* ---------- BACK TO TOP ---------- */
 const backToTop = document.getElementById('backToTop');
