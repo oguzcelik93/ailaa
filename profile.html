@@ -12,9 +12,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#14182B; --bg-raised:#1E2340; --bg-raised-2:#262B4D;
-    --line:#333a63; --text:#ECEAF7; --text-muted:#8B90B3;
-    --amber:#F5A93B; --coral:#FF6F59; --mint:#59D8C7; --radius:14px;
+    --bg:#0A0B12; --bg-raised:#0F1120; --bg-raised-2:#15182A;
+    --line:#23263D; --text:#ECEDF4; --text-muted:#8E90A8;
+    --amber:#F5A93B; --coral:#FF6F59; --mint:#5FD9C8; --radius:14px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased;}
@@ -65,9 +65,16 @@
   .empty{color:var(--text-muted); font-size:0.9rem; padding:20px 0;}
   .notfound{text-align:center; padding:80px 20px; color:var(--text-muted);}
   footer{text-align:center; padding:30px; color:var(--text-muted); font-size:0.8rem;}
+
+  /* premium atmosfer: köşe ışıltıları */
+  .aura{position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;}
+  .aura::before,.aura::after{content:""; position:absolute; border-radius:50%; filter:blur(90px); opacity:0.4;}
+  .aura::before{width:60vw; height:60vw; top:-22vw; left:-14vw; background:radial-gradient(circle,rgba(245,169,59,0.26),transparent 66%);}
+  .aura::after{width:55vw; height:55vw; top:4vw; right:-18vw; background:radial-gradient(circle,rgba(139,124,246,0.24),transparent 66%);}
 </style>
 </head>
 <body>
+<div class="aura"></div>
 <header>
   <nav>
     <a href="/" class="logo">ailaa</a>
@@ -108,7 +115,7 @@ const L=I18N[pickLang()];
 document.getElementById("backTxt").textContent=L.back;
 document.getElementById("loadingTxt").textContent=L.loading;
 
-const GRADIENTS=["linear-gradient(135deg,#F5A93B,#FF6F59)","linear-gradient(135deg,#59D8C7,#2B7A78)","linear-gradient(135deg,#8B5CF6,#F5A93B)","linear-gradient(135deg,#FF6F59,#8B5CF6)","linear-gradient(135deg,#3B82F6,#59D8C7)","linear-gradient(135deg,#F5A93B,#8B5CF6)","linear-gradient(135deg,#EC4899,#F5A93B)","linear-gradient(135deg,#59D8C7,#3B82F6)","linear-gradient(135deg,#6366F1,#EC4899)"];
+const GRADIENTS=["linear-gradient(135deg,#F5A93B,#FF6F59)","linear-gradient(135deg,#5FD9C8,#2B7A78)","linear-gradient(135deg,#8B7CF6,#F5A93B)","linear-gradient(135deg,#FF6F59,#8B7CF6)","linear-gradient(135deg,#3B82F6,#5FD9C8)","linear-gradient(135deg,#F5A93B,#8B7CF6)","linear-gradient(135deg,#EC4899,#F5A93B)","linear-gradient(135deg,#5FD9C8,#3B82F6)","linear-gradient(135deg,#6366F1,#EC4899)"];
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function hashCode(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return Math.abs(h); }
 function fmtDate(s){ try{ return new Date(s).toLocaleDateString(); }catch(e){ return ""; } }
