@@ -812,19 +812,32 @@ function launchGame(app){
     const st=statsMap[app.pid]; if(st) st.plays++;
   }
   const inner=document.getElementById("gameFrameInner");
-  let src, sandbox, title;
-  if(app && app.fileUrl){
-    // kullanıcı içeriği: KISITLI sandbox (parent'a/oturuma erişemez)
-    src=app.fileUrl; sandbox="allow-scripts"; title=app.title||"oyun";
-  } else {
-    // bizim oyun (NEONDROME): skorboard için same-origin
-    src="/game?lang="+currentLang; sandbox="allow-scripts allow-same-origin"; title="NEONDROME";
-  }
   const bar=document.querySelector(".game-bar-title");
-  if(bar) bar.textContent="▶ "+title;
-  inner.innerHTML=`<iframe src="${src}" sandbox="${sandbox}" title="${escapeHtml(title)}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
   document.getElementById("gameOverlay").classList.add("open");
   document.body.style.overflow="hidden";
+
+  if(app && app.fileUrl){
+    // KULLANICI İÇERİĞİ: dosyayı çekip srcdoc ile enjekte et.
+    // Böylece Supabase içeriği hangi content-type ile sunarsa sunsun oyun ÇALIŞIR (kod olarak görünmez).
+    if(bar) bar.textContent="▶ "+(app.title||"oyun");
+    inner.innerHTML=`<div style="color:#8B90B3;font-family:monospace;padding:48px;text-align:center;width:100%;">⏳</div>`;
+    fetch(app.fileUrl).then(r=>r.text()).then(html=>{
+      const iframe=document.createElement("iframe");
+      iframe.setAttribute("sandbox","allow-scripts");     // parent'a/oturuma erişemez (güvenli)
+      iframe.setAttribute("allow","autoplay; fullscreen");
+      iframe.setAttribute("allowfullscreen","");
+      iframe.setAttribute("title", app.title||"oyun");
+      iframe.srcdoc=html;
+      inner.innerHTML=""; inner.appendChild(iframe);
+    }).catch(()=>{
+      // yedek: çekilemezse doğrudan src ile dene
+      inner.innerHTML=`<iframe src="${app.fileUrl}" sandbox="allow-scripts" title="${escapeHtml(app.title||'oyun')}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+    });
+  } else {
+    // BİZİM OYUN (NEONDROME): skorboard için same-origin
+    if(bar) bar.textContent="▶ NEONDROME";
+    inner.innerHTML=`<iframe src="/game?lang=${currentLang}" sandbox="allow-scripts allow-same-origin" title="NEONDROME" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+  }
 }
 function closeGame(){
   document.getElementById("gameOverlay").classList.remove("open");
