@@ -4,1277 +4,621 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ailaa — Projen localhost'ta çürümesin</title>
-<meta name="description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için mağaza. Yükle, paylaş, kazan.">
+<meta name="description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için vitrin. Yükle, paylaş, istersen sat.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ailaa">
 <meta property="og:title" content="Ailaa — Projen localhost'ta çürümesin">
-<meta property="og:description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için mağaza. Yükle, paylaş, kazan.">
+<meta property="og:description" content="AI ile yaptığın projeyi saniyeler içinde yayınla. Deploy derdi yok.">
 <meta property="og:url" content="https://ailaa.io/">
 <meta property="og:image" content="https://ailaa.io/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ailaa — Projen localhost'ta çürümesin">
-<meta name="twitter:description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için mağaza.">
+<meta name="twitter:description" content="AI ile yaptığın projeyi saniyeler içinde yayınla.">
 <meta name="twitter:image" content="https://ailaa.io/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #0a0e1a;
-    --bg-raised: #11152a;
-    --bg-raised-2: #1a1f3a;
-    --bg-glass: rgba(17,21,42,0.65);
-    --line: rgba(255,255,255,0.08);
-    --line-strong: rgba(255,255,255,0.15);
-    --text: #f0f0f5;
-    --text-muted: #7a7f9a;
-    --amber: #F5A93B;
-    --amber-glow: rgba(245,169,59,0.3);
-    --coral: #FF6F59;
-    --coral-glow: rgba(255,111,89,0.25);
-    --mint: #59D8C7;
-    --mint-glow: rgba(89,216,199,0.25);
-    --purple: #8B5CF6;
-    --radius: 16px;
-    --radius-sm: 10px;
+    --ink:#0A0B12; --ink-2:#0F1120; --ink-3:#15182A; --ink-4:#1C2038;
+    --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+    --text:#ECEDF4; --muted:#8E90A8; --muted-2:#5E617A;
+    --amber:#F5A93B; --amber-hi:#FFC873;
+    --violet:#8B7CF6; --violet-hi:#AC9DFF;
+    --mint:#5FD9C8;
+    --glow-a:rgba(245,169,59,0.35); --glow-v:rgba(139,124,246,0.32);
+    --r:16px; --r-lg:22px; --maxw:1160px;
+    --font-d:'Space Grotesk',sans-serif; --font-b:'Inter',sans-serif; --font-m:'JetBrains Mono',monospace;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
-  body{
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
-    cursor: default;
-  }
+  body{background:var(--ink); color:var(--text); font-family:var(--font-b); line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden;}
   a{color:inherit; text-decoration:none;}
-  .mono{font-family:'JetBrains Mono', monospace;}
-  .wrap{max-width:1140px; margin:0 auto; padding:0 28px;}
+  ::selection{background:var(--amber); color:#1a1204;}
+  :focus-visible{outline:2px solid var(--amber-hi); outline-offset:3px; border-radius:4px;}
 
-  /* ===== LOADING SCREEN ===== */
-  #loader{
-    position:fixed; inset:0; z-index:9999;
-    background:var(--bg);
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column; gap:20px;
-    transition:opacity 0.6s ease, visibility 0.6s ease;
-  }
+  .aura{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
+  .aura::before,.aura::after{content:""; position:absolute; border-radius:50%; filter:blur(90px); opacity:0.5;}
+  .aura::before{width:60vw; height:60vw; top:-22vw; left:-14vw; background:radial-gradient(circle,var(--glow-a),transparent 66%);}
+  .aura::after{width:55vw; height:55vw; top:6vw; right:-18vw; background:radial-gradient(circle,var(--glow-v),transparent 66%);}
+  .grid-lines{position:fixed; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px); background-size:46px 46px; -webkit-mask-image:radial-gradient(circle at 50% 0%,#000,transparent 78%); mask-image:radial-gradient(circle at 50% 0%,#000,transparent 78%);}
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px; position:relative; z-index:2;}
+
+  #loader{position:fixed; inset:0; z-index:999; background:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; transition:opacity .6s ease, visibility .6s ease;}
   #loader.done{opacity:0; visibility:hidden; pointer-events:none;}
-  .loader-logo{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:700; font-size:2rem; letter-spacing:-0.02em;
-    display:flex; align-items:center; gap:10px;
-  }
-  .loader-logo::before{
-    content:""; width:12px; height:12px; border-radius:3px;
-    background:var(--amber); display:inline-block;
-    box-shadow:0 0 20px var(--amber-glow);
-    animation:loaderPulse 1.2s ease-in-out infinite;
-  }
-  @keyframes loaderPulse{0%,100%{transform:scale(1); opacity:1;}50%{transform:scale(1.3); opacity:0.7;}}
-  .loader-bar{
-    width:140px; height:3px; background:var(--bg-raised-2); border-radius:3px; overflow:hidden;
-  }
-  .loader-bar::after{
-    content:""; display:block; width:0%; height:100%; background:var(--amber);
-    animation:loaderFill 1.5s ease forwards;
-  }
-  @keyframes loaderFill{to{width:100%;}}
+  .ld-mark{font-family:var(--font-d); font-weight:700; font-size:1.7rem; letter-spacing:-0.02em; display:flex; align-items:center; gap:10px;}
+  .ld-mark i{width:12px; height:12px; border-radius:4px; background:var(--amber); box-shadow:0 0 18px var(--amber); animation:pulse 1.1s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1); opacity:1;}50%{transform:scale(1.35); opacity:.6;}}
+  .ld-bar{width:150px; height:2px; background:var(--ink-4); border-radius:2px; overflow:hidden;}
+  .ld-bar::after{content:""; display:block; height:100%; width:40%; background:linear-gradient(90deg,var(--amber),var(--violet)); border-radius:2px; animation:slide 1.1s ease-in-out infinite;}
+  @keyframes slide{0%{transform:translateX(-120%);}100%{transform:translateX(320%);}}
 
-  /* ===== CUSTOM CURSOR ===== */
-  .cursor-dot{
-    position:fixed; width:8px; height:8px; background:var(--amber);
-    border-radius:50%; pointer-events:none; z-index:10000;
-    transform:translate(-50%,-50%); transition:width 0.2s, height 0.2s, background 0.2s;
-    mix-blend-mode:difference;
-  }
-  .cursor-dot.hover{width:40px; height:40px; background:rgba(245,169,59,0.15); mix-blend-mode:normal; border:1px solid var(--amber);}
-  @media (pointer:coarse){.cursor-dot{display:none;}}
-
-  /* ===== ANIMATED BACKGROUND ===== */
-  .mesh-bg{
-    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
-  }
-  .mesh-bg .orb{
-    position:absolute; border-radius:50%; filter:blur(80px); opacity:0.35;
-    animation:orbFloat 20s ease-in-out infinite;
-  }
-  .mesh-bg .orb:nth-child(1){
-    width:500px; height:500px; background:var(--amber); top:-10%; left:-5%;
-    animation-delay:0s;
-  }
-  .mesh-bg .orb:nth-child(2){
-    width:400px; height:400px; background:var(--purple); top:30%; right:-10%;
-    animation-delay:-7s; opacity:0.2;
-  }
-  .mesh-bg .orb:nth-child(3){
-    width:350px; height:350px; background:var(--mint); bottom:-5%; left:30%;
-    animation-delay:-14s; opacity:0.15;
-  }
-  @keyframes orbFloat{
-    0%,100%{transform:translate(0,0) scale(1);}
-    33%{transform:translate(30px,-40px) scale(1.1);}
-    66%{transform:translate(-20px,30px) scale(0.95);}
-  }
-
-  /* Grid overlay */
-  body::before{
-    content:""; position:fixed; inset:0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-    background-size: 60px 60px;
-    pointer-events:none; z-index:1;
-  }
-
-  /* ===== NAV ===== */
-  header{
-    position:sticky; top:0; z-index:50;
-    background:rgba(10,14,26,0.7);
-    backdrop-filter:blur(20px) saturate(1.2);
-    border-bottom:1px solid var(--line);
-  }
-  nav{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:16px 24px;
-    max-width:1140px; margin:0 auto;
-    gap:12px;
-  }
-  .logo{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:700; font-size:1.35rem; letter-spacing:-0.02em;
-    display:flex; align-items:center; gap:10px;
-  }
-  .logo::before{
-    content:""; width:10px; height:10px; border-radius:3px;
-    background:var(--amber); display:inline-block;
-    box-shadow:0 0 16px var(--amber-glow);
-  }
-  .nav-links{display:flex; gap:32px; font-size:0.92rem; color:var(--text-muted); align-items:center;}
-  .nav-links a{position:relative; transition:color 0.3s; padding:4px 0;}
-  .nav-links a::after{
-    content:""; position:absolute; bottom:0; left:0; width:0; height:1.5px;
-    background:var(--amber); transition:width 0.3s ease;
-  }
+  header{position:sticky; top:0; z-index:100; background:rgba(10,11,18,0.72); backdrop-filter:blur(14px) saturate(1.2); -webkit-backdrop-filter:blur(14px) saturate(1.2); border-bottom:1px solid var(--line);}
+  nav{display:flex; align-items:center; justify-content:space-between; height:66px; max-width:var(--maxw); margin:0 auto; padding:0 22px;}
+  .logo{font-family:var(--font-d); font-weight:700; font-size:1.32rem; letter-spacing:-0.02em; display:flex; align-items:center; gap:9px;}
+  .logo i{width:11px; height:11px; border-radius:3px; background:var(--amber); box-shadow:0 0 14px var(--amber);}
+  .nav-links{display:flex; gap:30px; align-items:center;}
+  .nav-links a{font-size:0.92rem; color:var(--muted); transition:color .18s;}
   .nav-links a:hover{color:var(--text);}
-  .nav-links a:hover::after{width:100%;}
-  .nav-right{display:flex; align-items:center; gap:12px;}
-  .nav-cta, .nav-upload{
-    font-size:0.88rem; font-weight:600;
-    background:var(--amber); color:#1a1508;
-    padding:10px 20px; border-radius:var(--radius-sm);
-    white-space:nowrap;
-    transition:all 0.25s ease;
-    position:relative; overflow:hidden;
-  }
-  .nav-cta::before, .nav-upload::before{
-    content:""; position:absolute; inset:0;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transform:translateX(-100%);
-    transition:transform 0.5s ease;
-  }
-  .nav-cta:hover::before, .nav-upload:hover::before{transform:translateX(100%);}
-  .nav-cta:hover, .nav-upload:hover{
-    transform:translateY(-2px);
-    box-shadow:0 8px 24px var(--amber-glow);
-  }
-  .nav-upload{
-    box-shadow:0 0 20px -4px var(--amber-glow);
-  }
-  @media (max-width:720px){
-    .nav-links{display:none;}
-    .nav-cta{display:none;}
-  }
+  .nav-right{display:flex; align-items:center; gap:14px;}
+  .nav-login{font-size:0.9rem; color:var(--muted); transition:color .18s;}
+  .nav-login:hover{color:var(--text);}
+  .btn{font-family:var(--font-b); font-weight:600; font-size:0.92rem; cursor:pointer; border:none; border-radius:11px; transition:transform .16s ease, box-shadow .16s ease, background .16s; white-space:nowrap; display:inline-flex; align-items:center; gap:8px;}
+  .btn-primary{background:linear-gradient(180deg,var(--amber-hi),var(--amber)); color:#1c1404; padding:11px 20px; box-shadow:0 6px 22px -8px var(--glow-a), inset 0 1px 0 rgba(255,255,255,0.4);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px -8px var(--glow-a), inset 0 1px 0 rgba(255,255,255,0.4);}
+  .btn-ghost{background:rgba(255,255,255,0.03); color:var(--text); padding:11px 20px; border:1px solid var(--line-2);}
+  .btn-ghost:hover{border-color:var(--violet); color:#fff; background:rgba(139,124,246,0.09);}
+  .btn-lg{padding:15px 28px; font-size:1rem; border-radius:13px;}
 
-  /* ===== HERO ===== */
-  .hero{
-    position:relative; z-index:1;
-    padding:110px 24px 70px;
-    text-align:center;
-    min-height:100vh;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .eyebrow{
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.78rem; color:var(--mint);
-    letter-spacing:0.12em; text-transform:uppercase;
-    margin-bottom:24px;
-    display:inline-flex; align-items:center; gap:8px;
-    border:1px solid rgba(89,216,199,0.3);
-    padding:7px 16px; border-radius:100px;
-    background:rgba(89,216,199,0.06);
-    backdrop-filter:blur(10px);
-  }
-  h1{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:700;
-    font-size:clamp(2.4rem, 5.5vw, 4.2rem);
-    letter-spacing:-0.03em;
-    line-height:1.05;
-    max-width:860px; margin:0 auto 24px;
-  }
-  h1 .strike{
-    font-family:'JetBrains Mono', monospace;
-    font-weight:400;
-    color:var(--text-muted);
-    text-decoration:line-through;
-    text-decoration-color:var(--coral);
-    text-decoration-thickness:2.5px;
-  }
-  .hero p.sub{
-    color:var(--text-muted);
-    font-size:1.15rem;
-    max-width:580px; margin:0 auto 44px;
-    line-height:1.7;
-  }
+  .hero{padding:78px 0 40px; position:relative;}
+  .eyebrow{font-family:var(--font-m); font-size:0.74rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--amber); display:inline-flex; align-items:center; gap:9px; margin-bottom:26px;}
+  .eyebrow::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--amber); box-shadow:0 0 10px var(--amber); animation:pulse 2s ease-in-out infinite;}
+  .hero h1{font-family:var(--font-d); font-weight:700; font-size:clamp(2.5rem,7vw,4.9rem); line-height:1.02; letter-spacing:-0.035em; max-width:15ch;}
+  .hero h1 .strike{color:var(--muted-2); text-decoration:line-through; text-decoration-color:var(--amber); text-decoration-thickness:3px;}
+  .hero h1 .grad{background:linear-gradient(105deg,var(--amber-hi),var(--violet-hi)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .hero p.lead{font-size:clamp(1.05rem,2.2vw,1.3rem); color:var(--muted); max-width:52ch; margin:26px 0 34px; line-height:1.65;}
+  .hero-cta{display:flex; gap:14px; flex-wrap:wrap; align-items:center;}
+  .hero-note{font-family:var(--font-m); font-size:0.78rem; color:var(--muted-2); margin-top:22px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .hero-note b{color:var(--mint); font-weight:500;}
+  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:50px; align-items:center;}
 
-  /* Stats bar */
-  .stats-bar{
-    display:flex; justify-content:center; gap:48px; margin-bottom:40px;
-    flex-wrap:wrap;
-  }
-  .stat-item{text-align:center;}
-  .stat-num{
-    font-family:'Space Grotesk', sans-serif;
-    font-size:2rem; font-weight:700; color:var(--amber);
-    line-height:1;
-  }
-  .stat-label{
-    font-size:0.8rem; color:var(--text-muted); margin-top:6px;
-    font-family:'JetBrains Mono', monospace;
-  }
-
-  .terminal{
-    max-width:680px; margin:0 auto 10px;
-    background:var(--bg-glass);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    overflow:hidden;
-    box-shadow:0 40px 80px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
-    text-align:left;
-    backdrop-filter:blur(20px);
-    transform:perspective(1000px) rotateX(2deg);
-    transition:transform 0.4s ease;
-  }
-  .terminal:hover{transform:perspective(1000px) rotateX(0deg);}
-  .terminal-bar{
-    display:flex; align-items:center; gap:8px;
-    padding:14px 18px;
-    background:rgba(255,255,255,0.03);
-    border-bottom:1px solid var(--line);
-  }
-  .dot{width:11px; height:11px; border-radius:50%;}
-  .dot.r{background:#ff5f57;} .dot.y{background:#febc2e;} .dot.g{background:#28c840;}
-  .terminal-url{
-    margin-left:10px;
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.82rem; color:var(--text-muted);
-  }
-  .terminal-body{padding:24px 22px; font-family:'JetBrains Mono', monospace; font-size:0.88rem;}
-  .terminal-body .out{color:var(--mint);}
-  .terminal-body .cursor{
-    display:inline-block; width:8px; height:17px; background:var(--amber);
-    vertical-align:middle; margin-left:2px;
-    animation:blink 1s step-end infinite;
-  }
+  .transform{position:relative; display:flex; flex-direction:column; gap:16px;}
+  .term{background:linear-gradient(180deg,var(--ink-3),var(--ink-2)); border:1px solid var(--line-2); border-radius:var(--r); overflow:hidden; box-shadow:0 30px 60px -30px rgba(0,0,0,0.8);}
+  .term-bar{display:flex; align-items:center; gap:7px; padding:12px 15px; border-bottom:1px solid var(--line);}
+  .term-bar i{width:11px; height:11px; border-radius:50%; background:var(--muted-2);}
+  .term-bar i:nth-child(1){background:#ff5f57;} .term-bar i:nth-child(2){background:#febc2e;} .term-bar i:nth-child(3){background:#28c840;}
+  .term-bar span{margin-left:8px; font-family:var(--font-m); font-size:0.72rem; color:var(--muted-2);}
+  .term-body{padding:18px 18px 22px; font-family:var(--font-m); font-size:0.84rem; line-height:2;}
+  .term-body .c-dim{color:var(--muted-2);} .term-body .c-ok{color:var(--mint);} .term-body .c-am{color:var(--amber);}
+  .term-body .cursor{display:inline-block; width:9px; height:1.05em; background:var(--amber); vertical-align:-2px; margin-left:3px; animation:blink 1.05s steps(2) infinite;}
   @keyframes blink{50%{opacity:0;}}
+  .arrow-down{display:flex; justify-content:center; color:var(--violet); font-size:1.2rem; animation:bob 1.8s ease-in-out infinite;}
+  @keyframes bob{50%{transform:translateY(6px);}}
+  .live-card{background:linear-gradient(160deg,var(--ink-4),var(--ink-3)); border:1px solid var(--line-2); border-radius:var(--r); overflow:hidden; position:relative; box-shadow:0 0 0 1px rgba(139,124,246,0.15), 0 30px 70px -30px var(--glow-v);}
+  .live-art{height:118px; background:linear-gradient(135deg,#2a2150,#3a2a1a); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;}
+  .live-art .badge{position:absolute; top:11px; left:11px; font-family:var(--font-m); font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; background:rgba(95,217,200,0.16); color:var(--mint); padding:4px 9px; border-radius:100px; border:1px solid rgba(95,217,200,0.3);}
+  .live-art .runner::before{content:"▶"; color:var(--amber); font-size:1.5rem; filter:drop-shadow(0 0 8px var(--amber));}
+  .live-info{padding:15px 16px 17px;}
+  .live-info h4{font-family:var(--font-d); font-size:1.05rem; margin-bottom:4px;}
+  .live-info .meta{display:flex; justify-content:space-between; font-family:var(--font-m); font-size:0.76rem; color:var(--muted);}
+  .live-info .meta .url{color:var(--violet-hi);}
 
-  .arrow-down{
-    text-align:center; margin:20px 0 38px;
-    color:var(--text-muted); font-family:'JetBrains Mono', monospace; font-size:0.85rem;
-  }
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; margin-top:64px;}
+  .stat{background:var(--ink-2); padding:26px 22px; text-align:center;}
+  .stat .num{font-family:var(--font-d); font-weight:700; font-size:clamp(1.7rem,4vw,2.4rem); letter-spacing:-0.02em; background:linear-gradient(120deg,var(--amber-hi),var(--violet-hi)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .stat .lbl{font-family:var(--font-m); font-size:0.74rem; color:var(--muted); margin-top:6px; letter-spacing:0.04em;}
 
-  .waitlist{
-    max-width:480px; margin:0 auto;
-    display:flex; gap:12px;
-  }
-  .waitlist input{
-    flex:1;
-    background:var(--bg-glass);
-    border:1.5px solid var(--line);
-    color:var(--text);
-    padding:15px 18px;
-    border-radius:var(--radius-sm);
-    font-size:0.95rem;
-    outline:none;
-    backdrop-filter:blur(10px);
-    transition:border-color 0.3s, box-shadow 0.3s;
-  }
-  .waitlist input:focus{
-    border-color:var(--amber);
-    box-shadow:0 0 0 3px var(--amber-glow), 0 0 20px var(--amber-glow);
-  }
-  .waitlist input::placeholder{color:var(--text-muted);}
-  .waitlist button{
-    background:var(--amber); color:#1a1508;
-    border:none; font-weight:700; font-size:0.95rem;
-    padding:15px 26px; border-radius:var(--radius-sm); cursor:pointer;
-    white-space:nowrap;
-    transition:all 0.25s ease;
-    position:relative; overflow:hidden;
-  }
-  .waitlist button::before{
-    content:""; position:absolute; inset:0;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    transform:translateX(-100%);
-    transition:transform 0.5s ease;
-  }
-  .waitlist button:hover::before{transform:translateX(100%);}
-  .waitlist button:hover{
-    transform:translateY(-2px);
-    box-shadow:0 10px 30px var(--amber-glow);
-  }
-  .waitlist button:focus-visible, .waitlist input:focus-visible{outline:2px solid var(--mint); outline-offset:2px;}
-  .form-note{
-    text-align:center; font-size:0.82rem; color:var(--text-muted);
-    margin-top:14px; font-family:'JetBrains Mono', monospace;
-  }
-  .form-note.success{color:var(--mint);}
+  section.block{padding:100px 0;}
+  .sec-head{max-width:640px; margin-bottom:52px;}
+  .sec-eyebrow{font-family:var(--font-m); font-size:0.72rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--violet-hi); margin-bottom:16px;}
+  .sec-head h2{font-family:var(--font-d); font-weight:700; font-size:clamp(1.8rem,4vw,2.9rem); line-height:1.1; letter-spacing:-0.025em;}
+  .sec-head p{color:var(--muted); font-size:1.08rem; margin-top:16px; line-height:1.7;}
 
-  .hero-demo{margin-top:40px; display:flex; flex-direction:column; align-items:center; gap:14px;}
-  .hero-demo-label{font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--mint); letter-spacing:0.04em;}
-  .hero-demo-btn{
-    display:inline-block; background:transparent; color:var(--mint);
-    border:1.5px solid var(--mint); font-weight:600; font-size:1rem;
-    padding:14px 32px; border-radius:var(--radius-sm); cursor:pointer;
-    transition:all 0.25s ease;
-    box-shadow:0 0 30px -8px var(--mint-glow);
-    position:relative; overflow:hidden;
-  }
-  .hero-demo-btn:hover{
-    background:var(--mint); color:#082420;
-    transform:translateY(-2px);
-    box-shadow:0 10px 30px var(--mint-glow);
-  }
+  .grave{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px;}
+  .tomb{background:var(--ink-2); border:1px solid var(--line); border-radius:var(--r); padding:20px; font-family:var(--font-m);}
+  .tomb .host{font-size:0.86rem; color:var(--muted); text-decoration:line-through; text-decoration-color:var(--muted-2);}
+  .tomb .state{font-size:0.72rem; color:var(--muted-2); margin-top:10px; display:flex; align-items:center; gap:7px;}
+  .tomb .state::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--muted-2);}
 
-  @media (max-width:520px){
-    .waitlist{flex-direction:column;}
-    .stats-bar{gap:24px;}
-  }
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+  .step{background:linear-gradient(180deg,var(--ink-3),var(--ink-2)); border:1px solid var(--line); border-radius:var(--r-lg); padding:30px 26px; position:relative; transition:transform .2s ease, border-color .2s;}
+  .step:hover{transform:translateY(-4px); border-color:var(--line-2);}
+  .step .n{font-family:var(--font-m); font-size:0.78rem; color:var(--amber); letter-spacing:0.1em; margin-bottom:20px;}
+  .step h3{font-family:var(--font-d); font-size:1.24rem; margin-bottom:10px;}
+  .step p{color:var(--muted); font-size:0.96rem; line-height:1.65;}
+  .step .ic{font-size:1.5rem; margin-bottom:16px;}
 
-  /* ===== SCROLL REVEAL ===== */
-  .reveal{
-    opacity:0; transform:translateY(40px);
-    transition:opacity 0.8s ease, transform 0.8s ease;
-  }
-  .reveal.visible{opacity:1; transform:translateY(0);}
-  .reveal-delay-1{transition-delay:0.1s;}
-  .reveal-delay-2{transition-delay:0.2s;}
-  .reveal-delay-3{transition-delay:0.3s;}
+  .tools{border:1px solid var(--line); border-radius:var(--r); background:var(--ink-2); padding:26px 30px; display:flex; align-items:center; gap:30px; flex-wrap:wrap; justify-content:center; margin-top:34px;}
+  .tools .t-label{font-family:var(--font-m); font-size:0.74rem; color:var(--muted-2); letter-spacing:0.08em; text-transform:uppercase;}
+  .tools .t-name{font-family:var(--font-d); font-weight:600; font-size:1.05rem; color:var(--muted); transition:color .2s;}
+  .tools .t-name:hover{color:var(--text);}
 
-  /* ===== SECTIONS ===== */
-  section{position:relative; z-index:1; padding:90px 24px;}
-  .section-head{max-width:680px; margin:0 auto 56px; text-align:center;}
-  .section-head .eyebrow.coral{color:var(--coral); border-color:rgba(255,111,89,0.3); background:rgba(255,111,89,0.06);}
-  .section-head .eyebrow.amber{color:var(--amber); border-color:rgba(245,169,59,0.3); background:rgba(245,169,59,0.06);}
-  .section-head h2{
-    font-family:'Space Grotesk', sans-serif; font-weight:700;
-    font-size:clamp(1.8rem, 3.5vw, 2.6rem); letter-spacing:-0.02em;
-    margin-bottom:16px; line-height:1.15;
-  }
-  .section-head p{color:var(--text-muted); font-size:1.05rem; line-height:1.7;}
+  .gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:18px;}
+  .g-card{background:var(--ink-2); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; transition:transform .2s ease, border-color .2s;}
+  .g-card:hover{transform:translateY(-4px); border-color:var(--line-2);}
+  .g-art{height:130px; display:flex; align-items:center; justify-content:center; font-size:2.2rem; position:relative;}
+  .g-art .tag{position:absolute; top:10px; left:10px; font-family:var(--font-m); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.06em; background:rgba(0,0,0,0.35); padding:4px 8px; border-radius:100px; color:var(--text);}
+  .g-info{padding:14px 15px 16px;}
+  .g-info h4{font-family:var(--font-d); font-size:1rem; margin-bottom:5px;}
+  .g-info .m{display:flex; justify-content:space-between; font-family:var(--font-m); font-size:0.74rem; color:var(--muted);}
+  .g-info .m .price{color:var(--mint);}
+  .g-more{text-align:center; margin-top:34px;}
 
-  /* ===== TRUST BADGES ===== */
-  .trust-section{
-    padding:50px 24px 30px;
-    text-align:center;
-  }
-  .trust-label{
-    font-family:'JetBrains Mono', monospace; font-size:0.72rem;
-    color:var(--text-muted); text-transform:uppercase; letter-spacing:0.15em;
-    margin-bottom:24px;
-  }
-  .trust-badges{
-    display:flex; justify-content:center; gap:32px; flex-wrap:wrap;
-    align-items:center;
-  }
-  .trust-badge{
-    display:flex; align-items:center; gap:8px;
-    background:var(--bg-glass);
-    border:1px solid var(--line);
-    padding:10px 18px; border-radius:100px;
-    font-size:0.82rem; color:var(--text-muted);
-    backdrop-filter:blur(10px);
-    transition:all 0.3s ease;
-  }
-  .trust-badge:hover{
-    border-color:var(--line-strong);
-    transform:translateY(-2px);
-    box-shadow:0 8px 24px rgba(0,0,0,0.3);
-  }
-  .trust-badge svg{width:18px; height:18px;}
+  .cta{border:1px solid var(--line-2); border-radius:var(--r-lg); background:linear-gradient(160deg,var(--ink-3),var(--ink-2)); padding:56px 34px; text-align:center; position:relative; overflow:hidden;}
+  .cta::before{content:""; position:absolute; top:-40%; left:50%; transform:translateX(-50%); width:70%; height:80%; background:radial-gradient(circle,var(--glow-v),transparent 70%); opacity:0.5; pointer-events:none;}
+  .cta h2{font-family:var(--font-d); font-weight:700; font-size:clamp(1.7rem,4vw,2.6rem); letter-spacing:-0.02em; position:relative;}
+  .cta p{color:var(--muted); margin:14px 0 30px; position:relative;}
+  .wl{display:flex; gap:10px; max-width:440px; margin:0 auto; position:relative;}
+  .wl input{flex:1; background:var(--ink); border:1px solid var(--line-2); color:var(--text); padding:14px 16px; border-radius:12px; font-family:var(--font-b); font-size:0.98rem; outline:none;}
+  .wl input:focus{border-color:var(--amber);}
+  .wl-note{font-family:var(--font-m); font-size:0.78rem; margin-top:16px; min-height:1.2em; position:relative;}
+  .wl-note.ok{color:var(--mint);} .wl-note.err{color:#ff7a6b;} .wl-note.dim{color:var(--muted-2);}
 
-  /* ===== GRAVEYARD ===== */
-  .graveyard-row{
-    display:flex; gap:20px; overflow-x:auto; padding:8px 4px 24px;
-    max-width:1040px; margin:0 auto;
-  }
-  .ghost-card{
-    flex:0 0 220px;
-    background:var(--bg-glass);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:20px;
-    filter:grayscale(0.5);
-    opacity:0.55;
-    backdrop-filter:blur(10px);
-    transition:all 0.4s ease;
-  }
-  .ghost-card:hover{
-    opacity:0.9;
-    filter:grayscale(0);
-    transform:translateY(-6px);
-    border-color:var(--coral);
-    box-shadow:0 16px 40px -10px var(--coral-glow);
-  }
-  .ghost-card .url{font-family:'JetBrains Mono', monospace; font-size:0.74rem; color:var(--text-muted); margin-bottom:12px;}
-  .ghost-card .bar{height:7px; border-radius:4px; background:var(--bg-raised-2); margin-bottom:10px;}
-  .ghost-card .bar:nth-child(3){width:70%;}
-  .ghost-card .tag{
-    display:inline-block; margin-top:12px;
-    font-family:'JetBrains Mono', monospace; font-size:0.7rem;
-    color:var(--coral); border:1px solid rgba(255,111,89,0.35);
-    padding:3px 10px; border-radius:100px;
-  }
+  footer{border-top:1px solid var(--line); padding:56px 0 40px; margin-top:20px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:30px; margin-bottom:40px;}
+  .foot-brand .logo{margin-bottom:14px;}
+  .foot-brand p{color:var(--muted); font-size:0.92rem; max-width:34ch;}
+  .foot-col h5{font-family:var(--font-m); font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted-2); margin-bottom:16px;}
+  .foot-col a{display:block; color:var(--muted); font-size:0.92rem; margin-bottom:11px; transition:color .16s;}
+  .foot-col a:hover{color:var(--text);}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; padding-top:26px; border-top:1px solid var(--line); font-family:var(--font-m); font-size:0.78rem; color:var(--muted-2);}
+  .lang{display:inline-flex; gap:3px; background:var(--ink-2); border:1px solid var(--line); border-radius:9px; padding:3px;}
+  .lang button{background:none; border:none; cursor:pointer; color:var(--muted-2); padding:5px 10px; border-radius:6px; font-family:var(--font-m); font-size:0.76rem; transition:.16s;}
+  .lang button.active{background:var(--amber); color:#1a1204;}
 
-  /* ===== STEPS ===== */
-  .steps{
-    display:grid; grid-template-columns:repeat(3, 1fr); gap:28px;
-    max-width:1000px; margin:0 auto;
-    position:relative;
-  }
-  @media (max-width:800px){ .steps{grid-template-columns:1fr;} }
-  .step{
-    background:var(--bg-glass);
-    border:1px solid var(--line);
-    border-radius:var(--radius); padding:32px 28px;
-    backdrop-filter:blur(20px);
-    transition:all 0.4s ease;
-    position:relative; overflow:hidden;
-  }
-  .step::before{
-    content:""; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg, transparent, var(--amber), transparent);
-    opacity:0; transition:opacity 0.4s;
-  }
-  .step:hover::before{opacity:1;}
-  .step:hover{
-    transform:translateY(-8px);
-    border-color:var(--line-strong);
-    box-shadow:0 24px 48px -12px rgba(0,0,0,0.5);
-  }
-  .step .num{
-    font-family:'JetBrains Mono', monospace; font-size:0.9rem;
-    color:var(--amber); margin-bottom:16px; display:block;
-    font-weight:700;
-  }
-  .step h3{
-    font-family:'Space Grotesk', sans-serif; font-weight:700;
-    font-size:1.2rem; margin-bottom:10px;
-  }
-  .step p{color:var(--text-muted); font-size:0.95rem; line-height:1.65;}
+  .reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:none;}
 
-  /* Step connector line (desktop only) */
-  @media (min-width:801px){
-    .steps::before{
-      content:""; position:absolute; top:60px; left:20%; right:20%; height:1px;
-      background:linear-gradient(90deg, transparent, var(--line-strong), transparent);
-      z-index:-1;
-    }
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr; gap:38px;}
+    .transform{max-width:420px;}
+    .steps{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr 1fr; gap:26px;}
+    .nav-links{display:none;}
   }
+  @media (max-width:560px){
+    .stats{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr;}
+    .hero{padding:54px 0 30px;}
+    section.block{padding:72px 0;}
+    .wl{flex-direction:column;}
+    .btn-lg{width:100%; justify-content:center;}
+  }
+  /* ---- sinematik giriş (deploy anı) ---- */
+  body.anim .hero-copy>*{opacity:0; animation:heroUp .75s cubic-bezier(.2,.75,.25,1) forwards;}
+  body.anim .hero-copy>*:nth-child(1){animation-delay:.10s;}
+  body.anim .hero-copy>*:nth-child(2){animation-delay:.20s;}
+  body.anim .hero-copy>*:nth-child(3){animation-delay:.34s;}
+  body.anim .hero-copy>*:nth-child(4){animation-delay:.48s;}
+  body.anim .hero-copy>*:nth-child(5){animation-delay:.58s;}
+  @keyframes heroUp{from{opacity:0; transform:translateY(20px);}to{opacity:1; transform:none;}}
+  body.anim .transform{opacity:0; animation:heroUp .85s .42s cubic-bezier(.2,.75,.25,1) forwards;}
+  body.anim .live-card{animation:glowPulse 1.5s 1.25s ease-out 1;}
+  @keyframes glowPulse{0%{box-shadow:0 0 0 1px rgba(139,124,246,0.15), 0 30px 70px -30px var(--glow-v);}28%{box-shadow:0 0 0 1px rgba(139,124,246,0.65), 0 0 54px -6px var(--glow-v);}100%{box-shadow:0 0 0 1px rgba(139,124,246,0.15), 0 30px 70px -30px var(--glow-v);}}
+  .aura::before{animation:drift1 24s ease-in-out infinite alternate;}
+  .aura::after{animation:drift2 28s ease-in-out infinite alternate;}
+  @keyframes drift1{to{transform:translate(7vw,4vw) scale(1.12);}}
+  @keyframes drift2{to{transform:translate(-6vw,-3vw) scale(1.09);}}
+  header{transition:background .25s ease, box-shadow .25s ease;}
+  nav{transition:height .25s ease;}
+  header.scrolled{box-shadow:0 10px 34px -14px rgba(0,0,0,0.7); background:rgba(10,11,18,0.92);}
+  header.scrolled nav{height:56px;}
+  .transform{transform-style:preserve-3d; will-change:transform;}
+  .btn-primary{position:relative; overflow:hidden;}
+  .btn-primary::after{content:""; position:absolute; top:0; left:-120%; width:60%; height:100%; background:linear-gradient(105deg,transparent,rgba(255,255,255,0.5),transparent); transform:skewX(-18deg);}
+  .btn-primary:hover::after{animation:shine .7s ease;}
+  @keyframes shine{to{left:130%;}}
 
-  /* ===== SHELF / GALLERY ===== */
-  .shelf{
-    display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
-    gap:22px; max-width:1040px; margin:0 auto;
-    perspective:1200px;
-  }
-  .cart{
-    background:var(--bg-glass);
-    border:1px solid var(--line);
-    border-radius:14px;
-    overflow:hidden;
-    transition:all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    cursor:pointer;
-    backdrop-filter:blur(10px);
-    position:relative;
-  }
-  .cart::after{
-    content:""; position:absolute; inset:0; border-radius:14px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);
-    pointer-events:none;
-  }
-  .cart:hover{
-    transform:translateY(-10px) rotate(-1.5deg) scale(1.02);
-    box-shadow:0 28px 56px -16px rgba(0,0,0,0.6);
-    border-color:var(--amber);
-  }
-  .cart-art{height:140px; position:relative; overflow:hidden;}
-  .cart-art::after{
-    content:""; position:absolute; inset:0;
-    background:linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.4));
-  }
-  .cart-art span{
-    position:absolute; bottom:10px; left:12px; z-index:2;
-    font-family:'JetBrains Mono', monospace; font-size:0.7rem;
-    background:rgba(0,0,0,0.45); padding:3px 10px; border-radius:100px;
-    backdrop-filter:blur(4px);
-  }
-  .cart-info{padding:18px 16px 20px;}
-  .cart-info h4{font-family:'Space Grotesk', sans-serif; font-size:1.05rem; margin-bottom:6px; font-weight:600;}
-  .cart-info p{font-family:'JetBrains Mono', monospace; font-size:0.74rem; color:var(--text-muted);}
-  .cart-info .price{color:var(--mint); font-weight:700;}
-
-  /* ===== TESTIMONIALS ===== */
-  .testimonials{
-    display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
-    gap:24px; max-width:1000px; margin:0 auto;
-  }
-  .testi-card{
-    background:var(--bg-glass);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:28px;
-    backdrop-filter:blur(20px);
-    transition:all 0.4s ease;
-  }
-  .testi-card:hover{
-    transform:translateY(-4px);
-    border-color:var(--line-strong);
-    box-shadow:0 16px 40px -12px rgba(0,0,0,0.4);
-  }
-  .testi-stars{color:var(--amber); font-size:1.1rem; margin-bottom:14px; letter-spacing:2px;}
-  .testi-text{font-size:0.95rem; color:var(--text); line-height:1.7; margin-bottom:18px; font-style:italic;}
-  .testi-author{display:flex; align-items:center; gap:12px;}
-  .testi-avatar{
-    width:40px; height:40px; border-radius:50%;
-    background:linear-gradient(135deg, var(--amber), var(--coral));
-    display:flex; align-items:center; justify-content:center;
-    font-weight:700; font-size:0.9rem; color:#1a1508;
-  }
-  .testi-name{font-weight:600; font-size:0.9rem;}
-  .testi-role{font-size:0.78rem; color:var(--text-muted);}
-
-  /* ===== FINAL CTA ===== */
-  .final{
-    text-align:center;
-    background:linear-gradient(180deg, transparent, rgba(245,169,59,0.04));
-    position:relative; overflow:hidden;
-  }
-  .final::before{
-    content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:600px; height:600px; border-radius:50%;
-    background:radial-gradient(circle, rgba(245,169,59,0.08), transparent 70%);
-    pointer-events:none;
-  }
-  .final h2{
-    font-family:'Space Grotesk', sans-serif; font-weight:700;
-    font-size:clamp(1.9rem, 4vw, 2.8rem); letter-spacing:-0.02em;
-    max-width:640px; margin:0 auto 18px;
-    position:relative; z-index:1;
-  }
-  .final p{color:var(--text-muted); max-width:500px; margin:0 auto 40px; position:relative; z-index:1; font-size:1.05rem;}
-
-  /* ===== FOOTER ===== */
-  footer{
-    border-top:1px solid var(--line);
-    padding:40px 24px;
-    text-align:center;
-    position:relative; z-index:1;
-  }
-  .footer-grid{
-    display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
-    gap:32px; max-width:900px; margin:0 auto 32px; text-align:left;
-  }
-  .footer-col h4{
-    font-family:'Space Grotesk', sans-serif; font-size:0.9rem; font-weight:600;
-    margin-bottom:14px; color:var(--text);
-  }
-  .footer-col a{
-    display:block; font-size:0.85rem; color:var(--text-muted);
-    margin-bottom:8px; transition:color 0.2s;
-  }
-  .footer-col a:hover{color:var(--amber);}
-  .lang-switch{
-    display:inline-flex; gap:2px;
-    background:var(--bg-raised);
-    border:1px solid var(--line);
-    border-radius:10px;
-    padding:3px;
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.75rem;
-    margin-bottom:20px;
-  }
-  .lang-switch button{
-    background:none; border:none; cursor:pointer;
-    color:var(--text-muted);
-    padding:6px 12px; border-radius:8px;
-    font-family:inherit; font-size:inherit; font-weight:500;
-    transition:all 0.2s;
-  }
-  .lang-switch button.active{
-    background:var(--amber); color:#1a1508;
-  }
-  .lang-switch button:hover:not(.active){color:var(--text);}
-  .lang-switch button:focus-visible{outline:2px solid var(--mint); outline-offset:1px;}
-  .footer-bottom{
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.78rem; color:var(--text-muted);
-    margin-top:16px;
-  }
-
-  /* ===== BACK TO TOP ===== */
-  #backToTop{
-    position:fixed; bottom:28px; right:28px; z-index:40;
-    width:44px; height:44px; border-radius:50%;
-    background:var(--bg-glass);
-    border:1px solid var(--line);
-    color:var(--text-muted);
-    font-size:1.2rem; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-    backdrop-filter:blur(10px);
-    opacity:0; transform:translateY(20px); pointer-events:none;
-    transition:all 0.3s ease;
-  }
-  #backToTop.visible{opacity:1; transform:translateY(0); pointer-events:auto;}
-  #backToTop:hover{
-    background:var(--amber); color:#1a1508; border-color:var(--amber);
-    box-shadow:0 8px 24px var(--amber-glow);
-  }
-
-  @media (prefers-reduced-motion: reduce){
-    *{animation:none !important; transition:none !important;}
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important; scroll-behavior:auto !important;}
+    .reveal{opacity:1; transform:none; transition:none;}
+    body.anim .hero-copy>*, body.anim .transform, body.anim .live-card{opacity:1 !important; transform:none !important;}
   }
 </style>
 </head>
-<body>
+<body class="anim">
 
-<!-- Loading Screen -->
+<div class="aura"></div>
+<div class="grid-lines"></div>
+
 <div id="loader">
-  <div class="loader-logo">ailaa</div>
-  <div class="loader-bar"></div>
+  <div class="ld-mark"><i></i>ailaa</div>
+  <div class="ld-bar"></div>
 </div>
-
-<!-- Custom Cursor -->
-<div class="cursor-dot" id="cursor"></div>
-
-<!-- Animated Mesh Background -->
-<div class="mesh-bg" aria-hidden="true">
-  <div class="orb"></div>
-  <div class="orb"></div>
-  <div class="orb"></div>
-</div>
-
-<!-- Netlify form (hidden) -->
-<form name="waitlist" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input type="email" name="email">
-  <input type="text" name="lang">
-  <input type="text" name="bot-field">
-</form>
 
 <header>
   <nav>
-    <div class="logo">ailaa</div>
+    <a href="/" class="logo"><i></i>ailaa</a>
     <div class="nav-links">
       <a href="#nasil" data-i18n="nav_how">Nasıl çalışır</a>
-      <a href="#galeri" data-i18n="nav_gallery">Galeri</a>
-      <a href="#katil" data-i18n="nav_join">Katıl</a>
+      <a href="#vitrin" data-i18n="nav_gallery">Vitrin</a>
+      <a href="/demo" data-i18n="nav_demo">Demo</a>
     </div>
     <div class="nav-right">
-      <a href="/auth" id="loginLink" style="font-size:0.9rem; color:var(--text-muted); margin-right:4px; transition:color 0.3s;" data-i18n="nav_login">Giriş</a>
-      <a href="/upload" class="nav-upload" data-i18n="nav_upload">+ Yükle</a>
+      <a href="/auth" id="loginLink" class="nav-login" data-i18n="nav_login">Giriş</a>
+      <a href="/upload" class="btn btn-primary" data-i18n="nav_upload">+ Yükle</a>
     </div>
   </nav>
 </header>
 
+<main>
 <section class="hero">
   <div class="wrap">
-    <span class="eyebrow reveal" data-i18n="hero_eyebrow">● konsept — erken erişim listesi açık</span>
-    <h1 class="reveal reveal-delay-1" data-i18n-html="hero_title">Projen <span class="strike">localhost:3000</span>'ta değil,<br>bir vitrinde yaşasın.</h1>
-    <p class="sub reveal reveal-delay-2" data-i18n="hero_sub">AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.</p>
-
-    <div class="stats-bar reveal reveal-delay-2">
-      <div class="stat-item">
-        <div class="stat-num" data-count="2847">0</div>
-        <div class="stat-label" data-i18n="stat_devs">Geliştirici Bekliyor</div>
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow" data-i18n="hero_eyebrow">konsept · erken erişim açık</span>
+        <h1 data-i18n="hero_title">Projen <span class="strike">localhost:3000</span>'ta değil, bir <span class="grad">vitrinde</span> yaşasın.</h1>
+        <p class="lead" data-i18n="hero_lead">AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.</p>
+        <div class="hero-cta">
+          <a href="#katil" class="btn btn-primary btn-lg" data-i18n="hero_cta1">Erken erişime katıl</a>
+          <a href="/demo" class="btn btn-ghost btn-lg" data-i18n="hero_cta2">▶ Canlı demoyu keşfet</a>
+        </div>
+        <div class="hero-note"><b data-i18n="hero_note_b">Oynanabilir ilk oyun hazır.</b> <span data-i18n="hero_note">Şimdi dene.</span></div>
       </div>
-      <div class="stat-item">
-        <div class="stat-num" data-count="100">0</div>
-        <div class="stat-label" data-i18n="stat_spots">Öncelikli Kontenjan</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num" data-count="0" data-suffix="s">0</div>
-        <div class="stat-label" data-i18n="stat_deploy">Deploy Süresi</div>
-      </div>
-    </div>
 
-    <div class="terminal reveal reveal-delay-3" aria-hidden="true">
-      <div class="terminal-bar">
-        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-        <span class="terminal-url">localhost:3000</span>
-      </div>
-      <div class="terminal-body">
-        <div>$ npm run build <span class="out" data-i18n="term_ok">✓ derlendi</span></div>
-        <div>$ deploy --where=?<span class="cursor"></span></div>
-      </div>
-    </div>
-    <div class="arrow-down reveal reveal-delay-3" data-i18n="hero_arrow">↓ ailaa.io/senin-proje-adin ↓</div>
-
-    <form class="waitlist reveal reveal-delay-3" id="waitlistForm">
-      <input type="email" id="email" name="email" data-i18n-placeholder="form_placeholder" placeholder="e-posta adresin" required aria-label="E-mail">
-      <button type="submit" data-i18n="form_btn">Erken erişime katıl</button>
-    </form>
-    <p class="form-note" id="formNote" data-i18n="form_note">İlk 100 kişiye öncelikli erişim veriyoruz.</p>
-
-    <div class="hero-demo reveal reveal-delay-3">
-      <span class="hero-demo-label" data-i18n="hero_demo_label">✦ oynanabilir ilk oyunu şimdi dene</span>
-      <a href="/demo" class="hero-demo-btn" data-i18n="hero_demo_btn">▶ Canlı demoyu keşfet</a>
-    </div>
-  </div>
-</section>
-
-<!-- TRUST BADGES -->
-<section class="trust-section reveal">
-  <div class="trust-label" data-i18n="trust_label">GÜVENLİK VE UYUMLULUK</div>
-  <div class="trust-badges">
-    <div class="trust-badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span data-i18n="badge_ssl">256-bit SSL</span>
-    </div>
-    <div class="trust-badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      <span data-i18n="badge_gdpr">GDPR Uyumlu</span>
-    </div>
-    <div class="trust-badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-      <span data-i18n="badge_iso">ISO 27001</span>
-    </div>
-    <div class="trust-badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      <span data-i18n="badge_uptime">%99.9 Uptime</span>
-    </div>
-  </div>
-</section>
-
-<section id="mezarlik">
-  <div class="section-head reveal">
-    <span class="eyebrow coral" data-i18n="grave_eyebrow">yerel mezarlık</span>
-    <h2 data-i18n="grave_title">Şu an tarayıcı sekmelerinde çürüyen projeler var.</h2>
-    <p data-i18n="grave_sub">Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzel oldu. Sonra... hiçbir şey. Link kimseyle paylaşılmadı, sunucu hiç açılmadı.</p>
-  </div>
-  <div class="graveyard-row reveal reveal-delay-1">
-    <div class="ghost-card">
-      <div class="url">localhost:5173</div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <span class="tag" data-i18n="tag1">yayınlanmadı</span>
-    </div>
-    <div class="ghost-card">
-      <div class="url">127.0.0.1:8000</div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <span class="tag" data-i18n="tag2">unutuldu</span>
-    </div>
-    <div class="ghost-card">
-      <div class="url">localhost:3000</div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <span class="tag" data-i18n="tag3">3 ay önce</span>
-    </div>
-    <div class="ghost-card">
-      <div class="url">localhost:4200</div>
-      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      <span class="tag" data-i18n="tag4">yarım kaldı</span>
-    </div>
-  </div>
-</section>
-
-<section id="nasil">
-  <div class="section-head reveal">
-    <span class="eyebrow amber" data-i18n="steps_eyebrow">süreç</span>
-    <h2 data-i18n="steps_title">Üç adımda localhost'tan çıkış</h2>
-  </div>
-  <div class="steps">
-    <div class="step reveal reveal-delay-1">
-      <span class="num">01</span>
-      <h3 data-i18n="step1_t">Yükle</h3>
-      <p data-i18n="step1_p">Projeni sürükle bırak. Hangi araçla yaptığın fark etmez.</p>
-    </div>
-    <div class="step reveal reveal-delay-2">
-      <span class="num">02</span>
-      <h3 data-i18n="step2_t">Güvenli sandbox'ta yayınlan</h3>
-      <p data-i18n="step2_p">Ailaa projeni izole bir ortamda barındırır. Sunucu, domain, SSL — hepsi otomatik.</p>
-    </div>
-    <div class="step reveal reveal-delay-3">
-      <span class="num">03</span>
-      <h3 data-i18n="step3_t">Paylaş ya da sat</h3>
-      <p data-i18n="step3_p">Herkese açık bir link al. İstersen ücretsiz yayınla, istersen fiyat koy.</p>
-    </div>
-  </div>
-</section>
-
-<section id="galeri">
-  <div class="section-head reveal">
-    <span class="eyebrow" data-i18n="gal_eyebrow">önizleme</span>
-    <h2 data-i18n="gal_title">Vitrin böyle görünecek</h2>
-    <p data-i18n="gal_sub">Aşağıdakiler örnek — Ailaa henüz erken erişim aşamasında.</p>
-  </div>
-  <div class="shelf reveal reveal-delay-1">
-    <div class="cart">
-      <div class="cart-art" style="background:linear-gradient(135deg,#F5A93B,#FF6F59);"><span data-i18n="cat_game">oyun</span></div>
-      <div class="cart-info"><h4 data-i18n="g1_t">Piksel Zindanı</h4><p><span data-i18n="g1_g">rogue-lite</span> · <span class="price" data-i18n="free">ücretsiz</span></p></div>
-    </div>
-    <div class="cart">
-      <div class="cart-art" style="background:linear-gradient(135deg,#59D8C7,#2B7A78);"><span data-i18n="cat_tool">araç</span></div>
-      <div class="cart-info"><h4 data-i18n="g2_t">Not Asistanı</h4><p><span data-i18n="g2_g">verimlilik</span> · <span class="price">$3</span></p></div>
-    </div>
-    <div class="cart">
-      <div class="cart-art" style="background:linear-gradient(135deg,#8B5CF6,#F5A93B);"><span data-i18n="cat_game">oyun</span></div>
-      <div class="cart-info"><h4 data-i18n="g3_t">Uzay Tüccarı</h4><p><span data-i18n="g3_g">strateji</span> · <span class="price">$5</span></p></div>
-    </div>
-    <div class="cart">
-      <div class="cart-art" style="background:linear-gradient(135deg,#FF6F59,#8B5CF6);"><span data-i18n="cat_tool">araç</span></div>
-      <div class="cart-info"><h4 data-i18n="g4_t">Tarif Defteri</h4><p><span data-i18n="g4_g">yaşam tarzı</span> · <span class="price" data-i18n="free">ücretsiz</span></p></div>
-    </div>
-  </div>
-</section>
-
-<!-- TESTIMONIALS -->
-<section id="yorumlar">
-  <div class="section-head reveal">
-    <span class="eyebrow" data-i18n="testi_eyebrow">geribildirim</span>
-    <h2 data-i18n="testi_title">Geliştiriciler ne diyor?</h2>
-  </div>
-  <div class="testimonials reveal reveal-delay-1">
-    <div class="testi-card">
-      <div class="testi-stars">★★★★★</div>
-      <p class="testi-text" data-i18n="testi1_text">"Hafta sonu Claude ile bir oyun yaptım. Ailaa sayesinde 5 dakikada yayında. Arkadaşlarım hâlâ 'nasıl yaptın?' diye soruyor."</p>
-      <div class="testi-author">
-        <div class="testi-avatar">EK</div>
-        <div>
-          <div class="testi-name" data-i18n="testi1_name">Emre K.</div>
-          <div class="testi-role" data-i18n="testi1_role">Vibe Coder</div>
+      <div class="transform">
+        <div class="term">
+          <div class="term-bar"><i></i><i></i><i></i><span>~/hafta-sonu-projesi</span></div>
+          <div class="term-body">
+            <div><span class="c-dim">$</span> npm run build <span class="c-ok">✓</span></div>
+            <div><span class="c-dim">$</span> deploy <span class="c-am" id="deployTarget">--where=?</span> <span class="cursor" id="deployCursor"></span></div>
+          </div>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="live-card">
+          <div class="live-art"><span class="badge" data-i18n="live_badge">▶ oynanabilir</span><span class="runner"></span></div>
+          <div class="live-info">
+            <h4>NEONDROME</h4>
+            <div class="meta"><span class="url">ailaa.io/neondrome</span><span data-i18n="live_free">ücretsiz</span></div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="testi-card">
-      <div class="testi-stars">★★★★★</div>
-      <p class="testi-text" data-i18n="testi2_text">"Deploy konusunda hiçbir fikrim yoktu. Ailaa'ya sürükleyip bıraktım, link hazır. Bu kadar basit olmamalıydı."</p>
-      <div class="testi-author">
-        <div class="testi-avatar">SA</div>
-        <div>
-          <div class="testi-name" data-i18n="testi2_name">Selin A.</div>
-          <div class="testi-role" data-i18n="testi2_role">Frontend Developer</div>
-        </div>
-      </div>
-    </div>
-    <div class="testi-card">
-      <div class="testi-stars">★★★★★</div>
-      <p class="testi-text" data-i18n="testi3_text">"Ürettiğim küçük araçları satmaya başladım. Ailaa olmasaydı bunlar hâlâ Downloads klasöründe çürüyordu."</p>
-      <div class="testi-author">
-        <div class="testi-avatar">BY</div>
-        <div>
-          <div class="testi-name" data-i18n="testi3_name">Burak Y.</div>
-          <div class="testi-role" data-i18n="testi3_role">Indie Maker</div>
-        </div>
-      </div>
+
+    <div class="stats reveal">
+      <div class="stat"><div class="num"><span data-count="3">0</span></div><div class="lbl" data-i18n="stat1">desteklenen AI aracı</div></div>
+      <div class="stat"><div class="num"><span data-count="60" data-suffix="sn">0</span></div><div class="lbl" data-i18n="stat2">yayına geçiş süresi</div></div>
+      <div class="stat"><div class="num">$<span data-count="0">0</span></div><div class="lbl" data-i18n="stat3">başlangıç maliyeti</div></div>
     </div>
   </div>
 </section>
 
-<section class="final" id="katil">
+<section class="block">
   <div class="wrap">
-    <h2 class="reveal" data-i18n="final_title">Sıradaki proje, sonuncu localhost olsun.</h2>
-    <p class="reveal reveal-delay-1" data-i18n="final_sub">Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.</p>
-    <form class="waitlist reveal reveal-delay-2" id="waitlistForm2">
-      <input type="email" id="email2" name="email" data-i18n-placeholder="form_placeholder" placeholder="e-posta adresin" required aria-label="E-mail">
-      <button type="submit" data-i18n="form_btn2">Katıl</button>
-    </form>
-    <p class="form-note" id="formNote2"></p>
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow" data-i18n="grave_eyebrow">sorun</div>
+      <h2 data-i18n="grave_title">Şu an tarayıcı sekmelerinde çürüyen projeler var.</h2>
+      <p data-i18n="grave_desc">Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzel oldu. Sonra… hiçbir şey. Link kimseyle paylaşılmadı, sunucu hiç açılmadı.</p>
+    </div>
+    <div class="grave reveal">
+      <div class="tomb"><div class="host">localhost:5173</div><div class="state" data-i18n="grave1">yayınlanmadı</div></div>
+      <div class="tomb"><div class="host">127.0.0.1:8000</div><div class="state" data-i18n="grave2">unutuldu</div></div>
+      <div class="tomb"><div class="host">localhost:3000</div><div class="state" data-i18n="grave3">3 ay önce</div></div>
+      <div class="tomb"><div class="host">localhost:4200</div><div class="state" data-i18n="grave4">yarım kaldı</div></div>
+    </div>
   </div>
 </section>
+
+<section class="block" id="nasil">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow" data-i18n="steps_eyebrow">süreç</div>
+      <h2 data-i18n="steps_title">Üç adımda localhost'tan çıkış</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="ic">📦</div><div class="n">01</div><h3 data-i18n="step1_t">Yükle</h3><p data-i18n="step1_d">Projeni sürükle bırak. Hangi araçla yaptığın fark etmez.</p></div>
+      <div class="step reveal"><div class="ic">🛡️</div><div class="n">02</div><h3 data-i18n="step2_t">Güvenli sandbox'ta yayınlan</h3><p data-i18n="step2_d">Ailaa projeni izole bir ortamda barındırır. Sunucu, domain, SSL — hepsi otomatik.</p></div>
+      <div class="step reveal"><div class="ic">🚀</div><div class="n">03</div><h3 data-i18n="step3_t">Paylaş ya da sat</h3><p data-i18n="step3_d">Herkese açık bir link al. İstersen ücretsiz yayınla, istersen fiyat koy.</p></div>
+    </div>
+
+    <div class="tools reveal">
+      <span class="t-label" data-i18n="tools_label">Hangi araçla yaptığın fark etmez</span>
+      <span class="t-name">Lovable</span>
+      <span class="t-name">Bolt</span>
+      <span class="t-name">Replit</span>
+      <span class="t-name">Claude</span>
+      <span class="t-name">v0</span>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="vitrin">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow" data-i18n="gal_eyebrow">önizleme</div>
+      <h2 data-i18n="gal_title">Vitrin böyle görünecek</h2>
+      <p data-i18n="gal_desc">Aşağıdakiler örnek — Ailaa henüz erken erişim aşamasında.</p>
+    </div>
+    <div class="gallery reveal">
+      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#3a2150,#1a1030);"><span class="tag" data-i18n="cat_game">oyun</span>🎮</div><div class="g-info"><h4>Piksel Zindanı</h4><div class="m"><span>rogue-lite</span><span class="price" data-i18n="free">ücretsiz</span></div></div></div>
+      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#153a3a,#0a2024);"><span class="tag" data-i18n="cat_tool">araç</span>🛠️</div><div class="g-info"><h4>Not Asistanı</h4><div class="m"><span data-i18n="cat_prod">verimlilik</span><span class="price">$3</span></div></div></div>
+      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#3a2a15,#241a0a);"><span class="tag" data-i18n="cat_game">oyun</span>🚀</div><div class="g-info"><h4>Uzay Tüccarı</h4><div class="m"><span data-i18n="cat_strat">strateji</span><span class="price">$5</span></div></div></div>
+      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#2a1538,#1a0a24);"><span class="tag" data-i18n="cat_tool">araç</span>📒</div><div class="g-info"><h4>Tarif Defteri</h4><div class="m"><span data-i18n="cat_life">yaşam tarzı</span><span class="price" data-i18n="free">ücretsiz</span></div></div></div>
+    </div>
+    <div class="g-more"><a href="/demo" class="btn btn-ghost btn-lg" data-i18n="gal_cta">Canlı demoyu keşfet →</a></div>
+  </div>
+</section>
+
+<section class="block" id="katil">
+  <div class="wrap">
+    <div class="cta reveal">
+      <h2 data-i18n="cta_title">Sıradaki proje, sonuncu localhost olsun.</h2>
+      <p data-i18n="cta_desc">Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.</p>
+      <div class="wl">
+        <input type="email" id="wlEmail" data-i18n-ph="cta_ph" placeholder="e-posta adresin" autocomplete="email" aria-label="E-posta">
+        <button class="btn btn-primary btn-lg" id="wlBtn" data-i18n="cta_btn">Katıl</button>
+      </div>
+      <div class="wl-note dim" id="wlNote" data-i18n="cta_note">İlk 100 kişiye öncelikli erişim.</div>
+    </div>
+  </div>
+</section>
+</main>
 
 <footer>
-  <div class="footer-grid">
-    <div class="footer-col">
-      <h4 data-i18n="foot_prod">Ürün</h4>
-      <a href="#nasil" data-i18n="nav_how">Nasıl çalışır</a>
-      <a href="#galeri" data-i18n="nav_gallery">Galeri</a>
-      <a href="/demo" data-i18n="hero_demo_btn">Canlı Demo</a>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="/" class="logo"><i></i>ailaa</a>
+        <p data-i18n="foot_tag">AI ile yaptığın projeye gerçek bir ev. Yükle, paylaş, istersen sat.</p>
+      </div>
+      <div class="foot-col">
+        <h5 data-i18n="foot_product">Ürün</h5>
+        <a href="#nasil" data-i18n="nav_how">Nasıl çalışır</a>
+        <a href="#vitrin" data-i18n="nav_gallery">Vitrin</a>
+        <a href="/demo" data-i18n="foot_demo">Canlı demo</a>
+      </div>
+      <div class="foot-col">
+        <h5 data-i18n="foot_start">Başla</h5>
+        <a href="/auth" data-i18n="nav_login">Giriş</a>
+        <a href="/upload" data-i18n="foot_upload">Proje yükle</a>
+        <a href="#katil" data-i18n="foot_join">Erken erişim</a>
+      </div>
+      <div class="foot-col">
+        <h5 data-i18n="foot_contact">İletişim</h5>
+        <a href="mailto:hello@ailaa.io">hello@ailaa.io</a>
+      </div>
     </div>
-    <div class="footer-col">
-      <h4 data-i18n="foot_legal">Yasal</h4>
-      <a href="#" data-i18n="foot_privacy">Gizlilik Politikası</a>
-      <a href="#" data-i18n="foot_terms">Kullanım Koşulları</a>
-      <a href="#" data-i18n="foot_cookies">Çerez Politikası</a>
+    <div class="foot-bottom">
+      <span data-i18n="foot_rights">ailaa © 2026 — konsept aşamasında, sevgiyle inşa ediliyor.</span>
+      <span class="lang" role="group" aria-label="Dil">
+        <button type="button" data-lang="tr">TR</button>
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="de">DE</button>
+      </span>
     </div>
-    <div class="footer-col">
-      <h4 data-i18n="foot_contact">İletişim</h4>
-      <a href="mailto:hello@ailaa.io">hello@ailaa.io</a>
-      <a href="https://twitter.com/ailaaio" target="_blank">Twitter / X</a>
-    </div>
-  </div>
-  <div class="lang-switch" role="group" aria-label="Language / Dil / Sprache">
-    <button type="button" data-lang="tr">TR</button>
-    <button type="button" data-lang="en">EN</button>
-    <button type="button" data-lang="de">DE</button>
-  </div>
-  <div class="footer-bottom">
-    <span data-i18n="footer">ailaa © 2026 — konsept aşamasında, sevgiyle inşa ediliyor.</span>
   </div>
 </footer>
 
-<button id="backToTop" aria-label="Yukarı çık">↑</button>
-
 <script>
-/* ============================================================
-   ÇEVİRİLER
-   ============================================================ */
-const I18N = {
-  tr: {
-    nav_how: "Nasıl çalışır", nav_gallery: "Galeri", nav_join: "Katıl", nav_cta: "Erken erişim", nav_login: "Giriş", nav_account: "Hesabım", nav_admin: "🛡 Admin", nav_upload: "+ Yükle",
-    hero_eyebrow: "● konsept — erken erişim listesi açık",
-    hero_title: `Projen <span class="strike">localhost:3000</span>'ta değil,<br>bir vitrinde yaşasın.`,
-    hero_sub: "AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.",
-    term_ok: "✓ derlendi",
-    hero_arrow: "↓ ailaa.io/senin-proje-adin ↓",
-    hero_demo_label: "✦ oynanabilir ilk oyunu şimdi dene",
-    hero_demo_btn: "▶ Canlı demoyu keşfet",
-    form_placeholder: "e-posta adresin",
-    form_btn: "Erken erişime katıl", form_btn2: "Katıl",
-    form_note: "İlk 100 kişiye öncelikli erişim veriyoruz.",
-    form_success: "Listeye eklendin. Sırada yerin hazır. ✓",
-    form_error: "Bir şeyler ters gitti, tekrar dener misin?",
-    stat_devs: "Geliştirici Bekliyor", stat_spots: "Öncelikli Kontenjan", stat_deploy: "Deploy Süresi",
-    trust_label: "GÜVENLİK VE UYUMLULUK",
-    badge_ssl: "256-bit SSL", badge_gdpr: "GDPR Uyumlu", badge_iso: "ISO 27001", badge_uptime: "%99.9 Uptime",
-    grave_eyebrow: "yerel mezarlık",
-    grave_title: "Şu an tarayıcı sekmelerinde çürüyen projeler var.",
-    grave_sub: "Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzel oldu. Sonra... hiçbir şey. Link kimseyle paylaşılmadı, sunucu hiç açılmadı.",
-    tag1: "yayınlanmadı", tag2: "unutuldu", tag3: "3 ay önce", tag4: "yarım kaldı",
-    steps_eyebrow: "süreç", steps_title: "Üç adımda localhost'tan çıkış",
-    step1_t: "Yükle", step1_p: "Projeni sürükle bırak. Hangi araçla yaptığın fark etmez.",
-    step2_t: "Güvenli sandbox'ta yayınlan", step2_p: "Ailaa projeni izole bir ortamda barındırır. Sunucu, domain, SSL — hepsi otomatik.",
-    step3_t: "Paylaş ya da sat", step3_p: "Herkese açık bir link al. İstersen ücretsiz yayınla, istersen fiyat koy.",
-    gal_eyebrow: "önizleme", gal_title: "Vitrin böyle görünecek",
-    gal_sub: "Aşağıdakiler örnek — Ailaa henüz erken erişim aşamasında.",
-    gal_cta: "Canlı demoyu keşfet →",
-    cat_game: "oyun", cat_tool: "araç", free: "ücretsiz",
-    g1_t: "Piksel Zindanı", g1_g: "rogue-lite",
-    g2_t: "Not Asistanı", g2_g: "verimlilik",
-    g3_t: "Uzay Tüccarı", g3_g: "strateji",
-    g4_t: "Tarif Defteri", g4_g: "yaşam tarzı",
-    testi_eyebrow: "geribildirim", testi_title: "Geliştiriciler ne diyor?",
-    testi1_text: `"Hafta sonu Claude ile bir oyun yaptım. Ailaa sayesinde 5 dakikada yayında. Arkadaşlarım hâlâ 'nasıl yaptın?' diye soruyor."`,
-    testi1_name: "Emre K.", testi1_role: "Vibe Coder",
-    testi2_text: `"Deploy konusunda hiçbir fikrim yoktu. Ailaa'ya sürükleyip bıraktım, link hazır. Bu kadar basit olmamalıydı."`,
-    testi2_name: "Selin A.", testi2_role: "Frontend Developer",
-    testi3_text: `"Ürettiğim küçük araçları satmaya başladım. Ailaa olmasaydı bunlar hâlâ Downloads klasöründe çürüyordu."`,
-    testi3_name: "Burak Y.", testi3_role: "Indie Maker",
-    final_title: "Sıradaki proje, sonuncu localhost olsun.",
-    final_sub: "Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.",
-    foot_prod: "Ürün", foot_legal: "Yasal", foot_contact: "İletişim",
-    foot_privacy: "Gizlilik Politikası", foot_terms: "Kullanım Koşulları", foot_cookies: "Çerez Politikası",
-    footer: "ailaa © 2026 — konsept aşamasında, sevgiyle inşa ediliyor."
+var I18N = {
+  tr:{
+    nav_how:"Nasıl çalışır", nav_gallery:"Vitrin", nav_demo:"Demo", nav_login:"Giriş", nav_account:"Hesabım", nav_admin:"🛡 Admin", nav_upload:"+ Yükle",
+    hero_eyebrow:"konsept · erken erişim açık",
+    hero_title:"Projen <span class=\"strike\">localhost:3000</span>'ta değil, bir <span class=\"grad\">vitrinde</span> yaşasın.",
+    hero_lead:"AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.",
+    hero_cta1:"Erken erişime katıl", hero_cta2:"▶ Canlı demoyu keşfet",
+    hero_note_b:"Oynanabilir ilk oyun hazır.", hero_note:"Şimdi dene.",
+    live_badge:"▶ oynanabilir", live_free:"ücretsiz",
+    stat1:"desteklenen AI aracı", stat2:"yayına geçiş süresi", stat3:"başlangıç maliyeti",
+    grave_eyebrow:"sorun", grave_title:"Şu an tarayıcı sekmelerinde çürüyen projeler var.",
+    grave_desc:"Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzel oldu. Sonra… hiçbir şey. Link kimseyle paylaşılmadı, sunucu hiç açılmadı.",
+    grave1:"yayınlanmadı", grave2:"unutuldu", grave3:"3 ay önce", grave4:"yarım kaldı",
+    steps_eyebrow:"süreç", steps_title:"Üç adımda localhost'tan çıkış",
+    step1_t:"Yükle", step1_d:"Projeni sürükle bırak. Hangi araçla yaptığın fark etmez.",
+    step2_t:"Güvenli sandbox'ta yayınlan", step2_d:"Ailaa projeni izole bir ortamda barındırır. Sunucu, domain, SSL — hepsi otomatik.",
+    step3_t:"Paylaş ya da sat", step3_d:"Herkese açık bir link al. İstersen ücretsiz yayınla, istersen fiyat koy.",
+    tools_label:"Hangi araçla yaptığın fark etmez",
+    gal_eyebrow:"önizleme", gal_title:"Vitrin böyle görünecek", gal_desc:"Aşağıdakiler örnek — Ailaa henüz erken erişim aşamasında.",
+    gal_cta:"Canlı demoyu keşfet →",
+    cat_game:"oyun", cat_tool:"araç", cat_prod:"verimlilik", cat_strat:"strateji", cat_life:"yaşam tarzı", free:"ücretsiz",
+    cta_title:"Sıradaki proje, sonuncu localhost olsun.", cta_desc:"Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.",
+    cta_ph:"e-posta adresin", cta_btn:"Katıl", cta_note:"İlk 100 kişiye öncelikli erişim.",
+    cta_sending:"Ekleniyor…", cta_ok:"Listedesin! Açılışta ilk sen haber alacaksın 🎉", cta_dup:"Bu e-posta zaten listede.", cta_bad:"Geçerli bir e-posta gir.", cta_err:"Bir şeyler ters gitti, tekrar dene.",
+    foot_tag:"AI ile yaptığın projeye gerçek bir ev. Yükle, paylaş, istersen sat.",
+    foot_product:"Ürün", foot_start:"Başla", foot_contact:"İletişim", foot_demo:"Canlı demo", foot_upload:"Proje yükle", foot_join:"Erken erişim",
+    foot_rights:"ailaa © 2026 — konsept aşamasında, sevgiyle inşa ediliyor."
   },
-  en: {
-    nav_how: "How it works", nav_gallery: "Gallery", nav_join: "Join", nav_cta: "Early access", nav_login: "Log in", nav_account: "My account", nav_admin: "🛡 Admin", nav_upload: "+ Upload",
-    hero_eyebrow: "● concept — early access list is open",
-    hero_title: 'Your project deserves a storefront,<br>not <span class="strike">localhost:3000</span>.',
-    hero_sub: "Publish, share, and even sell the games and apps you built with AI — in seconds. No deploy headaches, no server hassle.",
-    term_ok: "✓ compiled",
-    hero_arrow: "↓ ailaa.io/your-project-name ↓",
-    hero_demo_label: "✦ try the first playable game now",
-    hero_demo_btn: "▶ Explore the live demo",
-    form_placeholder: "your email address",
-    form_btn: "Join early access", form_btn2: "Join",
-    form_note: "The first 100 people get priority access.",
-    form_success: "You're on the list. Your spot is saved. ✓",
-    form_error: "Something went wrong — mind trying again?",
-    stat_devs: "Developers Waiting", stat_spots: "Priority Spots", stat_deploy: "Deploy Time",
-    trust_label: "SECURITY & COMPLIANCE",
-    badge_ssl: "256-bit SSL", badge_gdpr: "GDPR Compliant", badge_iso: "ISO 27001", badge_uptime: "99.9% Uptime",
-    grave_eyebrow: "local graveyard",
-    grave_title: "Right now, projects are rotting away in browser tabs.",
-    grave_sub: "You built something with AI over a weekend. It worked, it was good. Then... nothing. The link was never shared, the server never went live.",
-    tag1: "never shipped", tag2: "forgotten", tag3: "3 months ago", tag4: "abandoned",
-    steps_eyebrow: "the process", steps_title: "Escape localhost in three steps",
-    step1_t: "Upload", step1_p: "Drag and drop your project. Doesn't matter which tool you built it with.",
-    step2_t: "Go live in a secure sandbox", step2_p: "Ailaa hosts your project in an isolated environment. Server, domain, SSL — all automatic.",
-    step3_t: "Share or sell", step3_p: "Get a public link. Publish it for free, or put a price on it.",
-    gal_eyebrow: "preview", gal_title: "This is what the storefront will look like",
-    gal_sub: "These are examples — Ailaa is still in early access.",
-    gal_cta: "Explore the live demo →",
-    cat_game: "game", cat_tool: "tool", free: "free",
-    g1_t: "Pixel Dungeon", g1_g: "rogue-lite",
-    g2_t: "Note Assistant", g2_g: "productivity",
-    g3_t: "Space Trader", g3_g: "strategy",
-    g4_t: "Recipe Book", g4_g: "lifestyle",
-    testi_eyebrow: "feedback", testi_title: "What developers are saying",
-    testi1_text: `"Built a game with Claude over the weekend. Ailaa had it live in 5 minutes. Friends still ask 'how did you do that?'"`,
-    testi1_name: "Emre K.", testi1_role: "Vibe Coder",
-    testi2_text: `"I had zero idea about deployment. Dragged and dropped into Ailaa, link was ready. It shouldn't be this easy."`,
-    testi2_name: "Selin A.", testi2_role: "Frontend Developer",
-    testi3_text: `"Started selling my small tools. Without Ailaa they'd still be rotting in the Downloads folder."`,
-    testi3_name: "Burak Y.", testi3_role: "Indie Maker",
-    final_title: "Make your next project the last localhost.",
-    final_sub: "Join the early access list and be the first to know when Ailaa opens.",
-    foot_prod: "Product", foot_legal: "Legal", foot_contact: "Contact",
-    foot_privacy: "Privacy Policy", foot_terms: "Terms of Service", foot_cookies: "Cookie Policy",
-    footer: "ailaa © 2026 — a concept in progress, built with love."
+  en:{
+    nav_how:"How it works", nav_gallery:"Showcase", nav_demo:"Demo", nav_login:"Log in", nav_account:"My account", nav_admin:"🛡 Admin", nav_upload:"+ Upload",
+    hero_eyebrow:"concept · early access open",
+    hero_title:"Your project deserves a <span class=\"grad\">showcase</span>, not <span class=\"strike\">localhost:3000</span>.",
+    hero_lead:"Publish, share and even sell the games and apps you build with AI — in seconds. No deploy hassle, no server headaches.",
+    hero_cta1:"Join early access", hero_cta2:"▶ Explore the live demo",
+    hero_note_b:"The first playable game is live.", hero_note:"Try it now.",
+    live_badge:"▶ playable", live_free:"free",
+    stat1:"AI tools supported", stat2:"time to go live", stat3:"cost to start",
+    grave_eyebrow:"the problem", grave_title:"Right now there are projects rotting in browser tabs.",
+    grave_desc:"You built something with AI over a weekend. It worked, it was great. Then… nothing. The link was never shared, the server never opened.",
+    grave1:"never shipped", grave2:"forgotten", grave3:"3 months ago", grave4:"left half-done",
+    steps_eyebrow:"the process", steps_title:"Off localhost in three steps",
+    step1_t:"Upload", step1_d:"Drag and drop your project. It doesn't matter what tool you built it with.",
+    step2_t:"Go live in a safe sandbox", step2_d:"Ailaa hosts your project in an isolated environment. Server, domain, SSL — all automatic.",
+    step3_t:"Share or sell", step3_d:"Get a public link. Publish it free, or put a price on it.",
+    tools_label:"Whatever tool you built it with",
+    gal_eyebrow:"preview", gal_title:"Here's what the showcase looks like", gal_desc:"These are samples — Ailaa is still in early access.",
+    gal_cta:"Explore the live demo →",
+    cat_game:"game", cat_tool:"tool", cat_prod:"productivity", cat_strat:"strategy", cat_life:"lifestyle", free:"free",
+    cta_title:"Let the next project be your last localhost.", cta_desc:"Join the early access list and be the first to know when Ailaa opens.",
+    cta_ph:"your email", cta_btn:"Join", cta_note:"Priority access for the first 100.",
+    cta_sending:"Adding…", cta_ok:"You're on the list! You'll be first to know 🎉", cta_dup:"This email is already on the list.", cta_bad:"Enter a valid email.", cta_err:"Something went wrong, try again.",
+    foot_tag:"A real home for what you build with AI. Upload, share, and sell if you like.",
+    foot_product:"Product", foot_start:"Start", foot_contact:"Contact", foot_demo:"Live demo", foot_upload:"Upload project", foot_join:"Early access",
+    foot_rights:"ailaa © 2026 — a concept, built with love."
   },
-  de: {
-    nav_how: "So funktioniert's", nav_gallery: "Galerie", nav_join: "Mitmachen", nav_cta: "Früher Zugang", nav_login: "Anmelden", nav_account: "Mein Konto", nav_admin: "🛡 Admin", nav_upload: "+ Hochladen",
-    hero_eyebrow: "● konzept — early-access-liste ist offen",
-    hero_title: 'Dein Projekt verdient ein Schaufenster,<br>nicht <span class="strike">localhost:3000</span>.',
-    hero_sub: "Veröffentliche, teile und verkaufe deine mit KI erstellten Spiele und Apps — in Sekunden. Kein Deploy-Stress, kein Server-Ärger.",
-    term_ok: "✓ kompiliert",
-    hero_arrow: "↓ ailaa.io/dein-projekt-name ↓",
-    hero_demo_label: "✦ teste jetzt das erste spielbare Spiel",
-    hero_demo_btn: "▶ Live-Demo entdecken",
-    form_placeholder: "deine E-Mail-Adresse",
-    form_btn: "Early Access sichern", form_btn2: "Mitmachen",
-    form_note: "Die ersten 100 Personen erhalten bevorzugten Zugang.",
-    form_success: "Du stehst auf der Liste. Dein Platz ist reserviert. ✓",
-    form_error: "Etwas ist schiefgelaufen — versuchst du es nochmal?",
-    stat_devs: "Entwickler warten", stat_spots: "Prioritätsplätze", stat_deploy: "Deploy-Zeit",
-    trust_label: "SICHERHEIT & KONFORMITÄT",
-    badge_ssl: "256-bit SSL", badge_gdpr: "DSGVO-konform", badge_iso: "ISO 27001", badge_uptime: "99,9% Uptime",
-    grave_eyebrow: "lokaler friedhof",
-    grave_title: "Gerade jetzt verrotten Projekte in Browser-Tabs.",
-    grave_sub: "Du hast an einem Wochenende etwas mit KI gebaut. Es lief, es war gut. Und dann... nichts. Der Link wurde nie geteilt, der Server ging nie online.",
-    tag1: "nie veröffentlicht", tag2: "vergessen", tag3: "vor 3 Monaten", tag4: "aufgegeben",
-    steps_eyebrow: "der prozess", steps_title: "In drei Schritten raus aus localhost",
-    step1_t: "Hochladen", step1_p: "Zieh dein Projekt einfach rein. Egal, mit welchem Tool du es gebaut hast.",
-    step2_t: "Live in einer sicheren Sandbox", step2_p: "Ailaa hostet dein Projekt in einer isolierten Umgebung. Server, Domain, SSL — alles automatisch.",
-    step3_t: "Teilen oder verkaufen", step3_p: "Erhalte einen öffentlichen Link. Veröffentliche kostenlos oder setze einen Preis.",
-    gal_eyebrow: "vorschau", gal_title: "So wird das Schaufenster aussehen",
-    gal_sub: "Das sind Beispiele — Ailaa ist noch im Early Access.",
-    gal_cta: "Live-Demo entdecken →",
-    cat_game: "spiel", cat_tool: "tool", free: "kostenlos",
-    g1_t: "Pixel-Dungeon", g1_g: "rogue-lite",
-    g2_t: "Notiz-Assistent", g2_g: "produktivität",
-    g3_t: "Weltraumhändler", g3_g: "strategie",
-    g4_t: "Rezeptbuch", g4_g: "lifestyle",
-    testi_eyebrow: "feedback", testi_title: "Was Entwickler sagen",
-    testi1_text: `"Habe ein Spiel mit Claude am Wochenende gebaut. Ailaa hatte es in 5 Minuten live. Freunde fragen immer noch 'wie hast du das gemacht?'"`,
-    testi1_name: "Emre K.", testi1_role: "Vibe Coder",
-    testi2_text: `"Ich hatte keine Ahnung von Deployment. Reinziehen, loslassen — Link war da. Es sollte nicht so einfach sein."`,
-    testi2_name: "Selin A.", testi2_role: "Frontend Developer",
-    testi3_text: `"Habe angefangen, meine kleinen Tools zu verkaufen. Ohne Ailaa würden sie immer noch im Downloads-Ordner verrotten."`,
-    testi3_name: "Burak Y.", testi3_role: "Indie Maker",
-    final_title: "Mach dein nächstes Projekt zum letzten localhost.",
-    final_sub: "Trag dich in die Early-Access-Liste ein und erfahre als Erster, wenn Ailaa startet.",
-    foot_prod: "Produkt", foot_legal: "Rechtliches", foot_contact: "Kontakt",
-    foot_privacy: "Datenschutz", foot_terms: "Nutzungsbedingungen", foot_cookies: "Cookie-Richtlinie",
-    footer: "ailaa © 2026 — ein Konzept in Arbeit, mit Liebe gebaut."
+  de:{
+    nav_how:"So funktioniert's", nav_gallery:"Schaufenster", nav_demo:"Demo", nav_login:"Anmelden", nav_account:"Mein Konto", nav_admin:"🛡 Admin", nav_upload:"+ Hochladen",
+    hero_eyebrow:"Konzept · Early Access offen",
+    hero_title:"Dein Projekt verdient ein <span class=\"grad\">Schaufenster</span>, kein <span class=\"strike\">localhost:3000</span>.",
+    hero_lead:"Veröffentliche, teile und verkaufe die Spiele und Apps, die du mit KI baust — in Sekunden. Kein Deploy-Stress, keine Server-Sorgen.",
+    hero_cta1:"Early Access beitreten", hero_cta2:"▶ Live-Demo entdecken",
+    hero_note_b:"Das erste spielbare Spiel ist da.", hero_note:"Jetzt testen.",
+    live_badge:"▶ spielbar", live_free:"kostenlos",
+    stat1:"unterstützte KI-Tools", stat2:"bis live", stat3:"Startkosten",
+    grave_eyebrow:"das Problem", grave_title:"Gerade verrotten Projekte in Browser-Tabs.",
+    grave_desc:"Du hast am Wochenende etwas mit KI gebaut. Es lief, es war gut. Dann… nichts. Der Link wurde nie geteilt, der Server nie geöffnet.",
+    grave1:"nie veröffentlicht", grave2:"vergessen", grave3:"vor 3 Monaten", grave4:"halb fertig",
+    steps_eyebrow:"der Ablauf", steps_title:"In drei Schritten weg von localhost",
+    step1_t:"Hochladen", step1_d:"Zieh dein Projekt einfach rein. Egal, mit welchem Tool du es gebaut hast.",
+    step2_t:"In sicherer Sandbox live gehen", step2_d:"Ailaa hostet dein Projekt isoliert. Server, Domain, SSL — alles automatisch.",
+    step3_t:"Teilen oder verkaufen", step3_d:"Hol dir einen öffentlichen Link. Kostenlos oder mit Preis.",
+    tools_label:"Egal mit welchem Tool gebaut",
+    gal_eyebrow:"Vorschau", gal_title:"So sieht das Schaufenster aus", gal_desc:"Dies sind Beispiele — Ailaa ist noch im Early Access.",
+    gal_cta:"Live-Demo entdecken →",
+    cat_game:"Spiel", cat_tool:"Tool", cat_prod:"Produktivität", cat_strat:"Strategie", cat_life:"Lifestyle", free:"kostenlos",
+    cta_title:"Lass das nächste Projekt dein letztes localhost sein.", cta_desc:"Tritt der Early-Access-Liste bei und erfahre als Erste:r, wenn Ailaa öffnet.",
+    cta_ph:"deine E-Mail", cta_btn:"Beitreten", cta_note:"Prioritätszugang für die ersten 100.",
+    cta_sending:"Wird hinzugefügt…", cta_ok:"Du bist auf der Liste! 🎉", cta_dup:"Diese E-Mail ist bereits auf der Liste.", cta_bad:"Gib eine gültige E-Mail ein.", cta_err:"Etwas ist schiefgelaufen, versuche es erneut.",
+    foot_tag:"Ein echtes Zuhause für das, was du mit KI baust. Hochladen, teilen, verkaufen.",
+    foot_product:"Produkt", foot_start:"Start", foot_contact:"Kontakt", foot_demo:"Live-Demo", foot_upload:"Projekt hochladen", foot_join:"Early Access",
+    foot_rights:"ailaa © 2026 — ein Konzept, mit Liebe gebaut."
   }
 };
-
-const GEO_MAP = {
-  TR: "tr", CY: "tr",
-  DE: "de", AT: "de", CH: "de", LI: "de", LU: "de"
-};
-const DEFAULT_LANG = "en";
-let currentLang = "tr";
+var GEO_MAP={TR:"tr",CY:"tr",DE:"de",AT:"de",CH:"de",LI:"de",LU:"de"};
+var currentLang="tr";
 
 function applyLang(lang){
-  if(!I18N[lang]) lang = DEFAULT_LANG;
-  currentLang = lang;
-  const dict = I18N[lang];
-  document.documentElement.lang = lang;
-
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if(dict[key] !== undefined) el.textContent = dict[key];
+  if(!I18N[lang]) lang="en";
+  currentLang=lang;
+  document.documentElement.lang=lang;
+  var d=I18N[lang];
+  document.querySelectorAll("[data-i18n]").forEach(function(el){
+    var k=el.getAttribute("data-i18n"); if(d[k]!==undefined) el.innerHTML=d[k];
   });
-  document.querySelectorAll("[data-i18n-html]").forEach(el => {
-    const key = el.getAttribute("data-i18n-html");
-    if(dict[key] !== undefined) el.innerHTML = dict[key];
+  document.querySelectorAll("[data-i18n-ph]").forEach(function(el){
+    var k=el.getAttribute("data-i18n-ph"); if(d[k]!==undefined) el.placeholder=d[k];
   });
-  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
-    const key = el.getAttribute("data-i18n-placeholder");
-    if(dict[key] !== undefined) el.placeholder = dict[key];
-  });
-  document.querySelectorAll(".lang-switch button").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.lang === lang);
-  });
-  try{ localStorage.setItem("ailaa_lang", lang); }catch(e){}
+  document.querySelectorAll(".lang button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-lang")===lang); });
+  try{ localStorage.setItem("ailaa_lang",lang); }catch(e){}
 }
-
-async function detectLang(){
-  try{
-    const saved = localStorage.getItem("ailaa_lang");
-    if(saved && I18N[saved]){ applyLang(saved); return; }
-  }catch(e){}
-
-  let lang = null;
-  try{
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 3000);
-    const res = await fetch("https://ipapi.co/json/", {signal: ctrl.signal});
-    clearTimeout(t);
-    if(res.ok){
-      const data = await res.json();
-      if(data && data.country_code) lang = GEO_MAP[data.country_code] || DEFAULT_LANG;
-    }
-  }catch(e){}
-
-  if(!lang){
-    const nav = (navigator.language || "en").slice(0,2).toLowerCase();
-    lang = I18N[nav] ? nav : DEFAULT_LANG;
-  }
-  applyLang(lang);
+function detectLang(){
+  var saved=null; try{ saved=localStorage.getItem("ailaa_lang"); }catch(e){}
+  if(saved && I18N[saved]){ applyLang(saved); return; }
+  applyLang((navigator.language||"tr").slice(0,2).toLowerCase());
+  var c=new AbortController(); var tm=setTimeout(function(){c.abort();},3000);
+  fetch("https://ipapi.co/json/",{signal:c.signal}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    clearTimeout(tm);
+    var forced=null; try{ forced=localStorage.getItem("ailaa_lang"); }catch(e){}
+    if(!forced && j && j.country_code){ applyLang(GEO_MAP[j.country_code]||"en"); }
+  }).catch(function(){});
 }
-
-document.querySelectorAll(".lang-switch button").forEach(btn => {
-  btn.addEventListener("click", () => applyLang(btn.dataset.lang));
+document.querySelectorAll(".lang button").forEach(function(b){
+  b.addEventListener("click",function(){ applyLang(b.getAttribute("data-lang")); });
 });
-
 detectLang();
 
-/* ---------- LOADING SCREEN (sağlam: hiçbir kaynağa takılıp kalmaz) ---------- */
 (function(){
   var done=false;
-  function hideLoader(){ if(done) return; done=true; var l=document.getElementById('loader'); if(l) l.classList.add('done'); }
-  // her hâlükârda en geç 2 saniyede kapan (Supabase/font takılsa bile)
-  setTimeout(hideLoader, 2000);
-  // sayfa zaten hazırsa hemen kapat, değilse yüklenince kısa süre sonra
-  if(document.readyState==='complete'){ setTimeout(hideLoader, 400); }
-  else { window.addEventListener('load', function(){ setTimeout(hideLoader, 400); }); }
+  function hide(){ if(done) return; done=true; var l=document.getElementById("loader"); if(l) l.classList.add("done"); }
+  setTimeout(hide,1600);
+  if(document.readyState==="complete") setTimeout(hide,300);
+  else window.addEventListener("load",function(){ setTimeout(hide,300); });
 })();
 
-/* ---------- CUSTOM CURSOR ---------- */
-const cursor = document.getElementById('cursor');
-let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
-
-document.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-});
-
-function animateCursor(){
-  cursorX += (mouseX - cursorX) * 0.15;
-  cursorY += (mouseY - cursorY) * 0.15;
-  cursor.style.left = cursorX + 'px';
-  cursor.style.top = cursorY + 'px';
-  requestAnimationFrame(animateCursor);
+function runCounter(el){
+  var target=parseFloat(el.getAttribute("data-count"))||0;
+  var suffix=el.getAttribute("data-suffix")||"";
+  if(target===0){ el.textContent="0"+suffix; return; }
+  var dur=1100, start=performance.now();
+  function tick(now){
+    var p=Math.min(1,(now-start)/dur);
+    var e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(target*e)+suffix;
+    if(p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
-if(window.matchMedia('(pointer:fine)').matches){
-  animateCursor();
-  document.querySelectorAll('a, button, .cart, .ghost-card, .testi-card, .step').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-    el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
-  });
-}
-
-/* ---------- SCROLL REVEAL ---------- */
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if(entry.isIntersecting){
-      entry.target.classList.add('visible');
-    }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-/* ---------- ANIMATED COUNTERS ---------- */
-const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if(entry.isIntersecting){
-      const el = entry.target;
-      const target = parseInt(el.dataset.count);
-      const suffix = el.dataset.suffix || '';
-      const duration = 2000;
-      const start = performance.now();
-      function update(now){
-        const progress = Math.min((now - start) / duration, 1);
-        const ease = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.floor(ease * target).toLocaleString() + suffix;
-        if(progress < 1) requestAnimationFrame(update);
-      }
-      requestAnimationFrame(update);
-      counterObserver.unobserve(el);
-    }
-  });
-}, { threshold: 0.5 });
-
-document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
-
-/* ---------- BACK TO TOP ---------- */
-const backToTop = document.getElementById('backToTop');
-window.addEventListener('scroll', () => {
-  if(window.scrollY > 600) backToTop.classList.add('visible');
-  else backToTop.classList.remove('visible');
-});
-backToTop.addEventListener('click', () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-
-/* ---------- WAITLIST (Netlify Forms) ---------- */
-function encode(data){
-  return Object.keys(data)
-    .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(data[k]))
-    .join("&");
-}
-
-async function handleWaitlist(formId, inputId, noteId){
-  const form = document.getElementById(formId);
-  const note = document.getElementById(noteId);
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById(inputId).value.trim();
-    if(!email) return;
-
-    note.classList.remove('success');
-    note.textContent = "...";
-
-    try{
-      const res = await fetch("/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: encode({
-          "form-name": "waitlist",
-          "email": email,
-          "lang": currentLang
-        })
+(function(){
+  var reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  var counted=false;
+  function fireCounters(){ if(counted) return; counted=true; document.querySelectorAll("[data-count]").forEach(runCounter); }
+  if(reduce || !("IntersectionObserver" in window)){
+    document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in"); });
+    fireCounters();
+  } else {
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); if(en.target.querySelector && en.target.querySelector("[data-count]")) fireCounters(); }
       });
-      if(res.ok){
-        note.textContent = I18N[currentLang].form_success;
-        note.classList.add('success');
-        form.reset();
-      } else {
-        note.textContent = I18N[currentLang].form_error;
-      }
-    } catch(err){
-      note.textContent = I18N[currentLang].form_error;
-      console.error(err);
+    },{threshold:0.12, rootMargin:"0px 0px -40px 0px"});
+    document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+    setTimeout(fireCounters,2500);
+  }
+})();
+
+/* ---- sinematik dokunuşlar ---- */
+(function(){
+  var reduce=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  /* deploy satırı: --where=? → ailaa.io ✓ */
+  var tgt=document.getElementById("deployTarget"), cur=document.getElementById("deployCursor");
+  if(tgt){
+    if(reduce){ tgt.textContent="→ ailaa.io ✓"; tgt.className="c-ok"; }
+    else{
+      setTimeout(function(){
+        tgt.className="c-ok"; tgt.textContent="";
+        var s="→ ailaa.io ✓", i=0;
+        (function type(){ if(i<=s.length){ tgt.textContent=s.slice(0,i); i++; setTimeout(type,52);} else if(cur){ cur.style.display="none"; } })();
+      },1500);
     }
-  });
-}
-handleWaitlist('waitlistForm', 'email', 'formNote');
-handleWaitlist('waitlistForm2', 'email2', 'formNote2');
+  }
+  /* nav kaydırınca incelsin */
+  var hdr=document.querySelector("header");
+  if(hdr) window.addEventListener("scroll",function(){ hdr.classList.toggle("scrolled", window.scrollY>20); },{passive:true});
+  /* hero kartı 3B eğim — yalnız fareyle, hareket kısıtlı değilse */
+  if(!reduce && window.matchMedia("(pointer:fine)").matches){
+    var el=document.querySelector(".transform");
+    if(el){
+      var fr;
+      el.addEventListener("mousemove",function(e){
+        var r=el.getBoundingClientRect();
+        var px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
+        cancelAnimationFrame(fr);
+        fr=requestAnimationFrame(function(){ el.style.transform="perspective(950px) rotateY("+(px*6).toFixed(2)+"deg) rotateX("+(-py*6).toFixed(2)+"deg)"; });
+      });
+      el.addEventListener("mouseleave",function(){ el.style.transform=""; });
+    }
+  }
+})();
 </script>
 
-<!-- Giriş durumu kontrolü -->
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-(async function(){
-  try{
-    const url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
-    if(!url || url.includes("BURAYA") || !key || key.includes("BURAYA")) return;
-    if(typeof supabase==="undefined") return;
-    const { createClient } = supabase;
-    const db = createClient(url, key);
-    const { data } = await db.auth.getSession();
-    const link = document.getElementById("loginLink");
-    if(link && data.session && data.session.user){
-      const admin = window.AILAA_ADMIN_UID && !String(window.AILAA_ADMIN_UID).includes("BURAYA") && data.session.user.id === window.AILAA_ADMIN_UID;
-      if(admin){ link.setAttribute("data-i18n","nav_admin"); link.href="/admin"; link.style.color="var(--amber)"; }
-      else { link.setAttribute("data-i18n","nav_account"); link.style.color="var(--mint)"; }
-      applyLang(currentLang);
-    }
-  }catch(e){}
+(function(){
+  var url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
+  var configured = url && String(url).indexOf("BURAYA")<0 && key && String(key).indexOf("BURAYA")<0 && typeof supabase!=="undefined";
+  var db = configured ? supabase.createClient(url,key) : null;
+
+  if(db){
+    db.auth.getSession().then(function(res){
+      var s=res && res.data && res.data.session;
+      var link=document.getElementById("loginLink");
+      if(link && s && s.user){
+        var admin = window.AILAA_ADMIN_UID && String(window.AILAA_ADMIN_UID).indexOf("BURAYA")<0 && s.user.id===window.AILAA_ADMIN_UID;
+        if(admin){ link.setAttribute("data-i18n","nav_admin"); link.href="/admin"; link.style.color="var(--amber)"; }
+        else { link.setAttribute("data-i18n","nav_account"); link.style.color="var(--mint)"; }
+        link.textContent=I18N[currentLang][admin?"nav_admin":"nav_account"];
+      }
+    }).catch(function(){});
+  }
+
+  var btn=document.getElementById("wlBtn"), input=document.getElementById("wlEmail"), note=document.getElementById("wlNote");
+  function setNote(txt,cls){ note.textContent=txt; note.className="wl-note "+(cls||"dim"); }
+  function join(){
+    var email=(input.value||"").trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ setNote(I18N[currentLang].cta_bad,"err"); return; }
+    if(!db){ setNote(I18N[currentLang].cta_ok,"ok"); input.value=""; return; }
+    btn.disabled=true; setNote(I18N[currentLang].cta_sending,"dim");
+    db.from("waitlist").insert({email:email}).then(function(r){
+      if(r.error){
+        if((r.error.message||"").toLowerCase().indexOf("duplicate")>=0 || r.error.code==="23505"){ setNote(I18N[currentLang].cta_dup,"ok"); input.value=""; }
+        else { setNote(I18N[currentLang].cta_err,"err"); }
+      } else { setNote(I18N[currentLang].cta_ok,"ok"); input.value=""; }
+      btn.disabled=false;
+    }).catch(function(){ setNote(I18N[currentLang].cta_err,"err"); btn.disabled=false; });
+  }
+  if(btn) btn.addEventListener("click",join);
+  if(input) input.addEventListener("keydown",function(e){ if(e.key==="Enter") join(); });
 })();
 </script>
 
