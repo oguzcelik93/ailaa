@@ -18,9 +18,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#14182B; --bg-raised:#1E2340; --bg-raised-2:#262B4D;
-    --line:#333a63; --text:#ECEAF7; --text-muted:#8B90B3;
-    --amber:#F5A93B; --coral:#FF6F59; --mint:#59D8C7; --violet:#8B5CF6;
+    --bg:#0A0B12; --bg-raised:#0F1120; --bg-raised-2:#15182A;
+    --line:#23263D; --text:#ECEDF4; --text-muted:#8E90A8;
+    --amber:#F5A93B; --coral:#FF6F59; --mint:#5FD9C8; --violet:#8B7CF6;
     --radius:14px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -140,18 +140,18 @@
   /* ===== NEONDROME hareketli ikon ===== */
   .nd-scene{position:relative; width:88px; height:88px; border-radius:10px; overflow:hidden; background:radial-gradient(circle at 50% 42%,#1b1638,#0B0E1C); box-shadow:inset 0 0 0 1px rgba(89,216,199,0.3), 0 0 18px -4px rgba(89,216,199,0.5); flex:none;}
   .nd-scene .nd-grid{position:absolute; inset:0; background:repeating-linear-gradient(90deg, rgba(89,216,199,0.14) 0 1px, transparent 1px 12px); animation:nd-slide .5s linear infinite;}
-  .nd-scene .nd-ground{position:absolute; left:0; right:0; top:58px; height:2px; background:#59D8C7; box-shadow:0 0 6px #59D8C7;}
-  .nd-scene .nd-run{position:absolute; inset:0; animation:nd-bob .5s ease-in-out infinite alternate; filter:drop-shadow(0 0 4px #59D8C7);}
+  .nd-scene .nd-ground{position:absolute; left:0; right:0; top:58px; height:2px; background:#5FD9C8; box-shadow:0 0 6px #5FD9C8;}
+  .nd-scene .nd-run{position:absolute; inset:0; animation:nd-bob .5s ease-in-out infinite alternate; filter:drop-shadow(0 0 4px #5FD9C8);}
   .nd-scene .nd-run>div{position:absolute;}
   .nd-scene .nd-head{left:40px; top:20px; width:9px; height:9px; background:#CFFAF3;}
   .nd-scene .nd-visor{left:41px; top:24px; width:7px; height:3px; background:#FF6F59;}
-  .nd-scene .nd-body{left:39px; top:29px; width:11px; height:16px; background:#59D8C7;}
-  .nd-scene .nd-arm{left:49px; top:32px; width:4px; height:8px; background:#59D8C7; animation:nd-arm .26s steps(1) infinite;}
-  .nd-scene .nd-leg{width:4px; background:#59D8C7;}
+  .nd-scene .nd-body{left:39px; top:29px; width:11px; height:16px; background:#5FD9C8;}
+  .nd-scene .nd-arm{left:49px; top:32px; width:4px; height:8px; background:#5FD9C8; animation:nd-arm .26s steps(1) infinite;}
+  .nd-scene .nd-leg{width:4px; background:#5FD9C8;}
   .nd-scene .nd-leg1{left:39px; top:44px; height:10px; animation:nd-leg1 .26s steps(1) infinite;}
   .nd-scene .nd-leg2{left:46px; top:44px; height:10px; animation:nd-leg2 .26s steps(1) infinite;}
   .nd-scene .nd-streak{position:absolute; inset:0;}
-  .nd-scene .nd-streak i{position:absolute; height:2px; width:16px; background:#59D8C7; opacity:0; border-radius:2px;}
+  .nd-scene .nd-streak i{position:absolute; height:2px; width:16px; background:#5FD9C8; opacity:0; border-radius:2px;}
   .nd-scene .nd-streak i:nth-child(1){top:30px; animation:nd-streak .7s linear infinite;}
   .nd-scene .nd-streak i:nth-child(2){top:41px; width:12px; background:#F5A93B; animation:nd-streak .7s linear .25s infinite;}
   .nd-scene .nd-streak i:nth-child(3){top:51px; width:20px; animation:nd-streak .7s linear .5s infinite;}
@@ -199,9 +199,16 @@
   .lang-switch button.active{background:var(--amber); color:#1a1508;}
 
   @media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important;} }
+
+  /* premium atmosfer: köşe ışıltıları */
+  .aura{position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;}
+  .aura::before,.aura::after{content:""; position:absolute; border-radius:50%; filter:blur(90px); opacity:0.4;}
+  .aura::before{width:60vw; height:60vw; top:-22vw; left:-14vw; background:radial-gradient(circle,rgba(245,169,59,0.26),transparent 66%);}
+  .aura::after{width:55vw; height:55vw; top:4vw; right:-18vw; background:radial-gradient(circle,rgba(139,124,246,0.24),transparent 66%);}
 </style>
 </head>
 <body>
+<div class="aura"></div>
 
 <header>
   <nav>
@@ -276,13 +283,13 @@
 /* ================= DEMO VERİSİ ================= */
 const GRADIENTS = {
   g1:"linear-gradient(135deg,#F5A93B,#FF6F59)",
-  g2:"linear-gradient(135deg,#59D8C7,#2B7A78)",
-  g3:"linear-gradient(135deg,#8B5CF6,#F5A93B)",
-  g4:"linear-gradient(135deg,#FF6F59,#8B5CF6)",
-  g5:"linear-gradient(135deg,#3B82F6,#59D8C7)",
-  g6:"linear-gradient(135deg,#F5A93B,#8B5CF6)",
+  g2:"linear-gradient(135deg,#5FD9C8,#2B7A78)",
+  g3:"linear-gradient(135deg,#8B7CF6,#F5A93B)",
+  g4:"linear-gradient(135deg,#FF6F59,#8B7CF6)",
+  g5:"linear-gradient(135deg,#3B82F6,#5FD9C8)",
+  g6:"linear-gradient(135deg,#F5A93B,#8B7CF6)",
   g7:"linear-gradient(135deg,#EC4899,#F5A93B)",
-  g8:"linear-gradient(135deg,#59D8C7,#3B82F6)",
+  g8:"linear-gradient(135deg,#5FD9C8,#3B82F6)",
   g9:"linear-gradient(135deg,#6366F1,#EC4899)",
   gn:"linear-gradient(135deg,#3B1E5E,#0E2A4A)"
 };
@@ -834,7 +841,7 @@ function launchGame(app){
     // KULLANICI İÇERİĞİ: dosyayı çekip srcdoc ile enjekte et.
     // Böylece Supabase içeriği hangi content-type ile sunarsa sunsun oyun ÇALIŞIR (kod olarak görünmez).
     if(bar) bar.textContent="▶ "+(app.title||"oyun");
-    inner.innerHTML=`<div style="color:#8B90B3;font-family:monospace;padding:48px;text-align:center;width:100%;">⏳</div>`;
+    inner.innerHTML=`<div style="color:#8E90A8;font-family:monospace;padding:48px;text-align:center;width:100%;">⏳</div>`;
     fetch(app.fileUrl).then(r=>r.text()).then(html=>{
       const iframe=document.createElement("iframe");
       iframe.setAttribute("sandbox","allow-scripts");     // parent'a/oturuma erişemez (güvenli)
