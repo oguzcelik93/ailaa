@@ -168,9 +168,18 @@
   /* GAME OVERLAY */
   .game-overlay{position:fixed; inset:0; background:rgba(5,7,15,0.92); backdrop-filter:blur(6px); z-index:200; display:none; align-items:center; justify-content:center; padding:16px;}
   .game-overlay.open{display:flex;}
-  .game-frame-wrap{width:100%; max-width:960px; background:#0B0E1C; border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 0 50px -10px rgba(89,216,199,0.3);}
-  .game-bar{display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--bg-raised-2); border-bottom:1px solid var(--line);}
+  .game-frame-wrap{width:100%; max-width:960px; max-height:100%; display:flex; flex-direction:column; background:#0B0E1C; border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 0 50px -10px rgba(89,216,199,0.3);}
+  .game-bar{display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--bg-raised-2); border-bottom:1px solid var(--line); flex:none;}
   .game-bar-title{font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:var(--mint); letter-spacing:0.05em;}
+  .game-bar-btns{display:flex; gap:8px; align-items:center;}
+  .game-close, .game-fs{background:rgba(0,0,0,0.35); border:1px solid var(--line); color:var(--text); width:30px; height:30px; border-radius:7px; cursor:pointer; font-size:0.95rem; display:flex; align-items:center; justify-content:center;}
+  .game-fs:hover{border-color:var(--mint); color:var(--mint);}
+  .game-frame-inner{position:relative; width:100%; aspect-ratio:16/9; background:#05070F;}
+  .game-frame-inner iframe{position:absolute; inset:0; width:100%; height:100%; border:0; display:block;}
+  /* topluluk oyunları: tüm ekranı kaplasın (mini önizleme değil) */
+  .game-overlay.full{padding:0;}
+  .game-overlay.full .game-frame-wrap{max-width:none; height:100%; border:0; border-radius:0;}
+  .game-overlay.full .game-frame-inner{aspect-ratio:auto; flex:1 1 auto; min-height:0;}
   .game-close{background:rgba(0,0,0,0.35); border:1px solid var(--line); color:var(--text); width:30px; height:30px; border-radius:7px; cursor:pointer; font-size:0.95rem; display:flex; align-items:center; justify-content:center;}
   .game-close:hover{border-color:var(--coral); color:var(--coral);}
   .game-frame-inner{position:relative; width:100%; aspect-ratio:16/9; background:#05070F;}
@@ -239,7 +248,10 @@
   <div class="game-frame-wrap">
     <div class="game-bar">
       <span class="game-bar-title">▶ NEONDROME</span>
-      <button class="game-close" id="gameClose" aria-label="Kapat">✕</button>
+      <div class="game-bar-btns">
+        <button class="game-fs" id="gameFs" aria-label="Tam ekran" title="Tam ekran">⛶</button>
+        <button class="game-close" id="gameClose" aria-label="Kapat">✕</button>
+      </div>
     </div>
     <div class="game-frame-inner" id="gameFrameInner"></div>
   </div>
@@ -813,7 +825,9 @@ function launchGame(app){
   }
   const inner=document.getElementById("gameFrameInner");
   const bar=document.querySelector(".game-bar-title");
-  document.getElementById("gameOverlay").classList.add("open");
+  const overlay=document.getElementById("gameOverlay");
+  overlay.classList.add("open");
+  overlay.classList.toggle("full", !!(app && app.fileUrl));  // topluluk oyunu → tam kapla
   document.body.style.overflow="hidden";
 
   if(app && app.fileUrl){
@@ -840,12 +854,23 @@ function launchGame(app){
   }
 }
 function closeGame(){
-  document.getElementById("gameOverlay").classList.remove("open");
+  const ov=document.getElementById("gameOverlay");
+  ov.classList.remove("open","full");
   document.getElementById("gameFrameInner").innerHTML=""; // oyunu durdur
   document.body.style.overflow="";
 }
 document.getElementById("gameClose").addEventListener("click",closeGame);
 document.getElementById("gameOverlay").addEventListener("click",(e)=>{ if(e.target.id==="gameOverlay") closeGame(); });
+// tam ekran butonu: oyun çerçevesini tam ekrana al
+document.getElementById("gameFs").addEventListener("click",()=>{
+  const el=document.querySelector(".game-frame-wrap");
+  try{
+    if(document.fullscreenElement || document.webkitFullscreenElement){
+      (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    } else if(el.requestFullscreen){ el.requestFullscreen(); }
+    else if(el.webkitRequestFullscreen){ el.webkitRequestFullscreen(); }
+  }catch(e){}
+});
 // oyunun içindeki çıkış butonundan gelen mesaj
 window.addEventListener("message",(e)=>{ if(e.data && e.data.type==="ailaa_exit_game") closeGame(); });
 document.getElementById("modalOverlay").addEventListener("click",(e)=>{ if(e.target.id==="modalOverlay") closeModal(); });
