@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#14182B;--bg-raised:#1E2340;--bg-raised-2:#262B4D;--line:#333a63;--text:#ECEAF7;--text-muted:#8B90B3;--amber:#F5A93B;--coral:#FF6F59;--mint:#59D8C7;}
+  :root{--bg:#0A0B12;--bg-raised:#0F1120;--bg-raised-2:#15182A;--line:#23263D;--text:#ECEDF4;--text-muted:#8E90A8;--amber:#F5A93B;--coral:#FF6F59;--mint:#5FD9C8;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.5;min-height:100vh;}
   a{color:inherit;text-decoration:none;}
@@ -41,9 +41,16 @@
   .stat-box span{font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text-muted);}
   .config-warn{background:rgba(255,111,89,0.1);border:1px solid rgba(255,111,89,0.4);border-radius:10px;padding:14px;font-size:0.82rem;color:var(--coral);font-family:'JetBrains Mono',monospace;margin-bottom:20px;display:none;}
   .config-warn.show{display:block;}
+
+  /* premium atmosfer: köşe ışıltıları */
+  .aura{position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;}
+  .aura::before,.aura::after{content:""; position:absolute; border-radius:50%; filter:blur(90px); opacity:0.4;}
+  .aura::before{width:60vw; height:60vw; top:-22vw; left:-14vw; background:radial-gradient(circle,rgba(245,169,59,0.26),transparent 66%);}
+  .aura::after{width:55vw; height:55vw; top:4vw; right:-18vw; background:radial-gradient(circle,rgba(139,124,246,0.24),transparent 66%);}
 </style>
 </head>
 <body>
+<div class="aura"></div>
 <header>
   <nav>
     <a href="/" class="logo">ailaa <span class="tag">admin</span></a>
