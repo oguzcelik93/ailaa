@@ -384,10 +384,15 @@ function setMode(m){
 }
 document.getElementById("modeSingle").addEventListener("click",()=>setMode("single"));
 document.getElementById("modeFolder").addEventListener("click",()=>setMode("folder"));
-// drop alanına tıklayınca doğru input'u aç
+// drop alanına tıklayınca doğru input'u aç.
+// DİKKAT: #fileDrop bir <label> ve inputları sarmalıyor. Programatik .click()
+// çağrısı label'a geri kabarır; guard olmazsa handler kendini tetikleyip
+// tarayıcının döngü korumasına takılır ve hiçbir şey açılmaz.
 document.getElementById("fileDrop").addEventListener("click",(e)=>{
-  e.preventDefault();
-  (uploadMode==="folder" ? folderInputEl : fileInputEl).click();
+  if(e.target===fileInputEl || e.target===folderInputEl) return; // input'un kendi click'i → dokunma
+  if(uploadMode==="single") return;                              // tek dosya: label zaten #pFile'ı açar
+  e.preventDefault();                                            // klasör modunda label'ın varsayılanını iptal et
+  folderInputEl.click();
 });
 folderInputEl.addEventListener("change",()=>{
   folderFiles=Array.from(folderInputEl.files||[]);
