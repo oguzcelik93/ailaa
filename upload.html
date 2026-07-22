@@ -422,6 +422,7 @@ const configured = !SUPABASE_URL.includes("BURAYA") && !SUPABASE_KEY.includes("B
 let db=null, currentUser=null;
 if(configured){ const { createClient } = supabase; db = createClient(SUPABASE_URL, SUPABASE_KEY); }
 
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function relPath(f){ return f.webkitRelativePath || f.name; }
 function guessType(name){
   const e=(name.split(".").pop()||"").toLowerCase();
@@ -469,9 +470,15 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
       // kendi type'ı boş/yanlış gelir ve Supabase onu text/plain sunar → oyun KOD olarak görünür.
       const htmlText = await selectedFile.text();
       const htmlBlob = new Blob([htmlText], { type:"text/html" });
-      const path = currentUser.id + "/" + Date.now() + "_" + slugify(title) + "/index.html";
+      // NOT: tek dosyada eski düz yol korunuyor (userId/xxx.html) — bu yol
+      // mevcut RLS politikalarıyla çalıştığı kanıtlı. Alt klasör AÇMIYORUZ.
+      const path = currentUser.id + "/" + Date.now() + "_" + slugify(title) + ".html";
       const up = await db.storage.from("games").upload(path, htmlBlob, { contentType:"text/html", upsert:false });
-      if(up.error){ setMsg(t("m_err_upload"),"error"); btn.disabled=false; return; }
+      if(up.error){
+        const detail=(up.error && (up.error.message||up.error.error||JSON.stringify(up.error)))||"?";
+        setMsg(t("m_err_upload")+"<br><span style=\"opacity:.75;font-size:.85em\">"+escapeHtml(detail)+"</span>","error",true);
+        btn.disabled=false; return;
+      }
       fileUrl = db.storage.from("games").getPublicUrl(path).data.publicUrl;
     }else{
       // KLASÖR: tüm dosyalar aynı kök altına, göreli yol yapısı korunarak yüklenir.
@@ -501,8 +508,12 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
         const isHtml = /\.html?$/i.test(rel);
         let body=f, ctype=f.type||guessType(rel);
         if(isHtml){ body=new Blob([await f.text()],{type:"text/html"}); ctype="text/html"; }
-        const r = await db.storage.from("games").upload(base+"/"+rel, body, { contentType:ctype, upsert:true });
-        if(r.error){ setMsg(t("m_err_upload")+" ("+rel+")","error"); btn.disabled=false; return; }
+        const r = await db.storage.from("games").upload(base+"/"+rel, body, { contentType:ctype, upsert:false });
+        if(r.error){
+          const detail=(r.error && (r.error.message||r.error.error||JSON.stringify(r.error)))||"?";
+          setMsg(t("m_err_upload")+" ("+rel+")<br><span style=\"opacity:.75;font-size:.85em\">"+escapeHtml(detail)+"</span>","error",true);
+          btn.disabled=false; return;
+        }
         done++; setMsg(t("m_uploading_n").replace("{0}", done+"/"+folderFiles.length),"info");
       }
       fileUrl = db.storage.from("games").getPublicUrl(base+"/"+entryRel).data.publicUrl;
