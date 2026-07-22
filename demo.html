@@ -838,23 +838,57 @@ function launchGame(app){
   document.body.style.overflow="hidden";
 
   if(app && app.fileUrl){
-    // KULLANICI İÇERİĞİ: dosyayı çekip srcdoc ile enjekte et.
-    // Böylece Supabase içeriği hangi content-type ile sunarsa sunsun oyun ÇALIŞIR (kod olarak görünmez).
+    /* ------------------------------------------------------------------
+       KULLANICI İÇERİĞİ — çok dosyalı projeler (textures/, assets/ ...) için
+       iframe.src ile YÜKLENİR. Böylece HTML içindeki göreli yollar
+       ("textures/asfalt.jpg") doğru çözülür. srcdoc'ta bu mümkün değildir,
+       çünkü about:srcdoc'un base URL'i yoktur.
+
+       Güvenlik: dosya Supabase alan adından servis edildiği için
+       iframe zaten çapraz-origin. Bu yüzden allow-same-origin vermek
+       GÜVENLİDİR (oyun ailaa.io'nun oturumuna/localStorage'ına erişemez,
+       yalnızca kendi supabase origin'ini görür) ve oyunların kendi
+       kayıt sistemi (localStorage) çalışır.
+    ------------------------------------------------------------------ */
     if(bar) bar.textContent="▶ "+(app.title||"oyun");
     inner.innerHTML=`<div style="color:#8E90A8;font-family:monospace;padding:48px;text-align:center;width:100%;">⏳</div>`;
-    fetch(app.fileUrl).then(r=>r.text()).then(html=>{
-      const iframe=document.createElement("iframe");
-      iframe.setAttribute("sandbox","allow-scripts");     // parent'a/oturuma erişemez (güvenli)
-      iframe.setAttribute("allow","autoplay; fullscreen");
-      iframe.setAttribute("allowfullscreen","");
-      iframe.setAttribute("title", app.title||"oyun");
-      iframe.srcdoc=html;
-      inner.innerHTML=""; inner.appendChild(iframe);
-    }).catch(()=>{
-      // yedek: çekilemezse doğrudan src ile dene
-      inner.innerHTML=`<iframe src="${app.fileUrl}" sandbox="allow-scripts" title="${escapeHtml(app.title||'oyun')}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-    });
-  } else {
+
+    let sameOrigin = true;
+    try{ sameOrigin = (new URL(app.fileUrl, location.href)).origin === location.origin; }catch(e){}
+    const sandboxAttr = sameOrigin
+      ? "allow-scripts"                          // kendi origin'imiz → same-origin VERME
+      : "allow-scripts allow-same-origin";       // farklı origin → güvenli, kayıt sistemi çalışır
+
+    const iframe=document.createElement("iframe");
+    iframe.setAttribute("sandbox", sandboxAttr);
+    iframe.setAttribute("allow","autoplay; fullscreen; xr-spatial-tracking");
+    iframe.setAttribute("allowfullscreen","");
+    iframe.setAttribute("title", app.title||"oyun");
+    iframe.src = app.fileUrl;
+
+    /* Yedek: dosya yanlış content-type ile sunulup KOD OLARAK görünürse
+       (eski yüklemeler), fetch ile çekip Blob'a text/html damgası basarak
+       zorla çalıştırırız. Bu yol tek dosyalık projeler için birebir çalışır. */
+    let rescued=false;
+    function rescueAsBlob(){
+      if(rescued) return; rescued=true;
+      fetch(app.fileUrl).then(r=>r.text()).then(html=>{
+        const blob=new Blob([html],{type:"text/html"});   // content-type garanti
+        const f2=document.createElement("iframe");
+        f2.setAttribute("sandbox","allow-scripts");
+        f2.setAttribute("allow","autoplay; fullscreen");
+        f2.setAttribute("allowfullscreen","");
+        f2.src=URL.createObjectURL(blob);
+        inner.innerHTML=""; inner.appendChild(f2);
+      }).catch(()=>{
+        inner.innerHTML=`<div style="color:#FF6F59;font-family:monospace;padding:40px;text-align:center;width:100%;line-height:1.7">
+          Oyun açılamadı.<br><span style="color:#8E90A8;font-size:.85em">Dosya text/html olarak sunulmuyor olabilir — projeyi yeniden yükleyin.</span></div>`;
+      });
+    }
+    iframe.addEventListener("error", rescueAsBlob);
+    inner.innerHTML=""; inner.appendChild(iframe);
+
+    } else {
     // BİZİM OYUN (NEONDROME): skorboard için same-origin
     if(bar) bar.textContent="▶ NEONDROME";
     inner.innerHTML=`<iframe src="/game?lang=${currentLang}" sandbox="allow-scripts allow-same-origin" title="NEONDROME" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
