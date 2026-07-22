@@ -758,6 +758,7 @@ async function loadComments(a){
 function closeModal(){
   document.getElementById("modalOverlay").classList.remove("open");
   document.body.style.overflow="";
+  try{ if(document.fullscreenElement||document.webkitFullscreenElement){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); } }catch(e){}
 }
 
 /* Proje paylaşımı: yerel link + Web Share API (mobilde native paylaşım menüsü) */
@@ -865,11 +866,32 @@ function launchGame(app){
 }
 function closeGame(){
   const ov=document.getElementById("gameOverlay");
+  // 1) önce tam ekrandan çık — Android'de bu işlem arayüzü kilitleyebiliyor
+  try{
+    if(document.fullscreenElement || document.webkitFullscreenElement){
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    }
+  }catch(e){}
+  // 2) pencereyi hemen kapat (arayüz anında yanıt versin)
   ov.classList.remove("open","full");
-  document.getElementById("gameFrameInner").innerHTML=""; // oyunu durdur
-  document.body.style.overflow="";
+  CURRENT_PLAY=null;
+  const bug=document.getElementById("gameBug"); if(bug) bug.style.display="none";
+  // 3) ağır oyun içeriğini bir sonraki karede boşalt → donma hissi olmaz
+  setTimeout(function(){
+    const inner=document.getElementById("gameFrameInner");
+    if(inner) inner.innerHTML="";
+  }, 0);
+  // 4) proje penceresi hâlâ açıksa sayfa arkada kaymasın (✕'e basmayı zorlaştırıyordu)
+  const modalOpen=document.getElementById("modalOverlay").classList.contains("open");
+  document.body.style.overflow = modalOpen ? "hidden" : "";
 }
 document.getElementById("gameClose").addEventListener("click",closeGame);
+// ESC / geri tuşu güvenlik ağı: önce oyun, sonra proje penceresi kapansın
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Escape") return;
+  if(document.getElementById("gameOverlay").classList.contains("open")) closeGame();
+  else if(document.getElementById("modalOverlay").classList.contains("open")) closeModal();
+});
 document.getElementById("gameOverlay").addEventListener("click",(e)=>{ if(e.target.id==="gameOverlay") closeGame(); });
 // tam ekran butonu: oyun çerçevesini tam ekrana al
 document.getElementById("gameFs").addEventListener("click",()=>{
