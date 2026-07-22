@@ -471,6 +471,14 @@ function priceLabel(price){ return price===0 ? I18N[currentLang].free : "$"+pric
 
 /* ===== Topluluk projeleri (Supabase'den yüklenenler) ===== */
 let communityApps = [];
+function safeUrl(u){
+  // yalnızca http/https kabul et — javascript:, data:, vbscript: engellenir
+  try{
+    const x=new URL(String(u||""), location.origin);
+    if(x.protocol!=="http:" && x.protocol!=="https:") return "";
+    return x.href.replace(/['"\\]/g,"");   // stil/öznitelik kırılmasın
+  }catch(e){ return ""; }
+}
 function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function allApps(){ return APPS.concat(communityApps); }
 // oyun bilgisi: topluluk projesi kendi alanlarını, örnekler i18n sözlüğünü kullanır
@@ -593,7 +601,7 @@ function render(){
     card.tabIndex=0;
     card.setAttribute("role","button");
     const catLabel = a.playable ? dict.playable_tag : (a.cat==="game"?dict.cat_game:dict.cat_tool);
-    const artStyle = a.cover ? `background-image:url('${a.cover}'); background-size:cover; background-position:center;` : `background:${GRADIENTS[a.grad]};`;
+    const artStyle = a.cover ? `background-image:url('${safeUrl(a.cover)}'); background-size:cover; background-position:center;` : `background:${GRADIENTS[a.grad]};`;
     card.innerHTML=`
       <div class="cart-art" style="${artStyle}">
         <span class="cat-tag">${a.playable?'▶ '+catLabel:catLabel}</span>
@@ -601,9 +609,9 @@ function render(){
         ${a.cover ? '' : cardIconHtml(a)}
       </div>
       <div class="cart-info">
-        <h4>${info.t}</h4>
+        <h4>${escapeHtml(info.t)}</h4>
         <div class="meta">
-          <span>${info.g}</span>
+          <span>${escapeHtml(info.g)}</span>
           <span class="price ${a.price>0?'paid':''}">${priceLabel(a.price)}</span>
         </div>
         ${a.community ? (()=>{ const s=statFor(a); return `<div class="cart-stats"><span class="v">▲ ${s.v}</span><span>▶ ${s.p}</span></div>`; })() : ''}
@@ -651,19 +659,19 @@ function openModal(id){
   }
 
   modal.innerHTML=`
-    <div class="modal-hero" style="${a.cover ? `background-image:url('${a.cover}'); background-size:cover; background-position:center;` : `background:${GRADIENTS[a.grad]};`}">
+    <div class="modal-hero" style="${a.cover ? `background-image:url('${safeUrl(a.cover)}'); background-size:cover; background-position:center;` : `background:${GRADIENTS[a.grad]};`}">
       <button class="modal-close" id="modalClose" aria-label="Kapat">✕</button>
       ${a.cover ? '' : (a.id==="neondrome" ? ndIcon("nd-lg") : `<span>${a.icon}</span>`)}
     </div>
     <div class="modal-body">
-      <span class="cat-tag">${a.cat==="game"?dict.cat_game:dict.cat_tool} · ${info.g}</span>
-      <h2>${info.t}</h2>
+      <span class="cat-tag">${a.cat==="game"?dict.cat_game:dict.cat_tool} · ${escapeHtml(info.g)}</span>
+      <h2>${escapeHtml(info.t)}</h2>
       <div class="dev">${devHtml}</div>
       ${a.community ? `<div class="stats-row"><span class="v">▲ ${st.v} ${dict.votes}</span><span class="p">▶ ${st.p} ${dict.plays}</span><span>💬 ${st.c}</span></div>` : ''}
       <div class="shots">
         ${shotGrads.map(g=>`<div style="background:${GRADIENTS[g]}"></div>`).join("")}
       </div>
-      <p class="desc">${info.d}</p>
+      <p class="desc">${escapeHtml(info.d)}</p>
       <div class="modal-foot">
         <span class="modal-price ${a.price>0?'paid':'free'}">${priceLabel(a.price)}</span>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
@@ -691,7 +699,7 @@ function openModal(id){
     const vb=document.getElementById("voteBtn");
     if(vb) vb.addEventListener("click",()=>toggleVote(a, vb));
     const bb=document.getElementById("buyBtn");
-    if(bb) bb.addEventListener("click",()=>{ window.open(a.buyUrl, "_blank", "noopener"); });
+    if(bb) bb.addEventListener("click",()=>{ const u=safeUrl(a.buyUrl); if(u) window.open(u, "_blank", "noopener,noreferrer"); });
     loadComments(a);
   }
   // şikayet et — sadece topluluk projeleri için
@@ -899,7 +907,7 @@ function launchGame(app){
       inner.innerHTML=""; inner.appendChild(iframe);
     }).catch(()=>{
       // yedek: çekilemezse doğrudan src ile dene
-      inner.innerHTML=`<iframe src="${app.fileUrl}" sandbox="allow-scripts" title="${escapeHtml(app.title||'oyun')}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+      inner.innerHTML=`<iframe src="${safeUrl(app.fileUrl)}" sandbox="allow-scripts" title="${escapeHtml(app.title||'oyun')}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
     });
   } else {
     // BİZİM OYUN (NEONDROME): skorboard için same-origin
