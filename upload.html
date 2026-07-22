@@ -121,7 +121,7 @@
 <header>
   <nav>
     <a href="/" class="logo">ailaa</a>
-    <a href="/demo" class="home-link" data-i18n="to_store">← Mağaza</a>
+    <a href="/store" class="home-link" data-i18n="to_store">← Mağaza</a>
   </nav>
 </header>
 
@@ -176,14 +176,8 @@
           <div class="fd-text" id="fdText" data-i18n="fd_text">Dokun ve HTML dosyanı seç</div>
           <div class="fd-name" id="fdName"></div>
           <input type="file" id="pFile" accept=".html,text/html">
-          <input type="file" id="pFolder" webkitdirectory directory multiple style="display:none">
         </label>
-        <div class="hint" data-i18n="file_hint">Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 5 MB.</div>
-        <div class="cat-toggle" style="margin-top:10px">
-          <button type="button" id="modeSingle" class="active" data-i18n="mode_single">Tek dosya</button>
-          <button type="button" id="modeFolder" data-i18n="mode_folder">Klasör (assets ile)</button>
-        </div>
-        <div class="hint" id="folderHint" style="display:none" data-i18n="folder_hint">Klasörde en az bir <b>.html</b> dosyası olmalı (index.html varsa o seçilir). textures/, assets/ gibi alt klasörler göreli yollarla çalışır. Toplam en fazla 40 MB.</div>
+        <div class="hint" data-i18n="file_hint">Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 50 MB.</div>
       </div>
 
       <div class="field">
@@ -214,6 +208,13 @@
       <button class="submit-btn" id="submitBtn" data-i18n="btn_publish">Yayınla</button>
       <div class="msg" id="msg"></div>
     </div>
+  </div>
+
+  <!-- OYUNCU GERİ BİLDİRİMLERİ -->
+  <div class="card" id="fbCard" style="display:none;">
+    <h1 style="font-size:1.25rem;" data-i18n="fb_title">Oyuncu geri bildirimleri</h1>
+    <p class="sub" data-i18n="fb_sub">Oyuncuların projelerin hakkında bildirdiği sorunlar.</p>
+    <div id="fbList"></div>
   </div>
 
   <!-- PROJELERİM -->
@@ -249,17 +250,16 @@ const I18N = {
     f_cat:"Kategori", cat_game:"Oyun", cat_tool:"Araç",
     f_price:"Fiyat (0 = ücretsiz)", f_desc:"Açıklama", ph_desc:"Projeni birkaç cümleyle anlat...",
     f_file:"Dosya", fd_text:"Dokun ve HTML dosyanı seç",
-    mode_single:"Tek dosya", mode_folder:"Klasör (assets ile)", folder_hint:"Klasörde en az bir <b>.html</b> dosyası olmalı (index.html varsa o seçilir). textures/, assets/ gibi alt klasörler göreli yollarla çalışır. Toplam en fazla 40 MB.", m_folder_ok:"Klasör seçildi", m_no_html:"Klasörde hiç .html dosyası yok.", m_uploading_n:"{0} dosya yükleniyor…",
-    file_hint:"Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 5 MB.",
+    file_hint:"Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 50 MB.",
     btn_publish:"Yayınla", footer:"ailaa © 2026",
     m_need_title:"Proje adı gerekli.", m_need_file:"Bir HTML dosyası seç.",
-    m_bad_type:"Sadece .html dosyası yükleyebilirsin.", m_too_big:"Dosya çok büyük (en fazla 5 MB).",
+    m_bad_type:"Sadece .html dosyası yükleyebilirsin.", m_too_big:"Dosyan {size} MB — şu anki sınır {max} MB. Bize hello@ailaa.io'dan yaz, birlikte çözelim.",
     m_uploading:"Yükleniyor...", m_saving:"Kaydediliyor...",
     m_success:"✅ Gönderildi! Moderasyon onayından sonra mağazada görünecek. ", m_view:"Mağazaya git",
     f_buyurl:"Satış linki (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"Ücretli projelerde ödeme, senin satış sayfanda tamamlanır. Ailaa alıcıyı bu linke yönlendirir.", m_need_buyurl:"Ücretli proje için geçerli bir satış linki (https://...) gerekli.",
     st_pending:"⏳ onay bekliyor", st_approved:"✓ yayında", st_rejected:"✗ reddedildi",
     mp_title:"Projelerim", mp_sub:"Yüklediğin projeleri buradan yönet.", mp_empty:"Henüz proje yüklemedin.",
-    mp_edit:"Düzenle", mp_del:"Sil", mp_save:"Kaydet", mp_cancel:"İptal",
+    mp_edit:"Düzenle", mp_newver:"⬆ Yeni sürüm", mp_uploading_ver:"Yeni sürüm yükleniyor…", mp_ver_ok:"Yeni sürüm yayında ✓", fb_title:"Oyuncu geri bildirimleri", fb_sub:"Oyuncuların projelerin hakkında bildirdiği sorunlar.", fb_none:"Henüz geri bildirim yok.", mp_del:"Sil", mp_save:"Kaydet", mp_cancel:"İptal",
     mp_confirm:"Bu projeyi silmek istediğine emin misin?", mp_deleting:"Siliniyor...", mp_saving:"Kaydediliyor...",
     mp_updated:"Güncellendi ✓", mp_err:"İşlem başarısız, tekrar dene.",
     mp_e_title:"Başlık", mp_e_price:"Fiyat", mp_e_desc:"Açıklama",
@@ -277,17 +277,16 @@ const I18N = {
     f_cat:"Category", cat_game:"Game", cat_tool:"Tool",
     f_price:"Price (0 = free)", f_desc:"Description", ph_desc:"Describe your project in a few sentences...",
     f_file:"File", fd_text:"Tap to choose your HTML file",
-    mode_single:"Single file", mode_folder:"Folder (with assets)", folder_hint:"The folder needs at least one <b>.html</b> file (index.html wins if present). Sub-folders like textures/ work via relative paths. Max 40 MB total.", m_folder_ok:"Folder selected", m_no_html:"No .html file found in the folder.", m_uploading_n:"Uploading {0} files…",
-    file_hint:"Must be a single .html file (all code inside). Max 5 MB.",
+    file_hint:"Must be a single .html file (all code inside). Max 50 MB.",
     btn_publish:"Publish", footer:"ailaa © 2026",
     m_need_title:"Project name required.", m_need_file:"Choose an HTML file.",
-    m_bad_type:"You can only upload a .html file.", m_too_big:"File too large (max 5 MB).",
+    m_bad_type:"You can only upload a .html file.", m_too_big:"Your file is {size} MB — the current limit is {max} MB. Write to hello@ailaa.io and we will sort it out.",
     m_uploading:"Uploading...", m_saving:"Saving...",
     m_success:"✅ Submitted! It will appear in the store after moderation approval. ", m_view:"Go to store",
     f_buyurl:"Checkout link (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"For paid projects, payment is completed on your own checkout page. Ailaa sends buyers to this link.", m_need_buyurl:"A valid checkout link (https://...) is required for paid projects.",
     st_pending:"⏳ pending review", st_approved:"✓ live", st_rejected:"✗ rejected",
     mp_title:"My Projects", mp_sub:"Manage the projects you uploaded.", mp_empty:"You haven't uploaded any project yet.",
-    mp_edit:"Edit", mp_del:"Delete", mp_save:"Save", mp_cancel:"Cancel",
+    mp_edit:"Edit", mp_newver:"⬆ New version", mp_uploading_ver:"Uploading new version…", mp_ver_ok:"New version is live ✓", fb_title:"Player feedback", fb_sub:"Issues players reported about your projects.", fb_none:"No feedback yet.", mp_del:"Delete", mp_save:"Save", mp_cancel:"Cancel",
     mp_confirm:"Are you sure you want to delete this project?", mp_deleting:"Deleting...", mp_saving:"Saving...",
     mp_updated:"Updated ✓", mp_err:"Action failed, try again.",
     mp_e_title:"Title", mp_e_price:"Price", mp_e_desc:"Description",
@@ -305,17 +304,16 @@ const I18N = {
     f_cat:"Kategorie", cat_game:"Spiel", cat_tool:"Tool",
     f_price:"Preis (0 = kostenlos)", f_desc:"Beschreibung", ph_desc:"Beschreibe dein Projekt in ein paar Sätzen...",
     f_file:"Datei", fd_text:"Tippe, um deine HTML-Datei zu wählen",
-    mode_single:"Einzeldatei", mode_folder:"Ordner (mit Assets)", folder_hint:"Der Ordner braucht mindestens eine <b>.html</b>-Datei (index.html wird bevorzugt). Unterordner wie textures/ funktionieren über relative Pfade. Max 40 MB gesamt.", m_folder_ok:"Ordner ausgewählt", m_no_html:"Keine .html-Datei im Ordner gefunden.", m_uploading_n:"{0} Dateien werden hochgeladen…",
-    file_hint:"Muss eine einzelne .html-Datei sein (gesamter Code enthalten). Max 5 MB.",
+    file_hint:"Muss eine einzelne .html-Datei sein (gesamter Code enthalten). Max 50 MB.",
     btn_publish:"Veröffentlichen", footer:"ailaa © 2026",
     m_need_title:"Projektname erforderlich.", m_need_file:"Wähle eine HTML-Datei.",
-    m_bad_type:"Du kannst nur eine .html-Datei hochladen.", m_too_big:"Datei zu groß (max 5 MB).",
+    m_bad_type:"Du kannst nur eine .html-Datei hochladen.", m_too_big:"Deine Datei ist {size} MB — das aktuelle Limit ist {max} MB. Schreib an hello@ailaa.io, wir finden eine Lösung.",
     m_uploading:"Wird hochgeladen...", m_saving:"Wird gespeichert...",
     m_success:"✅ Eingereicht! Nach der Moderationsfreigabe erscheint es im Shop. ", m_view:"Zum Shop",
     f_buyurl:"Verkaufslink (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"Bei bezahlten Projekten erfolgt die Zahlung auf deiner eigenen Verkaufsseite. Ailaa leitet Käufer zu diesem Link.", m_need_buyurl:"Für bezahlte Projekte ist ein gültiger Verkaufslink (https://...) erforderlich.",
     st_pending:"⏳ wartet auf Freigabe", st_approved:"✓ live", st_rejected:"✗ abgelehnt",
     mp_title:"Meine Projekte", mp_sub:"Verwalte deine hochgeladenen Projekte.", mp_empty:"Du hast noch kein Projekt hochgeladen.",
-    mp_edit:"Bearbeiten", mp_del:"Löschen", mp_save:"Speichern", mp_cancel:"Abbrechen",
+    mp_edit:"Bearbeiten", mp_newver:"⬆ Neue Version", mp_uploading_ver:"Neue Version wird hochgeladen…", mp_ver_ok:"Neue Version ist live ✓", fb_title:"Spieler-Feedback", fb_sub:"Von Spielern gemeldete Probleme.", fb_none:"Noch kein Feedback.", mp_del:"Löschen", mp_save:"Speichern", mp_cancel:"Abbrechen",
     mp_confirm:"Möchtest du dieses Projekt wirklich löschen?", mp_deleting:"Wird gelöscht...", mp_saving:"Wird gespeichert...",
     mp_updated:"Aktualisiert ✓", mp_err:"Aktion fehlgeschlagen, versuche es erneut.",
     mp_e_title:"Titel", mp_e_price:"Preis", mp_e_desc:"Beschreibung",
@@ -369,41 +367,6 @@ fileInput.addEventListener("change",()=>{
   else { drop.classList.remove("has-file"); name.textContent=""; }
 });
 
-// tek dosya / klasör modu
-let uploadMode="single", folderFiles=[];
-const fileInputEl=document.getElementById("pFile");
-const folderInputEl=document.getElementById("pFolder");
-function setMode(m){
-  uploadMode=m;
-  document.getElementById("modeSingle").classList.toggle("active",m==="single");
-  document.getElementById("modeFolder").classList.toggle("active",m==="folder");
-  document.getElementById("folderHint").style.display = m==="folder" ? "block" : "none";
-  const nm=document.getElementById("fdName");
-  selectedFile=null; folderFiles=[]; nm.textContent="";
-  document.getElementById("fileDrop").classList.remove("has-file");
-}
-document.getElementById("modeSingle").addEventListener("click",()=>setMode("single"));
-document.getElementById("modeFolder").addEventListener("click",()=>setMode("folder"));
-// drop alanına tıklayınca doğru input'u aç.
-// DİKKAT: #fileDrop bir <label> ve inputları sarmalıyor. Programatik .click()
-// çağrısı label'a geri kabarır; guard olmazsa handler kendini tetikleyip
-// tarayıcının döngü korumasına takılır ve hiçbir şey açılmaz.
-document.getElementById("fileDrop").addEventListener("click",(e)=>{
-  if(e.target===fileInputEl || e.target===folderInputEl) return; // input'un kendi click'i → dokunma
-  if(uploadMode==="single") return;                              // tek dosya: label zaten #pFile'ı açar
-  e.preventDefault();                                            // klasör modunda label'ın varsayılanını iptal et
-  folderInputEl.click();
-});
-folderInputEl.addEventListener("change",()=>{
-  folderFiles=Array.from(folderInputEl.files||[]);
-  const drop=document.getElementById("fileDrop"), name=document.getElementById("fdName");
-  if(folderFiles.length){
-    const total=folderFiles.reduce((a,f)=>a+f.size,0);
-    drop.classList.add("has-file");
-    name.textContent="✓ "+t("m_folder_ok")+" — "+folderFiles.length+" dosya · "+(total/1048576).toFixed(1)+" MB";
-  }else{ drop.classList.remove("has-file"); name.textContent=""; }
-});
-
 // kapak görseli seçimi
 let selectedCover=null;
 const coverInput=document.getElementById("pCover");
@@ -422,17 +385,50 @@ const configured = !SUPABASE_URL.includes("BURAYA") && !SUPABASE_KEY.includes("B
 let db=null, currentUser=null;
 if(configured){ const { createClient } = supabase; db = createClient(SUPABASE_URL, SUPABASE_KEY); }
 
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-function relPath(f){ return f.webkitRelativePath || f.name; }
-function guessType(name){
-  const e=(name.split(".").pop()||"").toLowerCase();
-  return ({html:"text/html",htm:"text/html",js:"text/javascript",css:"text/css",json:"application/json",
-    png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",webp:"image/webp",gif:"image/gif",svg:"image/svg+xml",
-    mp3:"audio/mpeg",ogg:"audio/ogg",wav:"audio/wav",mp4:"video/mp4",
-    glb:"model/gltf-binary",gltf:"model/gltf+json",bin:"application/octet-stream",
-    ktx2:"image/ktx2",hdr:"image/vnd.radiance",exr:"image/x-exr",ttf:"font/ttf",woff:"font/woff",woff2:"font/woff2"})[e]
-    || "application/octet-stream";
+
+/* ===== Otomatik kapak: kapak yüklenmediyse projeye özel bir görsel üret ===== */
+function hashStr(t){ var h=0; for(var i=0;i<t.length;i++){ h=(h*31+t.charCodeAt(i))|0; } return Math.abs(h); }
+function makeAutoCover(title, cat){
+  return new Promise(function(resolve){
+    try{
+      var c=document.createElement("canvas"); c.width=640; c.height=360;
+      var x=c.getContext("2d"), h=hashStr(title||"ailaa");
+      var hue=h%360, hue2=(hue+52)%360;
+      var g=x.createLinearGradient(0,0,640,360);
+      g.addColorStop(0,"hsl("+hue+",42%,22%)"); g.addColorStop(1,"hsl("+hue2+",38%,12%)");
+      x.fillStyle=g; x.fillRect(0,0,640,360);
+      /* ızgara */
+      x.strokeStyle="rgba(255,255,255,0.05)"; x.lineWidth=1;
+      for(var i=0;i<640;i+=32){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,360); x.stroke(); }
+      for(var j=0;j<360;j+=32){ x.beginPath(); x.moveTo(0,j); x.lineTo(640,j); x.stroke(); }
+      /* ışıltı */
+      var rg=x.createRadialGradient(150,90,10,150,90,320);
+      rg.addColorStop(0,"hsla("+hue+",90%,60%,0.35)"); rg.addColorStop(1,"transparent");
+      x.fillStyle=rg; x.fillRect(0,0,640,360);
+      /* geometrik imza — başlığa göre benzersiz */
+      x.globalAlpha=0.5;
+      for(var k=0;k<5;k++){
+        var s2=((h>>(k*3))%90)+40, px=((h>>(k*5))%520)+40, py=((h>>(k*7))%240)+40;
+        x.strokeStyle="hsla("+((hue+k*36)%360)+",80%,65%,0.55)"; x.lineWidth=2;
+        if(k%2){ x.beginPath(); x.arc(px,py,s2/2,0,6.3); x.stroke(); }
+        else { x.strokeRect(px,py,s2,s2*0.62); }
+      }
+      x.globalAlpha=1;
+      /* büyük harf */
+      x.fillStyle="rgba(255,255,255,0.92)"; x.font="700 128px system-ui,sans-serif"; x.textBaseline="middle";
+      x.fillText((title||"A").trim().charAt(0).toUpperCase(), 44, 190);
+      /* başlık */
+      x.fillStyle="rgba(255,255,255,0.85)"; x.font="600 30px system-ui,sans-serif";
+      var tt=(title||"").length>26 ? (title.slice(0,26)+"…") : (title||"");
+      x.fillText(tt, 44, 292);
+      /* etiket + marka */
+      x.fillStyle="rgba(255,255,255,0.45)"; x.font="500 18px monospace";
+      x.fillText((cat==="tool"?"araç":"oyun")+" · ailaa", 44, 328);
+      c.toBlob(function(b){ resolve(b); }, "image/png", 0.9);
+    }catch(e){ resolve(null); }
+  });
 }
+
 function slugify(s){ return (s||"file").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40) || "file"; }
 
 // fiyat > 0 ise satış linki alanını göster
@@ -449,78 +445,41 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
   const buyUrl=document.getElementById("pBuyUrl").value.trim();
   if(!title){ setMsg(t("m_need_title"),"error"); return; }
   if(price>0 && !/^https:\/\/.+\..+/.test(buyUrl)){ setMsg(t("m_need_buyurl"),"error"); return; }
-  if(uploadMode==="single"){
-    if(!selectedFile){ setMsg(t("m_need_file"),"error"); return; }
-    if(!/\.html?$/i.test(selectedFile.name)){ setMsg(t("m_bad_type"),"error"); return; }
-    if(selectedFile.size > 5*1024*1024){ setMsg(t("m_too_big"),"error"); return; }
-  }else{
-    if(!folderFiles.length){ setMsg(t("m_need_file"),"error"); return; }
-    const total=folderFiles.reduce((a,f)=>a+f.size,0);
-    if(total > 40*1024*1024){ setMsg(t("m_too_big"),"error"); return; }
-    if(!folderFiles.some(f=>/\.html?$/i.test(relPath(f)))){ setMsg(t("m_no_html"),"error"); return; }
-  }
+  if(!selectedFile){ setMsg(t("m_need_file"),"error"); return; }
   if(!document.getElementById("agree").checked){ setMsg(t("m_need_agree"),"error"); return; }
+  if(!/\.html?$/i.test(selectedFile.name)){ setMsg(t("m_bad_type"),"error"); return; }
+  var MAXMB = 50;   // Supabase ücretsiz plan tavanı (Pro'da 500 GB'a çıkar)
+  var BIGMB = 25;   // üstü admin paneline "büyük dosya" olarak düşer
+  var sizeMB = +(selectedFile.size/1024/1024).toFixed(1);
+  if(sizeMB > MAXMB){
+    setMsg(t("m_too_big").replace("{size}",sizeMB).replace("{max}",MAXMB),"error");
+    try{ db.from("upload_attempts").insert({ user_id: currentUser.id, title: title, size_mb: sizeMB, reason: "too_big" }); }catch(e){}
+    return;
+  }
 
   const btn=document.getElementById("submitBtn");
   btn.disabled=true; setMsg(t("m_uploading"),"info");
   try{
-    let fileUrl="";
-    if(uploadMode==="single"){
-      // İçeriği Blob'a sarıp text/html damgası basıyoruz: bazı cihazlarda dosyanın
-      // kendi type'ı boş/yanlış gelir ve Supabase onu text/plain sunar → oyun KOD olarak görünür.
-      const htmlText = await selectedFile.text();
-      const htmlBlob = new Blob([htmlText], { type:"text/html" });
-      // NOT: tek dosyada eski düz yol korunuyor (userId/xxx.html) — bu yol
-      // mevcut RLS politikalarıyla çalıştığı kanıtlı. Alt klasör AÇMIYORUZ.
-      const path = currentUser.id + "/" + Date.now() + "_" + slugify(title) + ".html";
-      const up = await db.storage.from("games").upload(path, htmlBlob, { contentType:"text/html", upsert:false });
-      if(up.error){
-        const detail=(up.error && (up.error.message||up.error.error||JSON.stringify(up.error)))||"?";
-        setMsg(t("m_err_upload")+"<br><span style=\"opacity:.75;font-size:.85em\">"+escapeHtml(detail)+"</span>","error",true);
-        btn.disabled=false; return;
-      }
-      fileUrl = db.storage.from("games").getPublicUrl(path).data.publicUrl;
-    }else{
-      // KLASÖR: tüm dosyalar aynı kök altına, göreli yol yapısı korunarak yüklenir.
-      const base = currentUser.id + "/" + Date.now() + "_" + slugify(title);
-      // Tüm dosyaların ortak kök klasörünü bul ve at (seçilen klasörün kendi adı).
-      const paths = folderFiles.map(relPath);
-      let strip = 0;
-      if(paths.length){
-        const first = paths[0].split("/");
-        if(first.length > 1 && paths.every(p => p.split("/")[0] === first[0])) strip = first[0].length + 1;
-      }
-      const relOf = f => relPath(f).slice(strip) || relPath(f);
-      // Giriş dosyası: önce index.html, yoksa en sığdaki .html, eşitse en büyüğü.
-      const htmls = folderFiles.filter(f => /\.html?$/i.test(relOf(f)));
-      htmls.sort((a,b)=>{
-        const ra=relOf(a), rb=relOf(b);
-        const ia=/(^|\/)index\.html?$/i.test(ra)?0:1, ib=/(^|\/)index\.html?$/i.test(rb)?0:1;
-        if(ia!==ib) return ia-ib;                                   // index.html öncelikli
-        const da=ra.split("/").length, db2=rb.split("/").length;
-        if(da!==db2) return da-db2;                                 // daha sığ olan
-        return b.size-a.size;                                       // daha büyük olan
-      });
-      const entryRel = relOf(htmls[0]);
-      let done=0;
-      for(const f of folderFiles){
-        const rel = relOf(f);
-        const isHtml = /\.html?$/i.test(rel);
-        let body=f, ctype=f.type||guessType(rel);
-        if(isHtml){ body=new Blob([await f.text()],{type:"text/html"}); ctype="text/html"; }
-        const r = await db.storage.from("games").upload(base+"/"+rel, body, { contentType:ctype, upsert:false });
-        if(r.error){
-          const detail=(r.error && (r.error.message||r.error.error||JSON.stringify(r.error)))||"?";
-          setMsg(t("m_err_upload")+" ("+rel+")<br><span style=\"opacity:.75;font-size:.85em\">"+escapeHtml(detail)+"</span>","error",true);
-          btn.disabled=false; return;
-        }
-        done++; setMsg(t("m_uploading_n").replace("{0}", done+"/"+folderFiles.length),"info");
-      }
-      fileUrl = db.storage.from("games").getPublicUrl(base+"/"+entryRel).data.publicUrl;
-    }
+    const path = currentUser.id + "/" + Date.now() + "_" + slugify(title) + ".html";
+    const up = await db.storage.from("games").upload(path, selectedFile, { contentType:"text/html", upsert:false });
+    if(up.error){ setMsg(t("m_err_upload"),"error"); btn.disabled=false; return; }
+
+    const pub = db.storage.from("games").getPublicUrl(path);
+    const fileUrl = pub.data.publicUrl;
 
     // kapak görseli (varsa) yükle
     let coverUrl = null;
+    if(!selectedCover){
+      // kapak seçilmediyse projeye özel bir kapak üret (boş kart kalmasın)
+      try{
+        const auto = await makeAutoCover(title, category);
+        if(auto){
+          const apath = currentUser.id + "/covers/" + Date.now() + "_" + slugify(title) + "_auto.png";
+          const aup = await db.storage.from("games").upload(apath, auto, { contentType:"image/png", upsert:false });
+          if(!aup.error){ coverUrl = db.storage.from("games").getPublicUrl(apath).data.publicUrl; }
+        }
+      }catch(e){}
+    }
     if(selectedCover && selectedCover.size <= 2*1024*1024){
       const ext = (selectedCover.name.split(".").pop()||"png").toLowerCase();
       const cpath = currentUser.id + "/covers/" + Date.now() + "_" + slugify(title) + "." + ext;
@@ -535,7 +494,8 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
     });
     if(ins.error){ setMsg(t("m_err_save"),"error"); btn.disabled=false; return; }
 
-    setMsg(t("m_success")+`<a href="/demo">${t("m_view")}</a>`, "success", true);
+    if(sizeMB > BIGMB){ try{ await db.from("upload_attempts").insert({ user_id: currentUser.id, title: title, size_mb: sizeMB, reason: "big_file" }); }catch(e){} }
+    setMsg(t("m_success")+`<a href="/store">${t("m_view")}</a>`, "success", true);
     // formu sıfırla
     document.getElementById("pTitle").value="";
     document.getElementById("pDesc").value="";
@@ -553,6 +513,58 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
   btn.disabled=false;
 });
 
+
+/* ===== YENİ SÜRÜM: eski dosya arşivlenir, yenisi yayına alınır ===== */
+function newVersion(p, row){
+  const inp=document.createElement("input");
+  inp.type="file"; inp.accept=".html,text/html"; inp.style.display="none";
+  document.body.appendChild(inp);
+  inp.addEventListener("change", async ()=>{
+    const f=inp.files[0]; inp.remove();
+    if(!f) return;
+    const rowmsg=row.querySelector("[data-rowmsg]");
+    const sizeMB=+(f.size/1024/1024).toFixed(1);
+    if(!/\.html?$/i.test(f.name)){ rowmsg.textContent=t("m_bad_type"); rowmsg.className="msg error"; return; }
+    if(sizeMB>50){ rowmsg.textContent=t("m_too_big").replace("{size}",sizeMB).replace("{max}",50); rowmsg.className="msg error"; return; }
+    rowmsg.textContent=t("mp_uploading_ver"); rowmsg.className="msg info";
+    try{
+      const path = currentUser.id + "/" + Date.now() + "_" + slugify(p.title) + ".html";
+      const up = await db.storage.from("games").upload(path, f, { contentType:"text/html", upsert:false });
+      if(up.error){ rowmsg.textContent=t("mp_err"); rowmsg.className="msg error"; return; }
+      const newUrl = db.storage.from("games").getPublicUrl(path).data.publicUrl;
+      // eski sürümü arşive al
+      try{ await db.from("project_versions").insert({ project_id:p.id, file_url:p.file_url, version:(p.version||1) }); }catch(e){}
+      const upd = await db.from("projects").update({ file_url:newUrl, version:(p.version||1)+1, updated_at:new Date().toISOString() }).eq("id", p.id);
+      if(upd.error){ rowmsg.textContent=t("mp_err"); rowmsg.className="msg error"; return; }
+      if(sizeMB>25){ try{ await db.from("upload_attempts").insert({ user_id:currentUser.id, title:p.title+" (v"+((p.version||1)+1)+")", size_mb:sizeMB, reason:"big_file" }); }catch(e){} }
+      rowmsg.textContent=t("mp_ver_ok"); rowmsg.className="msg success";
+      setTimeout(loadMyProjects, 800);
+    }catch(e){ rowmsg.textContent=t("mp_err"); rowmsg.className="msg error"; }
+  });
+  inp.click();
+}
+
+/* ===== OYUNCU GERİ BİLDİRİMLERİ (kendi projelerin) ===== */
+async function loadFeedback(){
+  if(!db || !currentUser) return;
+  const box=document.getElementById("fbList"); if(!box) return;
+  try{
+    const mine = await db.from("projects").select("id,title").eq("user_id", currentUser.id);
+    if(!mine.data || !mine.data.length){ document.getElementById("fbCard").style.display="none"; return; }
+    const ids = mine.data.map(p=>p.id);
+    const titles = {}; mine.data.forEach(p=>titles[p.id]=p.title);
+    const { data, error } = await db.from("feedback").select("*").in("project_id", ids).order("created_at",{ascending:false}).limit(40);
+    document.getElementById("fbCard").style.display="block";
+    if(error){ box.innerHTML=`<div class="mp-empty">${t("fb_none")}</div>`; return; }
+    if(!data || !data.length){ box.innerHTML=`<div class="mp-empty">${t("fb_none")}</div>`; return; }
+    box.innerHTML = data.map(f=>`<div class="mp-row">
+      <div class="mp-info"><h4>🐛 ${esc(titles[f.project_id]||"")}</h4>
+      <div class="mp-meta">${fmtDate(f.created_at)}</div></div>
+      <p style="margin-top:8px; font-size:0.92rem; color:var(--text);">${esc(f.message)}</p>
+    </div>`).join("");
+  }catch(e){}
+}
+
 /* ===== PROJELERİM: listele / sil / düzenle ===== */
 function fmtDate(s){ try{ return new Date(s).toLocaleDateString(); }catch(e){ return ""; } }
 function pathFromUrl(url){ try{ const p=String(url).split("/games/")[1]; return p?decodeURIComponent(p):null; }catch(e){ return null; } }
@@ -564,7 +576,7 @@ async function loadMyProjects(){
   wrap.innerHTML=`<div class="mp-empty">...</div>`;
   try{
     const { data, error } = await db.from("projects")
-      .select("id,title,description,category,price,file_url,created_at,status,buy_url")
+      .select("id,title,description,category,price,file_url,created_at,status,buy_url,version")
       .eq("user_id", currentUser.id).order("created_at",{ascending:false});
     if(error){ wrap.innerHTML=`<div class="mp-empty">${t("mp_err")}</div>`; return; }
     if(!data || !data.length){ wrap.innerHTML=`<div class="mp-empty">${t("mp_empty")}</div>`; return; }
@@ -576,10 +588,11 @@ async function loadMyProjects(){
       return `<div class="mp-row" data-id="${p.id}">
         <div class="mp-head">
           <div class="mp-info">
-            <h4>${esc(p.title)}</h4>
+            <h4>${esc(p.title)}${p.version>1?` <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--mint);">v${p.version}</span>`:""}</h4>
             <div class="mp-meta">${catLabel} · <span class="price">${priceLabel}</span> · ${fmtDate(p.created_at)} · <span style="color:${stColor}; font-weight:600;">${t(stKey)}</span></div>
           </div>
           <div class="mp-actions">
+            <button class="ver" data-act="ver">${t("mp_newver")}</button>
             <button class="edit" data-act="edit">${t("mp_edit")}</button>
             <button class="del" data-act="del">${t("mp_del")}</button>
           </div>
@@ -604,6 +617,7 @@ async function loadMyProjects(){
       row.querySelector('[data-act="cancel"]').addEventListener("click",()=> row.querySelector("[data-edit]").classList.remove("open"));
       row.querySelector('[data-act="del"]').addEventListener("click",()=> deleteProject(p, row));
       row.querySelector('[data-act="save"]').addEventListener("click",()=> saveProject(p, row));
+      row.querySelector('[data-act="ver"]').addEventListener("click",()=> newVersion(p, row));
     });
   }catch(e){ wrap.innerHTML=`<div class="mp-empty">${t("mp_err")}</div>`; }
 }
@@ -654,6 +668,7 @@ async function init(){
     document.getElementById("formWrap").classList.remove("hidden");
     document.getElementById("gate").classList.remove("show");
     loadMyProjects();
+    loadFeedback();
   } else {
     document.getElementById("formWrap").classList.add("hidden");
     document.getElementById("gate").classList.add("show");

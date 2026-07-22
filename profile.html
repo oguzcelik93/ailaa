@@ -78,7 +78,7 @@
 <header>
   <nav>
     <a href="/" class="logo">ailaa</a>
-    <a href="/demo" class="back">← <span id="backTxt">Mağaza</span></a>
+    <a href="/store" class="back">← <span id="backTxt">Mağaza</span></a>
   </nav>
 </header>
 
@@ -200,7 +200,7 @@ async function init(){
     const g=GRADIENTS[Math.abs(p.id)%GRADIENTS.length];
     const d=document.createElement("a");
     d.className="proj";
-    d.href="/demo?p=c"+p.id;
+    d.href="/store?p=c"+p.id;
     d.innerHTML=`<div class="art" style="background:${g}">${p.category==="tool"?"🛠️":"🎮"}</div>
       <div class="in"><h4>${esc(p.title)}</h4>
       <div class="st"><span class="v">▲ ${st.votes}</span><span>▶ ${p.plays||0}</span><span>${p.price>0?("$"+p.price):L.free}</span></div></div>`;

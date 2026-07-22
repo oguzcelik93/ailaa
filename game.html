@@ -557,7 +557,7 @@ function exitGame(){
   } else {
     // tek başına açıldıysa mağazaya dön
     if(document.referrer && document.referrer.includes(location.host)) history.back();
-    else location.href = "/demo";
+    else location.href = "/store";
   }
 }
 exitBtn.addEventListener("click",(e)=>{ e.stopPropagation(); exitGame(); });

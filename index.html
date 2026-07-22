@@ -210,6 +210,16 @@
   .btn-primary:hover::after{animation:shine .7s ease;}
   @keyframes shine{to{left:130%;}}
 
+  /* hesap menüsü */
+  .acct{position:relative; display:inline-block;}
+  .acct-menu{position:absolute; right:0; top:calc(100% + 12px); min-width:196px; background:var(--ink-2); border:1px solid var(--line-2); border-radius:12px; padding:6px; box-shadow:0 24px 50px -18px rgba(0,0,0,0.85); display:none; z-index:200;}
+  .acct-menu.open{display:block;}
+  .acct-menu .who{font-family:var(--font-m); font-size:0.7rem; color:var(--muted-2); padding:8px 10px 10px; border-bottom:1px solid var(--line); margin-bottom:5px; word-break:break-all;}
+  .acct-menu a, .acct-menu button{display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:none; border:none; color:var(--text); font-family:inherit; font-size:0.9rem; padding:9px 10px; border-radius:8px; cursor:pointer;}
+  .acct-menu a:hover, .acct-menu button:hover{background:rgba(255,255,255,0.06);}
+  .acct-menu .logout{color:#FF7A6B;}
+  .acct-menu hr{border:none; border-top:1px solid var(--line); margin:5px 0;}
+
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important; scroll-behavior:auto !important;}
     .reveal{opacity:1; transform:none; transition:none;}
@@ -390,7 +400,7 @@
 <script>
 var I18N = {
   tr:{
-    nav_how:"Nasıl çalışır", nav_gallery:"Vitrin", nav_demo:"Mağaza", nav_login:"Giriş", nav_account:"Hesabım", nav_admin:"🛡 Admin", nav_upload:"+ Yükle",
+    nav_how:"Nasıl çalışır", nav_gallery:"Vitrin", nav_demo:"Mağaza", nav_login:"Giriş", nav_account:"Hesabım", menu_profile:"Profilim", menu_projects:"Projelerim", menu_logout:"Çıkış yap", nav_admin:"🛡 Admin", nav_upload:"+ Yükle",
     hero_eyebrow:"yayında · ücretsiz yükle",
     hero_title:"Projen <span class=\"strike\">localhost:3000</span>'ta değil, bir <span class=\"grad\">vitrinde</span> yaşasın.",
     hero_lead:"AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.",
@@ -417,7 +427,7 @@ var I18N = {
     foot_rights:"ailaa © 2026 — vibe coder'ların vitrini."
   },
   en:{
-    nav_how:"How it works", nav_gallery:"Showcase", nav_demo:"Store", nav_login:"Log in", nav_account:"My account", nav_admin:"🛡 Admin", nav_upload:"+ Upload",
+    nav_how:"How it works", nav_gallery:"Showcase", nav_demo:"Store", nav_login:"Log in", nav_account:"My account", menu_profile:"My profile", menu_projects:"My projects", menu_logout:"Log out", nav_admin:"🛡 Admin", nav_upload:"+ Upload",
     hero_eyebrow:"live · free to publish",
     hero_title:"Your project deserves a <span class=\"grad\">showcase</span>, not <span class=\"strike\">localhost:3000</span>.",
     hero_lead:"Publish, share and even sell the games and apps you build with AI — in seconds. No deploy hassle, no server headaches.",
@@ -444,7 +454,7 @@ var I18N = {
     foot_rights:"ailaa © 2026 — the showcase for vibe coders."
   },
   de:{
-    nav_how:"So funktioniert's", nav_gallery:"Schaufenster", nav_demo:"Shop", nav_login:"Anmelden", nav_account:"Mein Konto", nav_admin:"🛡 Admin", nav_upload:"+ Hochladen",
+    nav_how:"So funktioniert's", nav_gallery:"Schaufenster", nav_demo:"Shop", nav_login:"Anmelden", nav_account:"Mein Konto", menu_profile:"Mein Profil", menu_projects:"Meine Projekte", menu_logout:"Abmelden", nav_admin:"🛡 Admin", nav_upload:"+ Hochladen",
     hero_eyebrow:"live · kostenlos veröffentlichen",
     hero_title:"Dein Projekt verdient ein <span class=\"grad\">Schaufenster</span>, kein <span class=\"strike\">localhost:3000</span>.",
     hero_lead:"Veröffentliche, teile und verkaufe die Spiele und Apps, die du mit KI baust — in Sekunden. Kein Deploy-Stress, keine Server-Sorgen.",
@@ -595,8 +605,36 @@ function runCounter(el){
         if(admin){ link.setAttribute("data-i18n","nav_admin"); link.href="/admin"; link.style.color="var(--amber)"; }
         else { link.setAttribute("data-i18n","nav_account"); link.style.color="var(--mint)"; }
         link.textContent=I18N[currentLang][admin?"nav_admin":"nav_account"];
+        buildAccountMenu(s.user, admin, db);
       }
     }).catch(function(){});
+  }
+
+
+  function buildAccountMenu(user, isAdminUser, db){
+    var link=document.getElementById("loginLink"); if(!link || document.getElementById("acctMenu")) return;
+    var d=I18N[currentLang];
+    var wrap=document.createElement("span"); wrap.className="acct";
+    link.parentNode.insertBefore(wrap, link); wrap.appendChild(link);
+    var menu=document.createElement("div"); menu.className="acct-menu"; menu.id="acctMenu";
+    menu.innerHTML='<div class="who">'+(user.email||"")+'</div>'+
+      '<a href="/profile" id="amProfile">&#128100; <span>'+(d.menu_profile||"Profilim")+'</span></a>'+
+      '<a href="/upload">&#128230; <span>'+(d.menu_projects||"Projelerim")+'</span></a>'+
+      (isAdminUser?'<a href="/admin" style="color:var(--amber);">&#128737; <span>'+(d.nav_admin||"Admin")+'</span></a>':'')+
+      '<hr><button class="logout" id="amLogout">&#9211; <span>'+(d.menu_logout||"Cikis")+'</span></button>';
+    wrap.appendChild(menu);
+    link.setAttribute("href","#");
+    link.addEventListener("click",function(e){ e.preventDefault(); menu.classList.toggle("open"); });
+    document.addEventListener("click",function(e){ if(!wrap.contains(e.target)) menu.classList.remove("open"); });
+    if(db) db.from("profiles").select("username").eq("id",user.id).maybeSingle().then(function(r){
+      var pl=document.getElementById("amProfile");
+      if(pl && r && r.data && r.data.username) pl.setAttribute("href","/profile?u="+encodeURIComponent(r.data.username));
+    }).catch(function(){});
+    var lo=document.getElementById("amLogout");
+    if(lo) lo.addEventListener("click",function(){
+      if(db){ db.auth.signOut().then(function(){ location.reload(); }).catch(function(){ location.reload(); }); }
+      else location.reload();
+    });
   }
 
   /* ---- CANLI VERİ: mağazadaki gerçek projeler + sayaçlar ---- */

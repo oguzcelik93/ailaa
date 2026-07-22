@@ -42,6 +42,16 @@
   .home-link{font-size:0.88rem; color:var(--text-muted);}
   .nav-upload{font-size:0.82rem; font-weight:700; background:var(--amber); color:#1a1508; padding:8px 14px; border-radius:8px; white-space:nowrap; box-shadow:0 0 16px -6px var(--amber);}
   .home-link:hover{color:var(--text);}
+
+  /* hesap menüsü */
+  .acct{position:relative; display:inline-block;}
+  .acct-menu{position:absolute; right:0; top:calc(100% + 10px); min-width:190px; background:#0F1120; border:1px solid rgba(255,255,255,0.13); border-radius:12px; padding:6px; box-shadow:0 24px 50px -18px rgba(0,0,0,0.85); display:none; z-index:200;}
+  .acct-menu.open{display:block;}
+  .acct-menu .who{font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:#5E617A; padding:8px 10px 10px; border-bottom:1px solid rgba(255,255,255,0.07); margin-bottom:5px; word-break:break-all;}
+  .acct-menu a, .acct-menu button{display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:none; border:none; color:#ECEDF4; font-family:inherit; font-size:0.9rem; padding:9px 10px; border-radius:8px; cursor:pointer;}
+  .acct-menu a:hover, .acct-menu button:hover{background:rgba(255,255,255,0.06);}
+  .acct-menu .logout{color:#FF6F59;}
+  .acct-menu hr{border:none; border-top:1px solid rgba(255,255,255,0.07); margin:5px 0;}
   @media (max-width:600px){ .home-link{display:none;} }
 
   /* PREVIEW BANNER */
@@ -255,6 +265,7 @@
     <div class="game-bar">
       <span class="game-bar-title">▶ NEONDROME</span>
       <div class="game-bar-btns">
+        <button class="game-fs" id="gameBug" aria-label="Hata bildir" title="Hata bildir" style="display:none;">🐛</button>
         <button class="game-fs" id="gameFs" aria-label="Tam ekran" title="Tam ekran">⛶</button>
         <button class="game-close" id="gameClose" aria-label="Kapat">✕</button>
       </div>
@@ -299,7 +310,7 @@ const APPS = [
 /* ================= ÇEVİRİLER ================= */
 const I18N = {
   tr:{
-    nav_home:"← Ana sayfa", nav_login:"Giriş", nav_account:"Hesabım", nav_upload:"+ Yükle", nav_library:"Kütüphanem",
+    nav_home:"← Ana sayfa", nav_login:"Giriş", nav_account:"Hesabım", menu_profile:"Profilim", menu_projects:"Projelerim", menu_logout:"Çıkış yap", nav_upload:"+ Yükle", nav_library:"Kütüphanem",
     store_title:"Keşfet", store_sub:"AI ile üretilmiş oyunlar ve uygulamalar. Beğendiğini kütüphanene ekle.",
     lib_title:"Kütüphanem", lib_sub:"Eklediğin projeler burada birikir — tıpkı Steam gibi.",
     search_ph:"Ara...", f_all:"Tümü", f_game:"Oyunlar", f_tool:"Araçlar",
@@ -307,7 +318,7 @@ const I18N = {
     add:"Kütüphaneme ekle", get:"Ücretsiz al", owned:"✓ Kütüphanende", owned_badge:"sahipsin",
     by:"geliştirici:",
     play:"▶ Oyna", first_badge:"★ İLK OYUN", playable_tag:"oynanabilir",
-    report:"Şikayet et", report_q:"Sebep nedir?", report_r1:"Uygunsuz içerik", report_r2:"Telif ihlali", report_r3:"Çalışmıyor", report_thanks:"Teşekkürler, bildirildi ✓", nav_admin:"🛡 Admin", admin_del:"Sil (admin)", admin_confirm:"Bu projeyi kalıcı silmek istediğine emin misin?", share:"📤 Paylaş", link_copied:"Bağlantı kopyalandı ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Yeni", votes:"oy", plays:"oynanma", vote_btn:"▲ Oyla", voted_btn:"▲ Oyladın", vote_login:"Oy vermek için giriş yap", comments_t:"Yorumlar", c_ph:"Bir yorum yaz...", c_send:"Gönder", c_login:"Yorum yazmak için giriş yap →", c_empty:"İlk yorumu sen yaz!", buy:"Satın Al", buy_note:"Ödeme, geliştiricinin güvenli satış sayfasında tamamlanır.", buy_soon:"Yakında satışta",
+    report:"Şikayet et", embed:"Gömme kodu", embed_copied:"Gömme kodu kopyalandı ✓ Blogona/siteye yapıştır.", embed_copy_manual:"Kodu kopyala:", bug_prompt:"Bir sorun mu var? Kısaca yaz — geliştiriciye iletelim:", bug_thanks:"Teşekkürler! Geliştiriciye iletildi 🐛", report_q:"Sebep nedir?", report_r1:"Uygunsuz içerik", report_r2:"Telif ihlali", report_r3:"Çalışmıyor", report_thanks:"Teşekkürler, bildirildi ✓", nav_admin:"🛡 Admin", admin_del:"Sil (admin)", admin_confirm:"Bu projeyi kalıcı silmek istediğine emin misin?", share:"📤 Paylaş", link_copied:"Bağlantı kopyalandı ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Yeni", votes:"oy", plays:"oynanma", vote_btn:"▲ Oyla", voted_btn:"▲ Oyladın", vote_login:"Oy vermek için giriş yap", comments_t:"Yorumlar", c_ph:"Bir yorum yaz...", c_send:"Gönder", c_login:"Yorum yazmak için giriş yap →", c_empty:"İlk yorumu sen yaz!", buy:"Satın Al", buy_note:"Ödeme, geliştiricinin güvenli satış sayfasında tamamlanır.", buy_soon:"Yakında satışta",
     empty_search:"Aramanla eşleşen bir şey bulunamadı.",
     empty_lib:"Kütüphanen henüz boş. Keşfet'ten bir şeyler ekle!",
     publish_t:"Sen de yayınla", publish_p:"Kendi projeni buraya ekle →",
@@ -326,7 +337,7 @@ const I18N = {
     }
   },
   en:{
-    nav_home:"← Home", nav_login:"Log in", nav_account:"My account", nav_upload:"+ Upload", nav_library:"My Library",
+    nav_home:"← Home", nav_login:"Log in", nav_account:"My account", menu_profile:"My profile", menu_projects:"My projects", menu_logout:"Log out", nav_upload:"+ Upload", nav_library:"My Library",
     store_title:"Discover", store_sub:"Games and apps built with AI. Add the ones you like to your library.",
     lib_title:"My Library", lib_sub:"Everything you add collects here — just like Steam.",
     search_ph:"Search...", f_all:"All", f_game:"Games", f_tool:"Tools",
@@ -334,7 +345,7 @@ const I18N = {
     add:"Add to library", get:"Get for free", owned:"✓ In your library", owned_badge:"owned",
     by:"by:",
     play:"▶ Play", first_badge:"★ FIRST GAME", playable_tag:"playable",
-    report:"Report", report_q:"What's the reason?", report_r1:"Inappropriate", report_r2:"Copyright", report_r3:"Doesn't work", report_thanks:"Thanks, reported ✓", nav_admin:"🛡 Admin", admin_del:"Delete (admin)", admin_confirm:"Permanently delete this project?", share:"📤 Share", link_copied:"Link copied ✓", sort_trend:"🔥 Trending", sort_new:"🆕 New", votes:"votes", plays:"plays", vote_btn:"▲ Upvote", voted_btn:"▲ Upvoted", vote_login:"Log in to vote", comments_t:"Comments", c_ph:"Write a comment...", c_send:"Send", c_login:"Log in to comment →", c_empty:"Be the first to comment!", buy:"Buy", buy_note:"Payment is completed on the creator's secure checkout page.", buy_soon:"Coming soon",
+    report:"Report", embed:"Embed code", embed_copied:"Embed code copied ✓ Paste it on your blog or site.", embed_copy_manual:"Copy the code:", bug_prompt:"Something wrong? Describe it briefly — we will pass it to the developer:", bug_thanks:"Thanks! Sent to the developer 🐛", report_q:"What's the reason?", report_r1:"Inappropriate", report_r2:"Copyright", report_r3:"Doesn't work", report_thanks:"Thanks, reported ✓", nav_admin:"🛡 Admin", admin_del:"Delete (admin)", admin_confirm:"Permanently delete this project?", share:"📤 Share", link_copied:"Link copied ✓", sort_trend:"🔥 Trending", sort_new:"🆕 New", votes:"votes", plays:"plays", vote_btn:"▲ Upvote", voted_btn:"▲ Upvoted", vote_login:"Log in to vote", comments_t:"Comments", c_ph:"Write a comment...", c_send:"Send", c_login:"Log in to comment →", c_empty:"Be the first to comment!", buy:"Buy", buy_note:"Payment is completed on the creator's secure checkout page.", buy_soon:"Coming soon",
     empty_search:"Nothing matches your search.",
     empty_lib:"Your library is empty. Add something from Discover!",
     publish_t:"Publish yours too", publish_p:"Add your own project here →",
@@ -353,7 +364,7 @@ const I18N = {
     }
   },
   de:{
-    nav_home:"← Startseite", nav_login:"Anmelden", nav_account:"Mein Konto", nav_upload:"+ Hochladen", nav_library:"Meine Bibliothek",
+    nav_home:"← Startseite", nav_login:"Anmelden", nav_account:"Mein Konto", menu_profile:"Mein Profil", menu_projects:"Meine Projekte", menu_logout:"Abmelden", nav_upload:"+ Hochladen", nav_library:"Meine Bibliothek",
     store_title:"Entdecken", store_sub:"Mit KI erstellte Spiele und Apps. Füge die Favoriten deiner Bibliothek hinzu.",
     lib_title:"Meine Bibliothek", lib_sub:"Alles, was du hinzufügst, sammelt sich hier — genau wie bei Steam.",
     search_ph:"Suchen...", f_all:"Alle", f_game:"Spiele", f_tool:"Tools",
@@ -361,7 +372,7 @@ const I18N = {
     add:"Zur Bibliothek", get:"Kostenlos holen", owned:"✓ In deiner Bibliothek", owned_badge:"im Besitz",
     by:"von:",
     play:"▶ Spielen", first_badge:"★ ERSTES SPIEL", playable_tag:"spielbar",
-    report:"Melden", report_q:"Was ist der Grund?", report_r1:"Unangemessen", report_r2:"Urheberrecht", report_r3:"Funktioniert nicht", report_thanks:"Danke, gemeldet ✓", nav_admin:"🛡 Admin", admin_del:"Löschen (admin)", admin_confirm:"Dieses Projekt dauerhaft löschen?", share:"📤 Teilen", link_copied:"Link kopiert ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Neu", votes:"Stimmen", plays:"Spiele", vote_btn:"▲ Voten", voted_btn:"▲ Gevotet", vote_login:"Zum Voten einloggen", comments_t:"Kommentare", c_ph:"Kommentar schreiben...", c_send:"Senden", c_login:"Zum Kommentieren einloggen →", c_empty:"Schreib den ersten Kommentar!", buy:"Kaufen", buy_note:"Die Zahlung erfolgt auf der sicheren Verkaufsseite des Entwicklers.", buy_soon:"Bald erhältlich",
+    report:"Melden", embed:"Einbetten", embed_copied:"Embed-Code kopiert ✓ Füge ihn auf deiner Seite ein.", embed_copy_manual:"Code kopieren:", bug_prompt:"Ein Problem? Beschreibe es kurz — wir leiten es weiter:", bug_thanks:"Danke! An den Entwickler gesendet 🐛", report_q:"Was ist der Grund?", report_r1:"Unangemessen", report_r2:"Urheberrecht", report_r3:"Funktioniert nicht", report_thanks:"Danke, gemeldet ✓", nav_admin:"🛡 Admin", admin_del:"Löschen (admin)", admin_confirm:"Dieses Projekt dauerhaft löschen?", share:"📤 Teilen", link_copied:"Link kopiert ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Neu", votes:"Stimmen", plays:"Spiele", vote_btn:"▲ Voten", voted_btn:"▲ Gevotet", vote_login:"Zum Voten einloggen", comments_t:"Kommentare", c_ph:"Kommentar schreiben...", c_send:"Senden", c_login:"Zum Kommentieren einloggen →", c_empty:"Schreib den ersten Kommentar!", buy:"Kaufen", buy_note:"Die Zahlung erfolgt auf der sicheren Verkaufsseite des Entwicklers.", buy_soon:"Bald erhältlich",
     empty_search:"Nichts passt zu deiner Suche.",
     empty_lib:"Deine Bibliothek ist leer. Füge etwas aus Entdecken hinzu!",
     publish_t:"Veröffentliche auch deins", publish_p:"Füge dein eigenes Projekt hinzu →",
@@ -448,7 +459,7 @@ async function fetchCommunity(){
   try{
     const db = dbClient || (roClient = roClient || supabase.createClient(url,key));
     const { data, error } = await db.from("projects")
-      .select("id,title,description,category,price,file_url,cover_url,created_at,plays,status,buy_url,user_id")
+      .select("id,title,description,category,price,file_url,cover_url,created_at,plays,status,buy_url,user_id,featured,version")
       .eq("status","approved")
       .order("created_at",{ascending:false}).limit(60);
     if(error||!data) return;
@@ -480,7 +491,7 @@ async function fetchCommunity(){
       icon:(p.category==="tool"?"🛠️":"🎮"),
       price:p.price||0, dev:namesMap[p.user_id]||"topluluk", devUser:namesMap[p.user_id]||null,
       playable:true, createdAt:p.created_at, buyUrl:p.buy_url||null,
-      fileUrl:p.file_url, cover:p.cover_url||null, title:p.title||"", desc:p.description||""
+      fileUrl:p.file_url, cover:p.cover_url||null, featured:!!p.featured, version:p.version||1, title:p.title||"", desc:p.description||""
     }));
     render();
   }catch(e){}
@@ -539,6 +550,7 @@ function render(){
     return;
   }
 
+  list = list.slice().sort((x,y)=>(y.featured?1:0)-(x.featured?1:0));
   list.forEach(a=>{
     const info=appInfo(a);
     const owned=library.includes(a.id);
@@ -651,10 +663,11 @@ function openModal(id){
   // şikayet et — sadece topluluk projeleri için
   if(a.community){
     const ra=document.getElementById("reportArea");
-    let html=`<button class="report-btn" id="reportBtn">🚩 ${I18N[currentLang].report}</button>`;
+    let html=`<button class="report-btn" id="embedBtn">&lt;/&gt; ${I18N[currentLang].embed}</button> &nbsp;·&nbsp; <button class="report-btn" id="reportBtn">🚩 ${I18N[currentLang].report}</button>`;
     if(isAdmin){ html += ` &nbsp;·&nbsp; <button class="report-btn" id="adminDelBtn" style="color:var(--coral);">🗑 ${I18N[currentLang].admin_del}</button>`; }
     ra.innerHTML=html;
     document.getElementById("reportBtn").addEventListener("click",()=>showReport(a, ra));
+    document.getElementById("embedBtn").addEventListener("click",()=>copyEmbed(a));
     if(isAdmin){ document.getElementById("adminDelBtn").addEventListener("click",()=>adminDelete(a)); }
   }
   const addBtn=document.getElementById("addBtn");
@@ -822,6 +835,9 @@ function launchGame(app){
   const overlay=document.getElementById("gameOverlay");
   overlay.classList.add("open");
   overlay.classList.toggle("full", !!(app && app.fileUrl));  // topluluk oyunu → tam kapla
+  CURRENT_PLAY = (app && app.pid) ? app : null;
+  var bugBtn=document.getElementById("gameBug");
+  if(bugBtn) bugBtn.style.display = CURRENT_PLAY ? "flex" : "none";
   document.body.style.overflow="hidden";
 
   if(app && app.fileUrl){
@@ -917,6 +933,65 @@ async function detectLang(){
 }
 document.querySelectorAll(".lang-switch button").forEach(btn=>btn.addEventListener("click",()=>applyLang(btn.dataset.lang)));
 
+
+/* ================= HESAP MENÜSÜ (Profilim / Çıkış) ================= */
+function buildAccountMenu(user, isAdminUser, db){
+  var link=document.getElementById("loginLink"); if(!link || document.getElementById("acctMenu")) return;
+  var d=I18N[currentLang];
+  var wrap=document.createElement("span"); wrap.className="acct";
+  link.parentNode.insertBefore(wrap, link); wrap.appendChild(link);
+  var menu=document.createElement("div"); menu.className="acct-menu"; menu.id="acctMenu";
+  menu.innerHTML =
+    '<div class="who">'+(user.email||"")+'</div>'+
+    '<a href="/profile" id="amProfile">&#128100; <span>'+(d.menu_profile||"Profilim")+'</span></a>'+
+    '<a href="/upload">&#128230; <span>'+(d.menu_projects||"Projelerim")+'</span></a>'+
+    (isAdminUser ? '<a href="/admin" style="color:#F5A93B;">&#128737; <span>'+(d.nav_admin||"Admin")+'</span></a>' : '')+
+    '<hr><button class="logout" id="amLogout">&#9211; <span>'+(d.menu_logout||"Cikis yap")+'</span></button>';
+  wrap.appendChild(menu);
+  link.setAttribute("href","#");
+  link.addEventListener("click",function(e){ e.preventDefault(); menu.classList.toggle("open"); });
+  document.addEventListener("click",function(e){ if(!wrap.contains(e.target)) menu.classList.remove("open"); });
+  var pl=document.getElementById("amProfile");
+  if(pl && db){
+    db.from("profiles").select("username").eq("id",user.id).maybeSingle().then(function(r){
+      if(r && r.data && r.data.username) pl.setAttribute("href","/profile?u="+encodeURIComponent(r.data.username));
+    }).catch(function(){});
+  }
+  var lo=document.getElementById("amLogout");
+  if(lo) lo.addEventListener("click", function(){
+    if(db){ db.auth.signOut().then(function(){ location.reload(); }).catch(function(){ location.reload(); }); }
+    else location.reload();
+  });
+}
+
+
+/* ===== OYUN İÇİ HATA BİLDİRİMİ ===== */
+var CURRENT_PLAY = null;
+(function(){
+  var b=document.getElementById("gameBug"); if(!b) return;
+  b.addEventListener("click", function(){
+    if(!CURRENT_PLAY) return;
+    var d=I18N[currentLang];
+    var m=window.prompt(d.bug_prompt, "");
+    if(m===null) return;
+    m=(m||"").trim(); if(!m) return;
+    var client = dbClient || roClient;
+    if(client){
+      client.from("feedback").insert({ project_id: CURRENT_PLAY.pid, message: m.slice(0,600), reporter: currentUser?currentUser.id:null })
+        .then(function(){ alert(d.bug_thanks); }).catch(function(){ alert(d.bug_thanks); });
+    } else { alert(d.bug_thanks); }
+  });
+})();
+
+/* ===== GÖMME KODU ===== */
+function copyEmbed(app){
+  var d=I18N[currentLang];
+  var code='<iframe src="https://ailaa.io/play?p='+app.pid+'" width="640" height="400" style="border:0;border-radius:12px;" allowfullscreen title="'+(app.title||"ailaa")+'"></iframe>';
+  try{
+    navigator.clipboard.writeText(code).then(function(){ alert(d.embed_copied); }, function(){ window.prompt(d.embed_copy_manual, code); });
+  }catch(e){ window.prompt(d.embed_copy_manual, code); }
+}
+
 /* ================= INIT ================= */
 updateLibCount();
 detectLang();
@@ -941,6 +1016,7 @@ detectLang();
           else { link.setAttribute("data-i18n","nav_account"); link.style.color="var(--mint)"; }
           applyLang(currentLang);
         }
+        try{ buildAccountMenu(currentUser, isAdmin, dbClient); }catch(e){}
         await loadAccountLibrary();   // hesaba bağlı kütüphaneyi getir
       }
     }

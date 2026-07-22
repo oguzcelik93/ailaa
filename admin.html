@@ -54,7 +54,7 @@
 <header>
   <nav>
     <a href="/" class="logo">ailaa <span class="tag">admin</span></a>
-    <a href="/demo" class="home-link">← Mağaza</a>
+    <a href="/store" class="home-link">← Mağaza</a>
   </nav>
 </header>
 
@@ -72,7 +72,17 @@
     <div id="reports"></div>
 
     <h2>📦 <span id="projTitle">Yayındaki projeler</span> (<span id="projCount">0</span>)</h2>
+    <input type="text" id="projSearch" placeholder="Proje ara (başlık / kategori)…" style="width:100%;background:var(--bg-raised);border:1px solid var(--line);color:var(--text);padding:11px 14px;border-radius:10px;font-family:inherit;font-size:0.92rem;outline:none;margin-bottom:12px;">
     <div id="projects"></div>
+
+    <h2>🚧 <span>Limite takılan yüklemeler</span> (<span id="attCount">0</span>)</h2>
+    <div id="attempts"></div>
+
+    <h2>🐛 <span>Oyuncu geri bildirimleri</span> (<span id="fbCount">0</span>)</h2>
+    <div id="feedback"></div>
+
+    <h2>👥 <span>Üyeler</span> (<span id="userCount">0</span>)</h2>
+    <div id="users"></div>
   </div>
 </main>
 
@@ -157,21 +167,90 @@ async function loadPending(){
   }catch(e){ wrap.innerHTML=`<div class="empty">Hata.</div>`; }
 }
 
+let ALL_PROJECTS=[];
+function renderProjects(){
+  const wrap=document.getElementById("projects");
+  const q=(document.getElementById("projSearch").value||"").toLowerCase().trim();
+  const list = q ? ALL_PROJECTS.filter(p=>((p.title||"")+" "+(p.category||"")).toLowerCase().includes(q)) : ALL_PROJECTS;
+  document.getElementById("projCount").textContent = ALL_PROJECTS.length;
+  if(!list.length){ wrap.innerHTML=`<div class="empty">${q?"Eşleşen proje yok.":"Henüz proje yok."}</div>`; return; }
+  wrap.innerHTML = list.map(p=>`<div class="item">
+    <div class="info">
+      <h4>${p.featured?'<span class="badge">★ öne çıkan</span> ':''}${esc(p.title)}</h4>
+      <div class="meta">${esc(p.category)} · $${p.price||0} · ▶ ${p.plays||0} · ${fmtDate(p.created_at)}<br><a href="${esc(p.file_url)}" target="_blank" rel="noopener">dosyayı aç</a></div>
+    </div>
+    <div class="acts">
+      <button data-feat="${p.id}" data-on="${p.featured?1:0}">${p.featured?'★ Kaldır':'☆ Öne çıkar'}</button>
+      <button class="del" data-proj="${p.id}" data-url="${esc(p.file_url)}">Sil</button>
+    </div>
+  </div>`).join("");
+  wrap.querySelectorAll("[data-proj]").forEach(b=>b.addEventListener("click", ()=>delProject(b.dataset.proj, b.dataset.url)));
+  wrap.querySelectorAll("[data-feat]").forEach(b=>b.addEventListener("click", async ()=>{
+    b.disabled=true;
+    try{ await db.from("projects").update({featured: b.dataset.on!=="1"}).eq("id", b.dataset.feat); loadProjects(); }catch(e){ b.disabled=false; }
+  }));
+}
 async function loadProjects(){
   const wrap=document.getElementById("projects");
   try{
     const { data, error } = await db.from("projects").select("*").eq("status","approved").order("created_at",{ascending:false});
     if(error){ wrap.innerHTML=`<div class="empty">İzin yok ya da tablo eksik.</div>`; return; }
-    document.getElementById("projCount").textContent = data ? data.length : 0;
-    if(!data||!data.length){ wrap.innerHTML=`<div class="empty">Henüz proje yok.</div>`; return; }
-    wrap.innerHTML = data.map(p=>`<div class="item">
+    ALL_PROJECTS = data || [];
+    renderProjects();
+  }catch(e){ wrap.innerHTML=`<div class="empty">Hata.</div>`; }
+}
+
+/* limite takılan yüklemeler — "haberimiz olmasın" sorununun çözümü */
+async function loadAttempts(){
+  const wrap=document.getElementById("attempts");
+  try{
+    const { data, error } = await db.from("upload_attempts").select("*").order("created_at",{ascending:false}).limit(50);
+    if(error){ wrap.innerHTML=`<div class="empty">Tablo eksik (supabase_setup_v3.sql çalıştır).</div>`; return; }
+    document.getElementById("attCount").textContent = data ? data.length : 0;
+    if(!data||!data.length){ wrap.innerHTML=`<div class="empty">Kimse limite takılmadı. 👍</div>`; return; }
+    wrap.innerHTML = data.map(a=>`<div class="item rep">
       <div class="info">
-        <h4>${esc(p.title)}</h4>
-        <div class="meta">${esc(p.category)} · $${p.price||0} · ${fmtDate(p.created_at)}<br><a href="${esc(p.file_url)}" target="_blank" rel="noopener">dosyayı aç</a></div>
+        <h4>${esc(a.title||"(başlıksız)")} <span class="badge">${a.size_mb} MB</span></h4>
+        <div class="meta">${esc(a.reason||"")} · ${fmtDate(a.created_at)} · kullanıcı: ${esc(String(a.user_id||"").slice(0,8))}…</div>
       </div>
-      <div class="acts"><button class="del" data-proj="${p.id}" data-url="${esc(p.file_url)}">Sil</button></div>
+      <div class="acts"><button class="del" data-att="${a.id}">Kaldır</button></div>
     </div>`).join("");
-    wrap.querySelectorAll("[data-proj]").forEach(b=>b.addEventListener("click", ()=>delProject(b.dataset.proj, b.dataset.url)));
+    wrap.querySelectorAll("[data-att]").forEach(b=>b.addEventListener("click", async ()=>{
+      try{ await db.from("upload_attempts").delete().eq("id", b.dataset.att); loadAttempts(); }catch(e){}
+    }));
+  }catch(e){ wrap.innerHTML=`<div class="empty">Hata.</div>`; }
+}
+
+async function loadFeedbackAdmin(){
+  const wrap=document.getElementById("feedback");
+  try{
+    const { data, error } = await db.from("feedback").select("*").order("created_at",{ascending:false}).limit(60);
+    if(error){ wrap.innerHTML=`<div class="empty">Tablo eksik (supabase_setup_v4.sql çalıştır).</div>`; return; }
+    document.getElementById("fbCount").textContent = data ? data.length : 0;
+    if(!data||!data.length){ wrap.innerHTML=`<div class="empty">Geri bildirim yok. 👍</div>`; return; }
+    wrap.innerHTML = data.map(f=>`<div class="item rep">
+      <div class="info"><h4>proje #${esc(f.project_id)}</h4>
+        <div class="meta">${esc((f.message||"").slice(0,180))}<br>${fmtDate(f.created_at)}</div></div>
+      <div class="acts"><button class="del" data-fb="${f.id}">Kaldır</button></div>
+    </div>`).join("");
+    wrap.querySelectorAll("[data-fb]").forEach(b=>b.addEventListener("click", async ()=>{
+      try{ await db.from("feedback").delete().eq("id", b.dataset.fb); loadFeedbackAdmin(); }catch(e){}
+    }));
+  }catch(e){ wrap.innerHTML=`<div class="empty">Hata.</div>`; }
+}
+
+/* üyeler */
+async function loadUsers(){
+  const wrap=document.getElementById("users");
+  try{
+    const { data, error } = await db.from("profiles").select("id,username,bio,created_at").order("created_at",{ascending:false}).limit(100);
+    if(error){ wrap.innerHTML=`<div class="empty">Okunamadı.</div>`; return; }
+    document.getElementById("userCount").textContent = data ? data.length : 0;
+    if(!data||!data.length){ wrap.innerHTML=`<div class="empty">Henüz üye yok.</div>`; return; }
+    wrap.innerHTML = data.map(u=>`<div class="item">
+      <div class="info"><h4>@${esc(u.username||"—")}</h4><div class="meta">${esc((u.bio||"").slice(0,70))}${(u.bio||"").length>70?"…":""} · ${fmtDate(u.created_at)}</div></div>
+      <div class="acts"><a href="/profile?u=${encodeURIComponent(u.username||"")}" target="_blank"><button>Profili aç</button></a></div>
+    </div>`).join("");
   }catch(e){ wrap.innerHTML=`<div class="empty">Hata.</div>`; }
 }
 
@@ -200,7 +279,8 @@ async function init(){
   // yetkili
   document.getElementById("gate").style.display="none";
   document.getElementById("panel").classList.remove("hidden");
-  loadStats(); loadPending(); loadReports(); loadProjects();
+  loadStats(); loadPending(); loadReports(); loadProjects(); loadAttempts(); loadFeedbackAdmin(); loadUsers();
+  document.getElementById("projSearch").addEventListener("input", renderProjects);
 }
 init();
 </script>

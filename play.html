@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ailaa — Oynat</title>
+<meta name="robots" content="noindex">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;background:#0A0B12;color:#ECEDF4;font-family:system-ui,-apple-system,sans-serif;overflow:hidden;}
+  #stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;}
+  .msg{font-family:ui-monospace,monospace;font-size:0.85rem;color:#8E90A8;text-align:center;padding:24px;}
+  .mark{position:absolute;right:9px;bottom:9px;z-index:5;font-family:ui-monospace,monospace;font-size:0.68rem;
+        color:#0A0B12;background:#F5A93B;padding:5px 10px;border-radius:100px;text-decoration:none;font-weight:700;
+        box-shadow:0 4px 14px -4px rgba(0,0,0,0.6);opacity:.92;}
+  .mark:hover{opacity:1;}
+</style>
+</head>
+<body>
+<div id="stage"><div class="msg" id="msg">yükleniyor…</div></div>
+<a class="mark" id="mark" href="https://ailaa.io" target="_blank" rel="noopener">ailaa.io ↗</a>
+
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  var stage=document.getElementById("stage"), msg=document.getElementById("msg");
+  function fail(t){ if(msg) msg.textContent=t; }
+  var id=new URLSearchParams(location.search).get("p");
+  if(!id){ fail("Proje belirtilmedi."); return; }
+
+  var url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
+  if(!url || String(url).indexOf("BURAYA")>=0 || typeof supabase==="undefined"){ fail("Yapılandırma eksik."); return; }
+  var db=supabase.createClient(url,key);
+
+  db.from("projects").select("id,title,file_url,status").eq("id", id).maybeSingle().then(function(r){
+    var p=r && r.data;
+    if(!p || p.status!=="approved"){ fail("Bu proje yayında değil."); return; }
+    document.title="Ailaa — "+(p.title||"Oynat");
+    document.getElementById("mark").href="https://ailaa.io/store?p="+p.id;
+    try{ db.rpc("increment_plays",{ pid: p.id }); }catch(e){}
+    fetch(p.file_url).then(function(res){ return res.text(); }).then(function(html){
+      var f=document.createElement("iframe");
+      f.setAttribute("sandbox","allow-scripts");
+      f.setAttribute("allow","autoplay; fullscreen");
+      f.setAttribute("allowfullscreen","");
+      f.setAttribute("title", p.title||"oyun");
+      f.srcdoc=html;
+      stage.innerHTML=""; stage.appendChild(f);
+    }).catch(function(){ fail("Proje yüklenemedi."); });
+  }).catch(function(){ fail("Proje bulunamadı."); });
+})();
+</script>
+</body>
+</html>
