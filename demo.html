@@ -839,54 +839,64 @@ function launchGame(app){
 
   if(app && app.fileUrl){
     /* ------------------------------------------------------------------
-       KULLANICI İÇERİĞİ — çok dosyalı projeler (textures/, assets/ ...) için
-       iframe.src ile YÜKLENİR. Böylece HTML içindeki göreli yollar
-       ("textures/asfalt.jpg") doğru çözülür. srcdoc'ta bu mümkün değildir,
-       çünkü about:srcdoc'un base URL'i yoktur.
+       OYUN ÇALIŞTIRMA — üç kademeli, content-type'tan bağımsız.
 
-       Güvenlik: dosya Supabase alan adından servis edildiği için
-       iframe zaten çapraz-origin. Bu yüzden allow-same-origin vermek
-       GÜVENLİDİR (oyun ailaa.io'nun oturumuna/localStorage'ına erişemez,
-       yalnızca kendi supabase origin'ini görür) ve oyunların kendi
-       kayıt sistemi (localStorage) çalışır.
+       Sorun: Supabase dosyayı text/plain sunarsa iframe onu ÇALIŞTIRMAZ,
+       ekrana KOD olarak basar — ve bu durumda iframe'in "error" olayı da
+       TETİKLENMEZ (yükleme teknik olarak başarılıdır). Bu yüzden hatayı
+       yakalamak yerine content-type'ı ÖNCEDEN sorup karar veriyoruz.
+
+       1) content-type text/html ise  → doğrudan src (en iyisi: gerçek origin,
+          göreli yollar native çalışır, oyunun localStorage kaydı çalışır)
+       2) değilse                     → içeriği çek, <base href> enjekte et,
+          Blob'a text/html damgası bas → çalışması GARANTİ, textures/ de çalışır
+       3) hiçbiri olmazsa             → doğrudan src (son çare)
     ------------------------------------------------------------------ */
     if(bar) bar.textContent="▶ "+(app.title||"oyun");
     inner.innerHTML=`<div style="color:#8E90A8;font-family:monospace;padding:48px;text-align:center;width:100%;">⏳</div>`;
 
+    const fileUrl = app.fileUrl;
+    const baseHref = fileUrl.substring(0, fileUrl.lastIndexOf("/") + 1);
     let sameOrigin = true;
-    try{ sameOrigin = (new URL(app.fileUrl, location.href)).origin === location.origin; }catch(e){}
-    const sandboxAttr = sameOrigin
-      ? "allow-scripts"                          // kendi origin'imiz → same-origin VERME
-      : "allow-scripts allow-same-origin";       // farklı origin → güvenli, kayıt sistemi çalışır
+    try{ sameOrigin = (new URL(fileUrl, location.href)).origin === location.origin; }catch(e){}
 
-    const iframe=document.createElement("iframe");
-    iframe.setAttribute("sandbox", sandboxAttr);
-    iframe.setAttribute("allow","autoplay; fullscreen; xr-spatial-tracking");
-    iframe.setAttribute("allowfullscreen","");
-    iframe.setAttribute("title", app.title||"oyun");
-    iframe.src = app.fileUrl;
-
-    /* Yedek: dosya yanlış content-type ile sunulup KOD OLARAK görünürse
-       (eski yüklemeler), fetch ile çekip Blob'a text/html damgası basarak
-       zorla çalıştırırız. Bu yol tek dosyalık projeler için birebir çalışır. */
-    let rescued=false;
-    function rescueAsBlob(){
-      if(rescued) return; rescued=true;
-      fetch(app.fileUrl).then(r=>r.text()).then(html=>{
-        const blob=new Blob([html],{type:"text/html"});   // content-type garanti
-        const f2=document.createElement("iframe");
-        f2.setAttribute("sandbox","allow-scripts");
-        f2.setAttribute("allow","autoplay; fullscreen");
-        f2.setAttribute("allowfullscreen","");
-        f2.src=URL.createObjectURL(blob);
-        inner.innerHTML=""; inner.appendChild(f2);
-      }).catch(()=>{
-        inner.innerHTML=`<div style="color:#FF6F59;font-family:monospace;padding:40px;text-align:center;width:100%;line-height:1.7">
-          Oyun açılamadı.<br><span style="color:#8E90A8;font-size:.85em">Dosya text/html olarak sunulmuyor olabilir — projeyi yeniden yükleyin.</span></div>`;
-      });
+    function mountDirect(){
+      const f=document.createElement("iframe");
+      // farklı origin (supabase) ise allow-same-origin güvenli: oyun ailaa.io'ya
+      // erişemez, sadece kendi supabase origin'ini görür → kayıt sistemi çalışır
+      f.setAttribute("sandbox", sameOrigin ? "allow-scripts" : "allow-scripts allow-same-origin");
+      f.setAttribute("allow","autoplay; fullscreen; xr-spatial-tracking");
+      f.setAttribute("allowfullscreen","");
+      f.setAttribute("title", app.title||"oyun");
+      f.src = fileUrl;
+      inner.innerHTML=""; inner.appendChild(f);
     }
-    iframe.addEventListener("error", rescueAsBlob);
-    inner.innerHTML=""; inner.appendChild(iframe);
+    function mountBlob(html){
+      // <base> sayesinde "textures/asfalt.jpg" gibi göreli yollar
+      // Supabase klasörüne çözülür; Blob sayesinde content-type garanti.
+      const baseTag = '<base href="'+baseHref+'">';
+      let out;
+      if(/<head[^>]*>/i.test(html))      out = html.replace(/<head([^>]*)>/i, '<head$1>'+baseTag);
+      else if(/<html[^>]*>/i.test(html)) out = html.replace(/<html([^>]*)>/i, '<html$1><head>'+baseTag+'</head>');
+      else                               out = baseTag + html;
+      const url = URL.createObjectURL(new Blob([out], {type:"text/html"}));
+      const f=document.createElement("iframe");
+      f.setAttribute("sandbox","allow-scripts");   // blob parent origin'i miras alır → same-origin VERME
+      f.setAttribute("allow","autoplay; fullscreen; xr-spatial-tracking");
+      f.setAttribute("allowfullscreen","");
+      f.setAttribute("title", app.title||"oyun");
+      f.src = url;
+      inner.innerHTML=""; inner.appendChild(f);
+    }
+
+    fetch(fileUrl, { method:"GET" })
+      .then(r=>{
+        const ct=(r.headers.get("content-type")||"").toLowerCase();
+        if(ct.indexOf("text/html")===0 || ct.indexOf("text/html")>-1){ mountDirect(); return null; }
+        return r.text();                       // yanlış tip → içeriği al, Blob'a sar
+      })
+      .then(html=>{ if(html!=null) mountBlob(html); })
+      .catch(()=>{ mountDirect(); });          // CORS vb. → yine de dene
 
     } else {
     // BİZİM OYUN (NEONDROME): skorboard için same-origin
