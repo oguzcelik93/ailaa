@@ -183,7 +183,7 @@
           <button type="button" id="modeSingle" class="active" data-i18n="mode_single">Tek dosya</button>
           <button type="button" id="modeFolder" data-i18n="mode_folder">Klasör (assets ile)</button>
         </div>
-        <div class="hint" id="folderHint" style="display:none" data-i18n="folder_hint">Klasörün içinde <b>index.html</b> bulunmalı. textures/, assets/ gibi alt klasörler göreli yollarla çalışır. Toplam en fazla 40 MB.</div>
+        <div class="hint" id="folderHint" style="display:none" data-i18n="folder_hint">Klasörde en az bir <b>.html</b> dosyası olmalı (index.html varsa o seçilir). textures/, assets/ gibi alt klasörler göreli yollarla çalışır. Toplam en fazla 40 MB.</div>
       </div>
 
       <div class="field">
@@ -249,7 +249,7 @@ const I18N = {
     f_cat:"Kategori", cat_game:"Oyun", cat_tool:"Araç",
     f_price:"Fiyat (0 = ücretsiz)", f_desc:"Açıklama", ph_desc:"Projeni birkaç cümleyle anlat...",
     f_file:"Dosya", fd_text:"Dokun ve HTML dosyanı seç",
-    mode_single:"Tek dosya", mode_folder:"Klasör (assets ile)", folder_hint:"Klasörün içinde <b>index.html</b> bulunmalı. textures/, assets/ gibi alt klasörler göreli yollarla çalışır. Toplam en fazla 40 MB.", m_folder_ok:"Klasör seçildi", m_no_index:"index.html bulunamadı — klasörün kökünde index.html olmalı.", m_uploading_n:"{0} dosya yükleniyor…",
+    mode_single:"Tek dosya", mode_folder:"Klasör (assets ile)", folder_hint:"Klasörde en az bir <b>.html</b> dosyası olmalı (index.html varsa o seçilir). textures/, assets/ gibi alt klasörler göreli yollarla çalışır. Toplam en fazla 40 MB.", m_folder_ok:"Klasör seçildi", m_no_html:"Klasörde hiç .html dosyası yok.", m_uploading_n:"{0} dosya yükleniyor…",
     file_hint:"Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 5 MB.",
     btn_publish:"Yayınla", footer:"ailaa © 2026",
     m_need_title:"Proje adı gerekli.", m_need_file:"Bir HTML dosyası seç.",
@@ -277,7 +277,7 @@ const I18N = {
     f_cat:"Category", cat_game:"Game", cat_tool:"Tool",
     f_price:"Price (0 = free)", f_desc:"Description", ph_desc:"Describe your project in a few sentences...",
     f_file:"File", fd_text:"Tap to choose your HTML file",
-    mode_single:"Single file", mode_folder:"Folder (with assets)", folder_hint:"The folder must contain <b>index.html</b>. Sub-folders like textures/ work via relative paths. Max 40 MB total.", m_folder_ok:"Folder selected", m_no_index:"index.html not found — it must sit at the folder root.", m_uploading_n:"Uploading {0} files…",
+    mode_single:"Single file", mode_folder:"Folder (with assets)", folder_hint:"The folder needs at least one <b>.html</b> file (index.html wins if present). Sub-folders like textures/ work via relative paths. Max 40 MB total.", m_folder_ok:"Folder selected", m_no_html:"No .html file found in the folder.", m_uploading_n:"Uploading {0} files…",
     file_hint:"Must be a single .html file (all code inside). Max 5 MB.",
     btn_publish:"Publish", footer:"ailaa © 2026",
     m_need_title:"Project name required.", m_need_file:"Choose an HTML file.",
@@ -305,7 +305,7 @@ const I18N = {
     f_cat:"Kategorie", cat_game:"Spiel", cat_tool:"Tool",
     f_price:"Preis (0 = kostenlos)", f_desc:"Beschreibung", ph_desc:"Beschreibe dein Projekt in ein paar Sätzen...",
     f_file:"Datei", fd_text:"Tippe, um deine HTML-Datei zu wählen",
-    mode_single:"Einzeldatei", mode_folder:"Ordner (mit Assets)", folder_hint:"Der Ordner muss <b>index.html</b> enthalten. Unterordner wie textures/ funktionieren über relative Pfade. Max 40 MB gesamt.", m_folder_ok:"Ordner ausgewählt", m_no_index:"index.html nicht gefunden — sie muss im Stammverzeichnis liegen.", m_uploading_n:"{0} Dateien werden hochgeladen…",
+    mode_single:"Einzeldatei", mode_folder:"Ordner (mit Assets)", folder_hint:"Der Ordner braucht mindestens eine <b>.html</b>-Datei (index.html wird bevorzugt). Unterordner wie textures/ funktionieren über relative Pfade. Max 40 MB gesamt.", m_folder_ok:"Ordner ausgewählt", m_no_html:"Keine .html-Datei im Ordner gefunden.", m_uploading_n:"{0} Dateien werden hochgeladen…",
     file_hint:"Muss eine einzelne .html-Datei sein (gesamter Code enthalten). Max 5 MB.",
     btn_publish:"Veröffentlichen", footer:"ailaa © 2026",
     m_need_title:"Projektname erforderlich.", m_need_file:"Wähle eine HTML-Datei.",
@@ -456,7 +456,7 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
     if(!folderFiles.length){ setMsg(t("m_need_file"),"error"); return; }
     const total=folderFiles.reduce((a,f)=>a+f.size,0);
     if(total > 40*1024*1024){ setMsg(t("m_too_big"),"error"); return; }
-    if(!folderFiles.some(f=>/(^|\/)index\.html?$/i.test(relPath(f)))){ setMsg(t("m_no_index"),"error"); return; }
+    if(!folderFiles.some(f=>/\.html?$/i.test(relPath(f)))){ setMsg(t("m_no_html"),"error"); return; }
   }
   if(!document.getElementById("agree").checked){ setMsg(t("m_need_agree"),"error"); return; }
 
@@ -476,9 +476,28 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
     }else{
       // KLASÖR: tüm dosyalar aynı kök altına, göreli yol yapısı korunarak yüklenir.
       const base = currentUser.id + "/" + Date.now() + "_" + slugify(title);
+      // Tüm dosyaların ortak kök klasörünü bul ve at (seçilen klasörün kendi adı).
+      const paths = folderFiles.map(relPath);
+      let strip = 0;
+      if(paths.length){
+        const first = paths[0].split("/");
+        if(first.length > 1 && paths.every(p => p.split("/")[0] === first[0])) strip = first[0].length + 1;
+      }
+      const relOf = f => relPath(f).slice(strip) || relPath(f);
+      // Giriş dosyası: önce index.html, yoksa en sığdaki .html, eşitse en büyüğü.
+      const htmls = folderFiles.filter(f => /\.html?$/i.test(relOf(f)));
+      htmls.sort((a,b)=>{
+        const ra=relOf(a), rb=relOf(b);
+        const ia=/(^|\/)index\.html?$/i.test(ra)?0:1, ib=/(^|\/)index\.html?$/i.test(rb)?0:1;
+        if(ia!==ib) return ia-ib;                                   // index.html öncelikli
+        const da=ra.split("/").length, db2=rb.split("/").length;
+        if(da!==db2) return da-db2;                                 // daha sığ olan
+        return b.size-a.size;                                       // daha büyük olan
+      });
+      const entryRel = relOf(htmls[0]);
       let done=0;
       for(const f of folderFiles){
-        const rel = relPath(f).replace(/^[^/]*\//,"");        // en üstteki klasör adını at
+        const rel = relOf(f);
         const isHtml = /\.html?$/i.test(rel);
         let body=f, ctype=f.type||guessType(rel);
         if(isHtml){ body=new Blob([await f.text()],{type:"text/html"}); ctype="text/html"; }
@@ -486,7 +505,7 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
         if(r.error){ setMsg(t("m_err_upload")+" ("+rel+")","error"); btn.disabled=false; return; }
         done++; setMsg(t("m_uploading_n").replace("{0}", done+"/"+folderFiles.length),"info");
       }
-      fileUrl = db.storage.from("games").getPublicUrl(base+"/index.html").data.publicUrl;
+      fileUrl = db.storage.from("games").getPublicUrl(base+"/"+entryRel).data.publicUrl;
     }
 
     // kapak görseli (varsa) yükle
