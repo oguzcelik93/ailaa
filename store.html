@@ -14,6 +14,10 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ailaa Mağaza — AI ile yapılmış oyunlar ve araçlar">
 <meta name="twitter:image" content="https://ailaa.io/og.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A0B12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ailaa">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -42,6 +46,18 @@
   .home-link{font-size:0.88rem; color:var(--text-muted);}
   .nav-upload{font-size:0.82rem; font-weight:700; background:var(--amber); color:#1a1508; padding:8px 14px; border-radius:8px; white-space:nowrap; box-shadow:0 0 16px -6px var(--amber);}
   .home-link:hover{color:var(--text);}
+
+  /* bildirim çanı */
+  .bell{position:relative; background:none; border:none; color:var(--text-muted); font-size:1.05rem; cursor:pointer; padding:4px 6px; display:none;}
+  .bell.show{display:inline-block;}
+  .bell .dot{position:absolute; top:0; right:0; min-width:16px; height:16px; background:var(--coral); color:#fff; border-radius:100px; font-size:0.62rem; line-height:16px; font-family:'JetBrains Mono',monospace; padding:0 4px;}
+  .notif-panel{position:absolute; right:0; top:calc(100% + 10px); width:270px; max-height:320px; overflow-y:auto; background:#0F1120; border:1px solid rgba(255,255,255,0.13); border-radius:12px; padding:6px; box-shadow:0 24px 50px -18px rgba(0,0,0,0.85); display:none; z-index:200;}
+  .notif-panel.open{display:block;}
+  .notif-item{display:block; padding:10px; border-radius:8px; font-size:0.84rem; color:var(--text); border-bottom:1px solid rgba(255,255,255,0.05);}
+  .notif-item:last-child{border-bottom:none;}
+  .notif-item.unread{background:rgba(245,169,59,0.07);}
+  .notif-item .tm{display:block; font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--text-muted); margin-top:4px;}
+  .notif-empty{padding:16px; text-align:center; font-size:0.82rem; color:var(--text-muted);}
 
   /* hesap menüsü */
   .acct{position:relative; display:inline-block;}
@@ -76,6 +92,13 @@
   /* GRID */
   .shelf{position:relative; z-index:1; display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:18px; max-width:1000px; margin:28px auto 0; padding:0 24px 40px;}
   .cart{background:var(--bg-raised); border:1px solid var(--line); border-radius:12px; overflow:hidden; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; cursor:pointer;}
+  /* devam et rayı */
+  .rail-title{font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--text-muted); letter-spacing:0.04em; margin-bottom:10px;}
+  .rail-row{display:flex; gap:12px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch;}
+  .rail-card{flex:none; width:150px; background:var(--bg-raised); border:1px solid var(--line); border-radius:10px; overflow:hidden; cursor:pointer; transition:transform .15s ease, border-color .15s ease;}
+  .rail-card:hover{transform:translateY(-2px); border-color:var(--mint);}
+  .rail-card .art{height:84px; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:1.5rem;}
+  .rail-card .nm{padding:8px 9px; font-size:0.8rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .cart:hover{transform:translateY(-5px); box-shadow:0 20px 40px -15px rgba(0,0,0,0.55); border-color:var(--amber);}
   .cart:focus-visible{outline:2px solid var(--mint); outline-offset:2px;}
   .cart-art{height:130px; position:relative; display:flex; align-items:center; justify-content:center; font-size:2.4rem;}
@@ -225,6 +248,10 @@
     <a href="/" class="logo">ailaa</a>
     <div class="nav-right">
       <a href="/" class="home-link" data-i18n="nav_home">← Ana sayfa</a>
+      <span class="acct" style="position:relative;">
+        <button class="bell" id="bellBtn" aria-label="Bildirimler">🔔<span class="dot" id="bellDot" style="display:none;">0</span></button>
+        <div class="notif-panel" id="notifPanel"></div>
+      </span>
       <a href="/auth" id="loginLink" class="home-link" data-i18n="nav_login">Giriş</a>
       <a href="/upload" class="nav-upload" data-i18n="nav_upload">+ Yükle</a>
       <button class="lib-btn" id="libBtn">
@@ -255,6 +282,12 @@
     <button data-sort="trend" class="active" data-i18n="sort_trend">🔥 Trend</button>
     <button data-sort="new" data-i18n="sort_new">🆕 Yeni</button>
   </div>
+  <button class="lib-btn" id="randomBtn" style="margin-left:auto;" data-i18n="random_btn">🎲 Ne oynasam?</button>
+</div>
+
+<div id="continueRail" style="display:none; margin:0 0 18px;">
+  <div class="rail-title" id="continueTitle" data-i18n="continue_t">↩ Kaldığın yerden devam et</div>
+  <div class="rail-row" id="continueRow"></div>
 </div>
 
 <div class="shelf" id="shelf"></div>
@@ -318,7 +351,7 @@ const I18N = {
     add:"Kütüphaneme ekle", get:"Ücretsiz al", owned:"✓ Kütüphanende", owned_badge:"sahipsin",
     by:"geliştirici:",
     play:"▶ Oyna", first_badge:"★ İLK OYUN", playable_tag:"oynanabilir",
-    report:"Şikayet et", embed:"Gömme kodu", embed_copied:"Gömme kodu kopyalandı ✓ Blogona/siteye yapıştır.", embed_copy_manual:"Kodu kopyala:", bug_prompt:"Bir sorun mu var? Kısaca yaz — geliştiriciye iletelim:", bug_thanks:"Teşekkürler! Geliştiriciye iletildi 🐛", report_q:"Sebep nedir?", report_r1:"Uygunsuz içerik", report_r2:"Telif ihlali", report_r3:"Çalışmıyor", report_thanks:"Teşekkürler, bildirildi ✓", nav_admin:"🛡 Admin", admin_del:"Sil (admin)", admin_confirm:"Bu projeyi kalıcı silmek istediğine emin misin?", share:"📤 Paylaş", link_copied:"Bağlantı kopyalandı ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Yeni", votes:"oy", plays:"oynanma", vote_btn:"▲ Oyla", voted_btn:"▲ Oyladın", vote_login:"Oy vermek için giriş yap", comments_t:"Yorumlar", c_ph:"Bir yorum yaz...", c_send:"Gönder", c_login:"Yorum yazmak için giriş yap →", c_empty:"İlk yorumu sen yaz!", buy:"Satın Al", buy_note:"Ödeme, geliştiricinin güvenli satış sayfasında tamamlanır.", buy_soon:"Yakında satışta",
+    report:"Şikayet et", embed:"Gömme kodu", embed_copied:"Gömme kodu kopyalandı ✓ Blogona/siteye yapıştır.", embed_copy_manual:"Kodu kopyala:", bug_prompt:"Bir sorun mu var? Kısaca yaz — geliştiriciye iletelim:", bug_thanks:"Teşekkürler! Geliştiriciye iletildi 🐛", report_q:"Sebep nedir?", report_r1:"Uygunsuz içerik", report_r2:"Telif ihlali", report_r3:"Çalışmıyor", report_thanks:"Teşekkürler, bildirildi ✓", nav_admin:"🛡 Admin", admin_del:"Sil (admin)", admin_confirm:"Bu projeyi kalıcı silmek istediğine emin misin?", share:"📤 Paylaş", link_copied:"Bağlantı kopyalandı ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Yeni", random_btn:"🎲 Ne oynasam?", notif_empty:"Henüz bildirim yok.", continue_t:"↩ Kaldığın yerden devam et", votes:"oy", plays:"oynanma", vote_btn:"▲ Oyla", voted_btn:"▲ Oyladın", vote_login:"Oy vermek için giriş yap", comments_t:"Yorumlar", c_ph:"Bir yorum yaz...", c_send:"Gönder", c_login:"Yorum yazmak için giriş yap →", c_empty:"İlk yorumu sen yaz!", buy:"Satın Al", buy_note:"Ödeme, geliştiricinin güvenli satış sayfasında tamamlanır.", buy_soon:"Yakında satışta",
     empty_search:"Aramanla eşleşen bir şey bulunamadı.",
     empty_lib:"Kütüphanen henüz boş. Keşfet'ten bir şeyler ekle!",
     publish_t:"Sen de yayınla", publish_p:"Kendi projeni buraya ekle →",
@@ -345,7 +378,7 @@ const I18N = {
     add:"Add to library", get:"Get for free", owned:"✓ In your library", owned_badge:"owned",
     by:"by:",
     play:"▶ Play", first_badge:"★ FIRST GAME", playable_tag:"playable",
-    report:"Report", embed:"Embed code", embed_copied:"Embed code copied ✓ Paste it on your blog or site.", embed_copy_manual:"Copy the code:", bug_prompt:"Something wrong? Describe it briefly — we will pass it to the developer:", bug_thanks:"Thanks! Sent to the developer 🐛", report_q:"What's the reason?", report_r1:"Inappropriate", report_r2:"Copyright", report_r3:"Doesn't work", report_thanks:"Thanks, reported ✓", nav_admin:"🛡 Admin", admin_del:"Delete (admin)", admin_confirm:"Permanently delete this project?", share:"📤 Share", link_copied:"Link copied ✓", sort_trend:"🔥 Trending", sort_new:"🆕 New", votes:"votes", plays:"plays", vote_btn:"▲ Upvote", voted_btn:"▲ Upvoted", vote_login:"Log in to vote", comments_t:"Comments", c_ph:"Write a comment...", c_send:"Send", c_login:"Log in to comment →", c_empty:"Be the first to comment!", buy:"Buy", buy_note:"Payment is completed on the creator's secure checkout page.", buy_soon:"Coming soon",
+    report:"Report", embed:"Embed code", embed_copied:"Embed code copied ✓ Paste it on your blog or site.", embed_copy_manual:"Copy the code:", bug_prompt:"Something wrong? Describe it briefly — we will pass it to the developer:", bug_thanks:"Thanks! Sent to the developer 🐛", report_q:"What's the reason?", report_r1:"Inappropriate", report_r2:"Copyright", report_r3:"Doesn't work", report_thanks:"Thanks, reported ✓", nav_admin:"🛡 Admin", admin_del:"Delete (admin)", admin_confirm:"Permanently delete this project?", share:"📤 Share", link_copied:"Link copied ✓", sort_trend:"🔥 Trending", sort_new:"🆕 New", random_btn:"🎲 Surprise me", notif_empty:"No notifications yet.", continue_t:"↩ Continue where you left off", votes:"votes", plays:"plays", vote_btn:"▲ Upvote", voted_btn:"▲ Upvoted", vote_login:"Log in to vote", comments_t:"Comments", c_ph:"Write a comment...", c_send:"Send", c_login:"Log in to comment →", c_empty:"Be the first to comment!", buy:"Buy", buy_note:"Payment is completed on the creator's secure checkout page.", buy_soon:"Coming soon",
     empty_search:"Nothing matches your search.",
     empty_lib:"Your library is empty. Add something from Discover!",
     publish_t:"Publish yours too", publish_p:"Add your own project here →",
@@ -372,7 +405,7 @@ const I18N = {
     add:"Zur Bibliothek", get:"Kostenlos holen", owned:"✓ In deiner Bibliothek", owned_badge:"im Besitz",
     by:"von:",
     play:"▶ Spielen", first_badge:"★ ERSTES SPIEL", playable_tag:"spielbar",
-    report:"Melden", embed:"Einbetten", embed_copied:"Embed-Code kopiert ✓ Füge ihn auf deiner Seite ein.", embed_copy_manual:"Code kopieren:", bug_prompt:"Ein Problem? Beschreibe es kurz — wir leiten es weiter:", bug_thanks:"Danke! An den Entwickler gesendet 🐛", report_q:"Was ist der Grund?", report_r1:"Unangemessen", report_r2:"Urheberrecht", report_r3:"Funktioniert nicht", report_thanks:"Danke, gemeldet ✓", nav_admin:"🛡 Admin", admin_del:"Löschen (admin)", admin_confirm:"Dieses Projekt dauerhaft löschen?", share:"📤 Teilen", link_copied:"Link kopiert ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Neu", votes:"Stimmen", plays:"Spiele", vote_btn:"▲ Voten", voted_btn:"▲ Gevotet", vote_login:"Zum Voten einloggen", comments_t:"Kommentare", c_ph:"Kommentar schreiben...", c_send:"Senden", c_login:"Zum Kommentieren einloggen →", c_empty:"Schreib den ersten Kommentar!", buy:"Kaufen", buy_note:"Die Zahlung erfolgt auf der sicheren Verkaufsseite des Entwicklers.", buy_soon:"Bald erhältlich",
+    report:"Melden", embed:"Einbetten", embed_copied:"Embed-Code kopiert ✓ Füge ihn auf deiner Seite ein.", embed_copy_manual:"Code kopieren:", bug_prompt:"Ein Problem? Beschreibe es kurz — wir leiten es weiter:", bug_thanks:"Danke! An den Entwickler gesendet 🐛", report_q:"Was ist der Grund?", report_r1:"Unangemessen", report_r2:"Urheberrecht", report_r3:"Funktioniert nicht", report_thanks:"Danke, gemeldet ✓", nav_admin:"🛡 Admin", admin_del:"Löschen (admin)", admin_confirm:"Dieses Projekt dauerhaft löschen?", share:"📤 Teilen", link_copied:"Link kopiert ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Neu", random_btn:"🎲 Überrasch mich", notif_empty:"Noch keine Benachrichtigungen.", continue_t:"↩ Weiterspielen", votes:"Stimmen", plays:"Spiele", vote_btn:"▲ Voten", voted_btn:"▲ Gevotet", vote_login:"Zum Voten einloggen", comments_t:"Kommentare", c_ph:"Kommentar schreiben...", c_send:"Senden", c_login:"Zum Kommentieren einloggen →", c_empty:"Schreib den ersten Kommentar!", buy:"Kaufen", buy_note:"Die Zahlung erfolgt auf der sicheren Verkaufsseite des Entwicklers.", buy_soon:"Bald erhältlich",
     empty_search:"Nichts passt zu deiner Suche.",
     empty_lib:"Deine Bibliothek ist leer. Füge etwas aus Entdecken hinzu!",
     publish_t:"Veröffentliche auch deins", publish_p:"Füge dein eigenes Projekt hinzu →",
@@ -512,6 +545,7 @@ function trendScore(a){
 }
 
 function render(){
+  try{ renderContinueRail(); }catch(e){}
   const dict=I18N[currentLang];
   const shelf=document.getElementById("shelf");
   shelf.innerHTML="";
@@ -830,6 +864,15 @@ function launchGame(app){
   if(app && app.pid){
     try{ (dbClient||roClient) && (dbClient||roClient).rpc("increment_plays",{ pid: app.pid }); }catch(e){}
     const st=statsMap[app.pid]; if(st) st.plays++;
+    // "kaldığın yerden devam et" için oynama geçmişi
+    if(dbClient && currentUser){
+      try{ dbClient.from("play_history").insert({ user_id: currentUser.id, project_id: app.pid }); }catch(e){}
+    }
+    try{
+      const k="ailaa_recent";
+      let rec=JSON.parse(localStorage.getItem(k)||"[]").filter(x=>x!==app.id);
+      rec.unshift(app.id); localStorage.setItem(k, JSON.stringify(rec.slice(0,12)));
+    }catch(e){}
   }
   const inner=document.getElementById("gameFrameInner");
   const bar=document.querySelector(".game-bar-title");
@@ -956,6 +999,38 @@ async function detectLang(){
 document.querySelectorAll(".lang-switch button").forEach(btn=>btn.addEventListener("click",()=>applyLang(btn.dataset.lang)));
 
 
+
+/* ===== BİLDİRİM ÇANI ===== */
+async function initBell(){
+  if(!dbClient || !currentUser) return;
+  const btn=document.getElementById("bellBtn"), panel=document.getElementById("notifPanel"), dot=document.getElementById("bellDot");
+  if(!btn) return;
+  btn.classList.add("show");
+  async function load(){
+    try{
+      const { data } = await dbClient.from("notifications").select("*")
+        .eq("user_id", currentUser.id).order("created_at",{ascending:false}).limit(20);
+      const list=data||[];
+      const unread=list.filter(n=>!n.read).length;
+      if(unread>0){ dot.style.display="block"; dot.textContent=unread>9?"9+":unread; } else { dot.style.display="none"; }
+      const d=I18N[currentLang];
+      panel.innerHTML = list.length
+        ? list.map(n=>`<a class="notif-item ${n.read?"":"unread"}" href="${n.link||"#"}">${escapeHtml(n.message||"")}<span class="tm">${new Date(n.created_at).toLocaleDateString()}</span></a>`).join("")
+        : `<div class="notif-empty">${d.notif_empty}</div>`;
+    }catch(e){}
+  }
+  btn.addEventListener("click", async (e)=>{
+    e.stopPropagation();
+    panel.classList.toggle("open");
+    if(panel.classList.contains("open")){
+      try{ await dbClient.from("notifications").update({read:true}).eq("user_id",currentUser.id).eq("read",false); }catch(e){}
+      setTimeout(load, 400);
+    }
+  });
+  document.addEventListener("click",(e)=>{ if(!panel.contains(e.target) && e.target!==btn) panel.classList.remove("open"); });
+  load();
+}
+
 /* ================= HESAP MENÜSÜ (Profilim / Çıkış) ================= */
 function buildAccountMenu(user, isAdminUser, db){
   var link=document.getElementById("loginLink"); if(!link || document.getElementById("acctMenu")) return;
@@ -1014,6 +1089,41 @@ function copyEmbed(app){
   }catch(e){ window.prompt(d.embed_copy_manual, code); }
 }
 
+
+/* ===== KALDIĞIN YERDEN DEVAM ET ===== */
+function renderContinueRail(){
+  const rail=document.getElementById("continueRail"), row=document.getElementById("continueRow");
+  if(!rail||!row) return;
+  let ids=[];
+  try{ ids=JSON.parse(localStorage.getItem("ailaa_recent")||"[]"); }catch(e){}
+  const all=allApps();
+  const items=ids.map(id=>all.find(a=>a.id===id)).filter(Boolean).slice(0,8);
+  if(!items.length){ rail.style.display="none"; return; }
+  rail.style.display="block";
+  row.innerHTML=items.map(a=>{
+    const info=appInfo(a);
+    const art=a.cover ? `background-image:url('${a.cover}');` : `background:${GRADIENTS[a.grad]};`;
+    return `<div class="rail-card" data-open="${a.id}">
+      <div class="art" style="${art}">${a.cover?"":(a.icon||"🎮")}</div>
+      <div class="nm">${escapeHtml(info.t)}</div>
+    </div>`;
+  }).join("");
+  row.querySelectorAll("[data-open]").forEach(el=>{
+    el.addEventListener("click",()=>openModal(el.getAttribute("data-open")));
+  });
+}
+
+/* ===== BUGÜN NE OYNASAM? ===== */
+(function(){
+  const b=document.getElementById("randomBtn"); if(!b) return;
+  b.addEventListener("click",()=>{
+    const pool=allApps().filter(a=>a.playable);
+    if(!pool.length) return;
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    openModal(pick.id);
+  });
+})();
+
 /* ================= INIT ================= */
 updateLibCount();
 detectLang();
@@ -1039,6 +1149,7 @@ detectLang();
           applyLang(currentLang);
         }
         try{ buildAccountMenu(currentUser, isAdmin, dbClient); }catch(e){}
+        try{ initBell(); }catch(e){}
         await loadAccountLibrary();   // hesaba bağlı kütüphaneyi getir
       }
     }

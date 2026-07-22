@@ -137,6 +137,19 @@ async function loadStats(){
   }catch(e){ wrap.innerHTML=""; }
 }
 
+
+/* onaylanınca: sahibine ve takipçilerine bildirim gönder */
+async function notifyOnApprove(projectId){
+  try{
+    const pr = await db.from("projects").select("id,title,user_id").eq("id", projectId).maybeSingle();
+    const p = pr && pr.data; if(!p) return;
+    const rows = [{ user_id:p.user_id, type:"approved", message:`"${p.title}" onaylandı ve mağazada yayında 🎉`, link:"/store?p=c"+p.id }];
+    const fr = await db.from("follows").select("follower").eq("developer", p.user_id);
+    (fr.data||[]).forEach(f=>rows.push({ user_id:f.follower, type:"new_project", message:`Takip ettiğin geliştirici yeni bir proje yayınladı: "${p.title}"`, link:"/store?p=c"+p.id }));
+    if(rows.length) await db.from("notifications").insert(rows);
+  }catch(e){}
+}
+
 async function loadPending(){
   const wrap=document.getElementById("pending");
   try{
@@ -157,7 +170,7 @@ async function loadPending(){
     </div>`).join("");
     wrap.querySelectorAll("[data-approve]").forEach(b=>b.addEventListener("click", async ()=>{
       b.disabled=true;
-      try{ await db.from("projects").update({status:"approved"}).eq("id", b.dataset.approve); loadPending(); loadProjects(); loadStats(); }catch(e){ b.disabled=false; }
+      try{ await db.from("projects").update({status:"approved"}).eq("id", b.dataset.approve); await notifyOnApprove(b.dataset.approve); loadPending(); loadProjects(); loadStats(); }catch(e){ b.disabled=false; }
     }));
     wrap.querySelectorAll("[data-reject]").forEach(b=>b.addEventListener("click", async ()=>{
       if(!confirm("Bu projeyi reddetmek istediğine emin misin?")) return;

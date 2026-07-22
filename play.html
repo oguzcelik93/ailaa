@@ -16,6 +16,10 @@
         box-shadow:0 4px 14px -4px rgba(0,0,0,0.6);opacity:.92;}
   .mark:hover{opacity:1;}
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A0B12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ailaa">
 </head>
 <body>
 <div id="stage"><div class="msg" id="msg">yükleniyor…</div></div>
@@ -28,18 +32,21 @@
   var stage=document.getElementById("stage"), msg=document.getElementById("msg");
   function fail(t){ if(msg) msg.textContent=t; }
   var id=new URLSearchParams(location.search).get("p");
+  var previewToken=new URLSearchParams(location.search).get("preview");
   if(!id){ fail("Proje belirtilmedi."); return; }
 
   var url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
   if(!url || String(url).indexOf("BURAYA")>=0 || typeof supabase==="undefined"){ fail("Yapılandırma eksik."); return; }
   var db=supabase.createClient(url,key);
 
-  db.from("projects").select("id,title,file_url,status").eq("id", id).maybeSingle().then(function(r){
+  db.from("projects").select("id,title,file_url,status,preview_token").eq("id", id).maybeSingle().then(function(r){
     var p=r && r.data;
-    if(!p || p.status!=="approved"){ fail("Bu proje yayında değil."); return; }
+    if(!p){ fail("Proje bulunamadı."); return; }
+    var allowed = p.status==="approved" || (previewToken && p.preview_token && previewToken===p.preview_token);
+    if(!allowed){ fail(p.status==="pending" ? "Bu proje henüz onay bekliyor. Erken erişim linkiyle açman gerekiyor." : "Bu proje yayında değil."); return; }
     document.title="Ailaa — "+(p.title||"Oynat");
     document.getElementById("mark").href="https://ailaa.io/store?p="+p.id;
-    try{ db.rpc("increment_plays",{ pid: p.id }); }catch(e){}
+    if(p.status==="approved"){ try{ db.rpc("increment_plays",{ pid: p.id }); }catch(e){} }
     fetch(p.file_url).then(function(res){ return res.text(); }).then(function(html){
       var f=document.createElement("iframe");
       f.setAttribute("sandbox","allow-scripts");

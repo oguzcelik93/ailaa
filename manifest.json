@@ -1,0 +1,20 @@
+{
+  "name": "Ailaa — AI ile yapılmış oyunlar ve araçlar",
+  "short_name": "Ailaa",
+  "description": "AI ile yaptığın oyunları ve uygulamaları yayınla, paylaş, oyna.",
+  "start_url": "/store",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0A0B12",
+  "theme_color": "#0A0B12",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/og.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

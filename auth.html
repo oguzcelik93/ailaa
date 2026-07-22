@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ailaa — Giriş</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A0B12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ailaa">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -66,6 +70,17 @@
 
   .auth-forms.hidden{display:none;}
 
+  .role-toggle{display:flex; flex-direction:column; gap:8px;}
+  .role-opt{display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; background:var(--bg); border:1.5px solid var(--line); color:var(--text); padding:12px 14px; border-radius:11px; cursor:pointer; font-family:inherit; width:100%;}
+  .role-opt .ic{font-size:1.1rem; margin-bottom:2px;}
+  .role-opt .tt{font-weight:600; font-size:0.94rem;}
+  .role-opt .dd{font-size:0.78rem; color:var(--text-muted);}
+  .role-opt.active{border-color:var(--amber); background:rgba(245,169,59,0.08);}
+  .role-badge{display:inline-flex; align-items:center; gap:5px; font-family:'JetBrains Mono',monospace; font-size:0.72rem; padding:4px 10px; border-radius:100px; margin-top:6px; border:1px solid var(--line);}
+  .role-badge.dev{color:var(--amber); border-color:rgba(245,169,59,0.4); background:rgba(245,169,59,0.08);}
+  .role-badge.player{color:var(--mint); border-color:rgba(89,216,199,0.4); background:rgba(89,216,199,0.08);}
+
+
   footer{border-top:1px solid var(--line); padding:24px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text-muted); position:relative; z-index:1;}
   .lang-switch{display:inline-flex; gap:2px; background:var(--bg-raised); border:1px solid var(--line); border-radius:8px; padding:3px; margin-bottom:14px;}
   .lang-switch button{background:none; border:none; cursor:pointer; color:var(--text-muted); padding:5px 9px; border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:500;}
@@ -102,6 +117,20 @@
         <button id="tabSignup" data-i18n="tab_signup">Kayıt ol</button>
       </div>
 
+
+      <div class="field" id="roleField" style="display:none;">
+        <label data-i18n="role_label">Hesap türü</label>
+        <div class="role-toggle" id="roleToggle">
+          <button type="button" class="role-opt active" data-role="player">
+            <span class="ic">🎮</span><span class="tt" data-i18n="role_player">Oynamak istiyorum</span>
+            <span class="dd" data-i18n="role_player_d">Oyunları keşfet, kütüphanene ekle</span>
+          </button>
+          <button type="button" class="role-opt" data-role="developer">
+            <span class="ic">🛠️</span><span class="tt" data-i18n="role_dev">Geliştiriciyim</span>
+            <span class="dd" data-i18n="role_dev_d">Kendi oyununu/uygulamanı yükle, sat</span>
+          </button>
+        </div>
+      </div>
       <div class="field">
         <label for="email" data-i18n="email_label">E-posta</label>
         <input type="email" id="email" data-i18n-placeholder="email_ph" placeholder="ornek@eposta.com" autocomplete="email">
@@ -120,11 +149,11 @@
       <div class="avatar" id="avatar">A</div>
       <div class="email" id="accEmail"></div>
       <div class="welcome" data-i18n="welcome">Giriş yaptın 🎉</div>
+      <span class="role-badge" id="roleBadge"></span>
       <div class="teaser">
-        <span class="soon" data-i18n="soon">yakında</span>
         <h3 data-i18n="teaser_t">Projeni yükle</h3>
-        <p data-i18n="teaser_p">Yakında buradan kendi oyununu/uygulamanı yükleyip yayınlayabileceksin.</p>
-        <a href="/upload" class="logout-btn" style="display:inline-block; margin-top:12px; color:var(--mint); border-color:var(--mint); text-decoration:none;" data-i18n="teaser_btn">Projeni yükle →</a>
+        <p data-i18n="teaser_p">Kendi oyununu/uygulamanı yükleyip yayınlayabilirsin — istersen ücretsiz, istersen ücretli.</p>
+        <a href="/upload" id="teaserBtn" class="logout-btn" style="display:inline-block; margin-top:12px; color:var(--mint); border-color:var(--mint); text-decoration:none;" data-i18n="teaser_btn">Projeni yükle →</a>
       </div>
       <button class="logout-btn" id="logoutBtn" data-i18n="btn_logout">Çıkış yap</button>
     </div>
@@ -158,7 +187,7 @@ const I18N = {
     email_label:"E-posta", email_ph:"ornek@eposta.com",
     pass_label:"Şifre", pass_ph:"en az 6 karakter",
     btn_login:"Giriş yap", btn_signup:"Kayıt ol", btn_logout:"Çıkış yap",
-    welcome:"Giriş yaptın 🎉", soon:"yakında", teaser_t:"Projeni yükle",
+    welcome:"Giriş yaptın 🎉", role_label:"Hesap türü", role_player:"Oyuncu", role_player_d:"Oyunları keşfet, kütüphanene ekle", role_dev:"Geliştirici", role_dev_d:"Kendi oyununu/uygulamanı yükle, sat", teaser_btn_player:"Mağazayı gez →", soon:"yakında", teaser_t:"Projeni yükle",
     teaser_p:"Yakında buradan kendi oyununu/uygulamanı yükleyip yayınlayabileceksin.", teaser_btn:"Projeni yükle →",
     footer:"ailaa © 2026",
     m_loading:"...", m_login_ok:"Giriş başarılı!", m_signup_ok:"Kayıt başarılı! Giriş yapılıyor...",
@@ -177,7 +206,7 @@ const I18N = {
     email_label:"E-mail", email_ph:"you@email.com",
     pass_label:"Password", pass_ph:"at least 6 characters",
     btn_login:"Log in", btn_signup:"Sign up", btn_logout:"Log out",
-    welcome:"You're signed in 🎉", soon:"coming soon", teaser_t:"Upload your project",
+    welcome:"You're signed in 🎉", role_label:"Account type", role_player:"Player", role_player_d:"Discover games, add to your library", role_dev:"Developer", role_dev_d:"Upload and sell your own game/app", teaser_btn_player:"Browse the store →", soon:"coming soon", teaser_t:"Upload your project",
     teaser_p:"Soon you'll be able to upload and publish your own game/app right here.", teaser_btn:"Upload your project →",
     footer:"ailaa © 2026",
     m_loading:"...", m_login_ok:"Signed in!", m_signup_ok:"Signed up! Logging you in...",
@@ -196,7 +225,7 @@ const I18N = {
     email_label:"E-Mail", email_ph:"du@email.com",
     pass_label:"Passwort", pass_ph:"mindestens 6 Zeichen",
     btn_login:"Anmelden", btn_signup:"Registrieren", btn_logout:"Abmelden",
-    welcome:"Du bist angemeldet 🎉", soon:"bald verfügbar", teaser_t:"Lade dein Projekt hoch",
+    welcome:"Du bist angemeldet 🎉", role_label:"Kontotyp", role_player:"Spieler", role_player_d:"Spiele entdecken, zur Bibliothek hinzufügen", role_dev:"Entwickler", role_dev_d:"Eigenes Spiel/App hochladen und verkaufen", teaser_btn_player:"Shop ansehen →", soon:"bald verfügbar", teaser_t:"Lade dein Projekt hoch",
     teaser_p:"Bald kannst du hier dein eigenes Spiel/deine App hochladen und veröffentlichen.", teaser_btn:"Projekt hochladen →",
     footer:"ailaa © 2026",
     m_loading:"...", m_login_ok:"Angemeldet!", m_signup_ok:"Registriert! Anmeldung läuft...",
@@ -241,11 +270,18 @@ document.querySelectorAll(".lang-switch button").forEach(b=>b.addEventListener("
 const tabLogin=document.getElementById("tabLogin");
 const tabSignup=document.getElementById("tabSignup");
 const submitBtn=document.getElementById("submitBtn");
+let accountType="player";
+document.getElementById("roleToggle").addEventListener("click",(e)=>{
+  const b=e.target.closest(".role-opt"); if(!b) return;
+  accountType=b.getAttribute("data-role");
+  document.querySelectorAll(".role-opt").forEach(x=>x.classList.toggle("active", x===b));
+});
 function updateModeUI(){
   tabLogin.classList.toggle("active",mode==="login");
   tabSignup.classList.toggle("active",mode==="signup");
   submitBtn.textContent = mode==="login" ? t("btn_login") : t("btn_signup");
   document.getElementById("password").setAttribute("autocomplete", mode==="login"?"current-password":"new-password");
+  document.getElementById("roleField").style.display = mode==="signup" ? "block" : "none";
 }
 tabLogin.addEventListener("click",()=>{ mode="login"; setMsg(""); updateModeUI(); });
 tabSignup.addEventListener("click",()=>{ mode="signup"; setMsg(""); updateModeUI(); });
@@ -271,6 +307,18 @@ function showAccount(user){
   document.getElementById("account").classList.add("show");
   document.getElementById("accEmail").textContent=user.email;
   document.getElementById("avatar").textContent=(user.email[0]||"A").toUpperCase();
+  const role = (user.user_metadata && user.user_metadata.account_type) || "player";
+  const rb=document.getElementById("roleBadge");
+  if(rb){
+    const isDev = role==="developer";
+    rb.className = "role-badge "+(isDev?"dev":"player");
+    rb.textContent = isDev ? ("🛠️ "+t("role_dev")) : ("🎮 "+t("role_player"));
+  }
+  const teaserBtn=document.getElementById("teaserBtn");
+  if(teaserBtn){
+    if(role==="developer"){ teaserBtn.href="/upload"; teaserBtn.textContent=t("teaser_btn"); }
+    else { teaserBtn.href="/store"; teaserBtn.textContent=t("teaser_btn_player"); }
+  }
 }
 function showForms(){
   document.getElementById("authForms").classList.remove("hidden");
@@ -290,9 +338,13 @@ submitBtn.addEventListener("click", async ()=>{
       if(error){ setMsg(mapError(error.message),"error"); }
       else { setMsg(t("m_login_ok"),"success"); showAccount(data.user); }
     } else {
-      const { data, error } = await db.auth.signUp({ email, password });
+      const { data, error } = await db.auth.signUp({ email, password, options:{ data:{ account_type: accountType } } });
       if(error){ setMsg(mapError(error.message),"error"); }
-      else if(data.session){ setMsg(t("m_signup_ok"),"success"); showAccount(data.user); }
+      else if(data.session){
+        // herkese açık profildeki rolü de senkron tut (profil sayfası bunu okur)
+        try{ await db.from("profiles").update({ role: accountType }).eq("id", data.user.id); }catch(e){}
+        setMsg(t("m_signup_ok"),"success"); showAccount(data.user);
+      }
       else { setMsg(t("m_check_email"),"info"); } // e-posta onayı açıksa
     }
   }catch(e){ setMsg(t("e_generic"),"error"); console.error(e); }

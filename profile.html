@@ -8,6 +8,10 @@
 <meta property="og:title" content="Ailaa — Geliştirici Profili">
 <meta property="og:image" content="https://ailaa.io/og.png">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A0B12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ailaa">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -66,6 +70,20 @@
   .notfound{text-align:center; padding:80px 20px; color:var(--text-muted);}
   footer{text-align:center; padding:30px; color:var(--text-muted); font-size:0.8rem;}
 
+
+  .verified{color:var(--mint); font-size:0.85em; margin-left:4px;} 
+  .role-chip{display:inline-flex; align-items:center; gap:5px; font-family:'JetBrains Mono',monospace; font-size:0.7rem; padding:3px 9px; border-radius:100px; margin-left:8px; vertical-align:middle; border:1px solid var(--line);}
+  .role-chip.dev{color:var(--amber); border-color:rgba(245,169,59,0.4); background:rgba(245,169,59,0.08);}
+  .follow-btn{background:var(--amber); color:#1a1204; border:none; font-family:inherit; font-weight:700; font-size:0.86rem; padding:10px 20px; border-radius:10px; cursor:pointer;}
+  .follow-btn.on{background:transparent; color:var(--mint); border:1px solid var(--mint);}
+  .follow-btn:disabled{opacity:0.6;}
+  .badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;}
+  .badge-chip{display:flex; align-items:center; gap:6px; background:var(--bg); border:1px solid var(--line); padding:7px 12px; border-radius:100px; font-size:0.78rem;}
+  .badge-chip .ic{font-size:0.95rem;}
+  .badge-chip.locked{opacity:0.35;}
+  .lib-toggle{display:flex; align-items:center; gap:9px; margin:14px 0 4px; font-size:0.85rem; color:var(--text-muted);}
+  .lib-toggle input{width:36px; height:20px; accent-color:var(--amber); cursor:pointer;}
+
   /* premium atmosfer: köşe ışıltıları */
   .aura{position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;}
   .aura::before,.aura::after{content:""; position:absolute; border-radius:50%; filter:blur(90px); opacity:0.4;}
@@ -96,15 +114,21 @@ const I18N={
   tr:{back:"Mağaza", loading:"Yükleniyor...", notfound:"Bu kullanıcı bulunamadı.", joined:"katılım", projects:"Projeleri",
       votes:"toplam oy", plays:"oynanma", count:"proje", no_proj:"Henüz yayınlanmış proje yok.",
       edit:"Profili düzenle", u_label:"Kullanıcı adı", b_label:"Hakkında", save:"Kaydet",
-      saved:"Kaydedildi ✓", err:"Kaydedilemedi — kullanıcı adı alınmış olabilir.", free:"Ücretsiz"},
+      saved:"Kaydedildi ✓", err:"Kaydedilemedi — kullanıcı adı alınmış olabilir.", free:"Ücretsiz",
+      dev_chip:"Geliştirici", badges_t:"Rozetler", b1:"İlk Adım", b1d:"İlk projeni yayınladın", b2:"Yükselen Yıldız", b2d:"100+ oynanma", b3:"Popüler", b3d:"10+ oy", b4:"Üretken", b4d:"5+ proje",
+      lib_t:"📚 Kütüphane", lib_empty:"Kütüphane boş.", lib_private:"Bu kütüphane gizli.", lib_toggle:"Kütüphanemi herkese açık göster", followers:"takipçi", follow:"+ Takip et", following:"✓ Takip ediyorsun"},
   en:{back:"Store", loading:"Loading...", notfound:"User not found.", joined:"joined", projects:"Projects",
       votes:"total votes", plays:"plays", count:"projects", no_proj:"No published projects yet.",
       edit:"Edit profile", u_label:"Username", b_label:"About", save:"Save",
-      saved:"Saved ✓", err:"Could not save — username may be taken.", free:"Free"},
+      saved:"Saved ✓", err:"Could not save — username may be taken.", free:"Free",
+      dev_chip:"Developer", badges_t:"Badges", b1:"First Step", b1d:"Published your first project", b2:"Rising Star", b2d:"100+ plays", b3:"Popular", b3d:"10+ votes", b4:"Prolific", b4d:"5+ projects",
+      lib_t:"📚 Library", lib_empty:"Library is empty.", lib_private:"This library is private.", lib_toggle:"Make my library public", followers:"followers", follow:"+ Follow", following:"✓ Following"},
   de:{back:"Store", loading:"Lädt...", notfound:"Benutzer nicht gefunden.", joined:"dabei seit", projects:"Projekte",
       votes:"Stimmen", plays:"Spiele", count:"Projekte", no_proj:"Noch keine Projekte veröffentlicht.",
       edit:"Profil bearbeiten", u_label:"Benutzername", b_label:"Über mich", save:"Speichern",
-      saved:"Gespeichert ✓", err:"Speichern fehlgeschlagen — Name evtl. vergeben.", free:"Kostenlos"}
+      saved:"Gespeichert ✓", err:"Speichern fehlgeschlagen — Name evtl. vergeben.", free:"Kostenlos",
+      dev_chip:"Entwickler", badges_t:"Abzeichen", b1:"Erster Schritt", b1d:"Erstes Projekt veröffentlicht", b2:"Aufsteiger", b2d:"100+ Spiele", b3:"Beliebt", b3d:"10+ Stimmen", b4:"Produktiv", b4d:"5+ Projekte",
+      lib_t:"📚 Bibliothek", lib_empty:"Bibliothek ist leer.", lib_private:"Diese Bibliothek ist privat.", lib_toggle:"Meine Bibliothek öffentlich zeigen", followers:"Follower", follow:"+ Folgen", following:"✓ Du folgst"}
 };
 function pickLang(){
   try{ const s=localStorage.getItem("ailaa_lang"); if(s&&I18N[s]) return s; }catch(e){}
@@ -167,18 +191,40 @@ async function init(){
   const grad = GRADIENTS[hashCode(profile.username)%GRADIENTS.length];
   const isMe = me && me.id===profile.id;
 
+  // takipçi sayısı + ben takip ediyor muyum
+  let followers=0, iFollow=false;
+  try{
+    const fr = await db.from("follows").select("follower",{count:"exact",head:true}).eq("developer", profile.id);
+    followers = fr.count||0;
+    if(me && !isMe){
+      const mf = await db.from("follows").select("follower").eq("developer", profile.id).eq("follower", me.id).maybeSingle();
+      iFollow = !!(mf && mf.data);
+    }
+  }catch(e){}
+
+  // rozetler (kazanılmış olanlar)
+  const badges=[];
+  if(projects.length>=1) badges.push(["🌱",L.b1,L.b1d]);
+  if(totPlays>=100)      badges.push(["⭐",L.b2,L.b2d]);
+  if(totVotes>=10)       badges.push(["🔥",L.b3,L.b3d]);
+  if(projects.length>=5) badges.push(["⚡",L.b4,L.b4d]);
+  const isDev = (profile.role||"player")==="developer";
+
   wrap.innerHTML=`
     <div class="profile-card">
       <div class="avatar" style="background:${grad}">${esc(profile.username.charAt(0).toUpperCase())}</div>
       <div class="p-info">
-        <h1>@${esc(profile.username)}</h1>
+        <h1>@${esc(profile.username)} ${isDev?`<span class="role-chip dev">🛠️ ${L.dev_chip}</span>`:""}</h1>
         <div class="joined">${L.joined}: ${fmtDate(profile.created_at)}</div>
         ${profile.bio ? `<div class="bio">${esc(profile.bio)}</div>` : ""}
         <div class="p-stats">
           <span><b>${projects.length}</b>${L.count}</span>
           <span><b>${totVotes}</b>${L.votes}</span>
           <span class="m"><b>${totPlays}</b>${L.plays}</span>
+          <span><b id="fCount">${followers}</b>${L.followers}</span>
         </div>
+        ${(!isMe && me) ? `<div style="margin-top:14px;"><button class="follow-btn ${iFollow?'on':''}" id="followBtn">${iFollow?L.following:L.follow}</button></div>` : ""}
+        ${badges.length ? `<div class="badges">${badges.map(b=>`<span class="badge-chip" title="${b[2]}"><span class="ic">${b[0]}</span>${b[1]}</span>`).join("")}</div>` : ""}
         ${isMe ? `
         <div style="margin-top:16px;"><button class="edit-btn" id="editBtn">✎ ${L.edit}</button></div>
         <div class="edit-box" id="editBox">
@@ -206,6 +252,26 @@ async function init(){
       <div class="st"><span class="v">▲ ${st.votes}</span><span>▶ ${p.plays||0}</span><span>${p.price>0?("$"+p.price):L.free}</span></div></div>`;
     grid.appendChild(d);
   });
+
+  const fb=document.getElementById("followBtn");
+  if(fb){
+    fb.addEventListener("click", async ()=>{
+      fb.disabled=true;
+      const cEl=document.getElementById("fCount");
+      try{
+        if(fb.classList.contains("on")){
+          await db.from("follows").delete().eq("developer", profile.id).eq("follower", me.id);
+          fb.classList.remove("on"); fb.textContent=L.follow;
+          cEl.textContent=Math.max(0,(parseInt(cEl.textContent)||0)-1);
+        } else {
+          await db.from("follows").insert({ developer: profile.id, follower: me.id });
+          fb.classList.add("on"); fb.textContent=L.following;
+          cEl.textContent=(parseInt(cEl.textContent)||0)+1;
+        }
+      }catch(e){}
+      fb.disabled=false;
+    });
+  }
 
   if(isMe){
     document.getElementById("editBtn").addEventListener("click",()=>document.getElementById("editBox").classList.toggle("open"));

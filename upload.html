@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ailaa — Proje Yükle</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0A0B12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ailaa">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -135,6 +139,12 @@
       <a href="/auth" class="btn" data-i18n="gate_btn">Giriş yap</a>
     </div>
 
+    <!-- giriş yaptı ama hesabı "oyuncu" — yükseltme teklifi -->
+    <div class="gate" id="upgradeGate" style="display:none;">
+      <p data-i18n="upgrade_text">Şu an bir oyuncu hesabısın. Proje yüklemek için bir tık uzağındasın — ücretsiz, anında.</p>
+      <button class="btn" id="upgradeBtn" data-i18n="upgrade_btn">🛠️ Geliştirici ol ve devam et</button>
+    </div>
+
     <!-- yükleme formu -->
     <div class="form-wrap" id="formWrap">
       <h1 data-i18n="title">Projeni yükle</h1>
@@ -156,6 +166,13 @@
       <div class="field">
         <label data-i18n="f_price">Fiyat (0 = ücretsiz)</label>
         <input type="number" id="pPrice" min="0" max="999" value="0">
+      </div>
+
+      <div class="field" id="pwywField" style="display:none;">
+        <label class="agree" style="cursor:pointer;">
+          <input type="checkbox" id="pPwyw">
+          <span data-i18n="pwyw_text">İstediğini öde: bu fiyat bir minimum, alıcı isterse daha fazla verebilsin.</span>
+        </label>
       </div>
 
       <div class="field" id="buyUrlField" style="display:none;">
@@ -245,7 +262,7 @@ const I18N = {
   tr:{
     to_store:"← Mağaza",
     title:"Projeni yükle", subtitle:"Tek dosyalık HTML oyununu/uygulamanı yükle, mağazada yayınlansın.",
-    gate_text:"Proje yüklemek için önce giriş yapmalısın.", gate_btn:"Giriş yap",
+    gate_text:"Proje yüklemek için önce giriş yapmalısın.", gate_btn:"Giriş yap", upgrade_text:"Şu an bir oyuncu hesabısın. Proje yüklemek için bir tık uzağındasın — ücretsiz, anında.", upgrade_btn:"🛠️ Geliştirici ol ve devam et",
     f_title:"Proje adı", ph_title:"Örn: Neon Kaçış",
     f_cat:"Kategori", cat_game:"Oyun", cat_tool:"Araç",
     f_price:"Fiyat (0 = ücretsiz)", f_desc:"Açıklama", ph_desc:"Projeni birkaç cümleyle anlat...",
@@ -256,14 +273,14 @@ const I18N = {
     m_bad_type:"Sadece .html dosyası yükleyebilirsin.", m_too_big:"Dosyan {size} MB — şu anki sınır {max} MB. Bize hello@ailaa.io'dan yaz, birlikte çözelim.",
     m_uploading:"Yükleniyor...", m_saving:"Kaydediliyor...",
     m_success:"✅ Gönderildi! Moderasyon onayından sonra mağazada görünecek. ", m_view:"Mağazaya git",
-    f_buyurl:"Satış linki (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"Ücretli projelerde ödeme, senin satış sayfanda tamamlanır. Ailaa alıcıyı bu linke yönlendirir.", m_need_buyurl:"Ücretli proje için geçerli bir satış linki (https://...) gerekli.",
+    f_buyurl:"Satış linki (Shopier / Gumroad / Lemon Squeezy)", pwyw_text:"İstediğini öde: bu fiyat bir minimum, alıcı isterse daha fazla verebilsin.", buyurl_hint:"Ücretli projelerde ödeme, senin satış sayfanda tamamlanır. Ailaa alıcıyı bu linke yönlendirir.", m_need_buyurl:"Ücretli proje için geçerli bir satış linki (https://...) gerekli.",
     st_pending:"⏳ onay bekliyor", st_approved:"✓ yayında", st_rejected:"✗ reddedildi",
     mp_title:"Projelerim", mp_sub:"Yüklediğin projeleri buradan yönet.", mp_empty:"Henüz proje yüklemedin.",
-    mp_edit:"Düzenle", mp_newver:"⬆ Yeni sürüm", mp_uploading_ver:"Yeni sürüm yükleniyor…", mp_ver_ok:"Yeni sürüm yayında ✓", fb_title:"Oyuncu geri bildirimleri", fb_sub:"Oyuncuların projelerin hakkında bildirdiği sorunlar.", fb_none:"Henüz geri bildirim yok.", mp_del:"Sil", mp_save:"Kaydet", mp_cancel:"İptal",
+    mp_edit:"Düzenle", mp_newver:"⬆ Yeni sürüm", mp_preview:"🔗 Erken erişim", mp_preview_copied:"Link kopyalandı ✓ Test etmesini istediğin kişiyle paylaş.", mp_preview_manual:"Linki kopyala:", mp_uploading_ver:"Yeni sürüm yükleniyor…", mp_ver_ok:"Yeni sürüm yayında ✓", fb_title:"Oyuncu geri bildirimleri", fb_sub:"Oyuncuların projelerin hakkında bildirdiği sorunlar.", fb_none:"Henüz geri bildirim yok.", mp_del:"Sil", mp_save:"Kaydet", mp_cancel:"İptal",
     mp_confirm:"Bu projeyi silmek istediğine emin misin?", mp_deleting:"Siliniyor...", mp_saving:"Kaydediliyor...",
     mp_updated:"Güncellendi ✓", mp_err:"İşlem başarısız, tekrar dene.",
     mp_e_title:"Başlık", mp_e_price:"Fiyat", mp_e_desc:"Açıklama",
-    rules_title:"Yükleme kuralları", agree_text:"Kuralları okudum ve kabul ediyorum.", m_need_agree:"Devam etmek için kuralları kabul et.",
+    rules_title:"Yükleme kuralları", agree_text:"Kuralları okudum ve kabul ediyorum.", m_softcap:"Hesap başına şu an en fazla {n} proje yükleyebilirsin. Daha fazlası için hello@ailaa.io'dan yaz.", m_need_agree:"Devam etmek için kuralları kabul et.",
     f_cover:"Kapak görseli (isteğe bağlı)", cd_text:"Dokun ve bir kapak resmi seç", cover_hint:"PNG/JPG/WEBP. En fazla 2 MB. Boş bırakırsan renkli bir kart kullanılır.",
     rule1:"Zararlı, kötü amaçlı veya virüs içeren kod yükleme.", rule2:"Başkasının telifli içeriğini (karakter, marka, kod) izinsiz kullanma.", rule3:"Cinsel, şiddet içeren veya nefret söylemi barındıran içerik yasak.", rule4:"Yüklediğin içerikten sen sorumlusun.",
     m_err_upload:"Dosya yüklenemedi, tekrar dene.", m_err_save:"Kaydedilemedi, tekrar dene.",
@@ -272,7 +289,7 @@ const I18N = {
   en:{
     to_store:"← Store",
     title:"Publish your project", subtitle:"Upload your single-file HTML game/app and go live in the store.",
-    gate_text:"You need to log in first to upload a project.", gate_btn:"Log in",
+    gate_text:"You need to log in first to upload a project.", gate_btn:"Log in", upgrade_text:"You're on a player account right now. You're one tap away from uploading — free, instant.", upgrade_btn:"🛠️ Become a developer and continue",
     f_title:"Project name", ph_title:"e.g. Neon Run",
     f_cat:"Category", cat_game:"Game", cat_tool:"Tool",
     f_price:"Price (0 = free)", f_desc:"Description", ph_desc:"Describe your project in a few sentences...",
@@ -283,14 +300,14 @@ const I18N = {
     m_bad_type:"You can only upload a .html file.", m_too_big:"Your file is {size} MB — the current limit is {max} MB. Write to hello@ailaa.io and we will sort it out.",
     m_uploading:"Uploading...", m_saving:"Saving...",
     m_success:"✅ Submitted! It will appear in the store after moderation approval. ", m_view:"Go to store",
-    f_buyurl:"Checkout link (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"For paid projects, payment is completed on your own checkout page. Ailaa sends buyers to this link.", m_need_buyurl:"A valid checkout link (https://...) is required for paid projects.",
+    f_buyurl:"Checkout link (Shopier / Gumroad / Lemon Squeezy)", pwyw_text:"Pay what you want: this price is a minimum, buyers can choose to pay more.", buyurl_hint:"For paid projects, payment is completed on your own checkout page. Ailaa sends buyers to this link.", m_need_buyurl:"A valid checkout link (https://...) is required for paid projects.",
     st_pending:"⏳ pending review", st_approved:"✓ live", st_rejected:"✗ rejected",
     mp_title:"My Projects", mp_sub:"Manage the projects you uploaded.", mp_empty:"You haven't uploaded any project yet.",
-    mp_edit:"Edit", mp_newver:"⬆ New version", mp_uploading_ver:"Uploading new version…", mp_ver_ok:"New version is live ✓", fb_title:"Player feedback", fb_sub:"Issues players reported about your projects.", fb_none:"No feedback yet.", mp_del:"Delete", mp_save:"Save", mp_cancel:"Cancel",
+    mp_edit:"Edit", mp_newver:"⬆ New version", mp_preview:"🔗 Preview link", mp_preview_copied:"Link copied ✓ Share it with anyone you want to test it.", mp_preview_manual:"Copy the link:", mp_uploading_ver:"Uploading new version…", mp_ver_ok:"New version is live ✓", fb_title:"Player feedback", fb_sub:"Issues players reported about your projects.", fb_none:"No feedback yet.", mp_del:"Delete", mp_save:"Save", mp_cancel:"Cancel",
     mp_confirm:"Are you sure you want to delete this project?", mp_deleting:"Deleting...", mp_saving:"Saving...",
     mp_updated:"Updated ✓", mp_err:"Action failed, try again.",
     mp_e_title:"Title", mp_e_price:"Price", mp_e_desc:"Description",
-    rules_title:"Upload rules", agree_text:"I have read and accept the rules.", m_need_agree:"Accept the rules to continue.",
+    rules_title:"Upload rules", agree_text:"I have read and accept the rules.", m_softcap:"You can upload up to {n} projects per account right now. Need more? Write to hello@ailaa.io.", m_need_agree:"Accept the rules to continue.",
     f_cover:"Cover image (optional)", cd_text:"Tap to choose a cover image", cover_hint:"PNG/JPG/WEBP. Max 2 MB. If empty, a colored card is used.",
     rule1:"Do not upload harmful, malicious or virus code.", rule2:"Do not use others' copyrighted content (characters, brands, code) without permission.", rule3:"No sexual, violent or hateful content.", rule4:"You are responsible for what you upload.",
     m_err_upload:"Upload failed, try again.", m_err_save:"Could not save, try again.",
@@ -299,7 +316,7 @@ const I18N = {
   de:{
     to_store:"← Shop",
     title:"Veröffentliche dein Projekt", subtitle:"Lade dein HTML-Spiel/deine App (eine Datei) hoch und geh im Shop live.",
-    gate_text:"Du musst dich zuerst anmelden, um ein Projekt hochzuladen.", gate_btn:"Anmelden",
+    gate_text:"Du musst dich zuerst anmelden, um ein Projekt hochzuladen.", gate_btn:"Anmelden", upgrade_text:"Du hast gerade ein Spieler-Konto. Du bist einen Klick vom Hochladen entfernt — kostenlos, sofort.", upgrade_btn:"🛠️ Entwickler werden und fortfahren",
     f_title:"Projektname", ph_title:"z.B. Neon Run",
     f_cat:"Kategorie", cat_game:"Spiel", cat_tool:"Tool",
     f_price:"Preis (0 = kostenlos)", f_desc:"Beschreibung", ph_desc:"Beschreibe dein Projekt in ein paar Sätzen...",
@@ -310,14 +327,14 @@ const I18N = {
     m_bad_type:"Du kannst nur eine .html-Datei hochladen.", m_too_big:"Deine Datei ist {size} MB — das aktuelle Limit ist {max} MB. Schreib an hello@ailaa.io, wir finden eine Lösung.",
     m_uploading:"Wird hochgeladen...", m_saving:"Wird gespeichert...",
     m_success:"✅ Eingereicht! Nach der Moderationsfreigabe erscheint es im Shop. ", m_view:"Zum Shop",
-    f_buyurl:"Verkaufslink (Shopier / Gumroad / Lemon Squeezy)", buyurl_hint:"Bei bezahlten Projekten erfolgt die Zahlung auf deiner eigenen Verkaufsseite. Ailaa leitet Käufer zu diesem Link.", m_need_buyurl:"Für bezahlte Projekte ist ein gültiger Verkaufslink (https://...) erforderlich.",
+    f_buyurl:"Verkaufslink (Shopier / Gumroad / Lemon Squeezy)", pwyw_text:"Zahl was du willst: dieser Preis ist ein Minimum, Käufer können mehr geben.", buyurl_hint:"Bei bezahlten Projekten erfolgt die Zahlung auf deiner eigenen Verkaufsseite. Ailaa leitet Käufer zu diesem Link.", m_need_buyurl:"Für bezahlte Projekte ist ein gültiger Verkaufslink (https://...) erforderlich.",
     st_pending:"⏳ wartet auf Freigabe", st_approved:"✓ live", st_rejected:"✗ abgelehnt",
     mp_title:"Meine Projekte", mp_sub:"Verwalte deine hochgeladenen Projekte.", mp_empty:"Du hast noch kein Projekt hochgeladen.",
-    mp_edit:"Bearbeiten", mp_newver:"⬆ Neue Version", mp_uploading_ver:"Neue Version wird hochgeladen…", mp_ver_ok:"Neue Version ist live ✓", fb_title:"Spieler-Feedback", fb_sub:"Von Spielern gemeldete Probleme.", fb_none:"Noch kein Feedback.", mp_del:"Löschen", mp_save:"Speichern", mp_cancel:"Abbrechen",
+    mp_edit:"Bearbeiten", mp_newver:"⬆ Neue Version", mp_preview:"🔗 Vorschau-Link", mp_preview_copied:"Link kopiert ✓ Teile ihn mit Testern.", mp_preview_manual:"Link kopieren:", mp_uploading_ver:"Neue Version wird hochgeladen…", mp_ver_ok:"Neue Version ist live ✓", fb_title:"Spieler-Feedback", fb_sub:"Von Spielern gemeldete Probleme.", fb_none:"Noch kein Feedback.", mp_del:"Löschen", mp_save:"Speichern", mp_cancel:"Abbrechen",
     mp_confirm:"Möchtest du dieses Projekt wirklich löschen?", mp_deleting:"Wird gelöscht...", mp_saving:"Wird gespeichert...",
     mp_updated:"Aktualisiert ✓", mp_err:"Aktion fehlgeschlagen, versuche es erneut.",
     mp_e_title:"Titel", mp_e_price:"Preis", mp_e_desc:"Beschreibung",
-    rules_title:"Upload-Regeln", agree_text:"Ich habe die Regeln gelesen und akzeptiere sie.", m_need_agree:"Akzeptiere die Regeln, um fortzufahren.",
+    rules_title:"Upload-Regeln", agree_text:"Ich habe die Regeln gelesen und akzeptiere sie.", m_softcap:"Du kannst aktuell bis zu {n} Projekte pro Konto hochladen. Mehr nötig? Schreib an hello@ailaa.io.", m_need_agree:"Akzeptiere die Regeln, um fortzufahren.",
     f_cover:"Titelbild (optional)", cd_text:"Tippe, um ein Titelbild zu wählen", cover_hint:"PNG/JPG/WEBP. Max 2 MB. Wenn leer, wird eine farbige Karte verwendet.",
     rule1:"Lade keinen schädlichen, bösartigen oder Virus-Code hoch.", rule2:"Verwende keine urheberrechtlich geschützten Inhalte anderer ohne Erlaubnis.", rule3:"Keine sexuellen, gewalttätigen oder hasserfüllten Inhalte.", rule4:"Du bist für deine Uploads verantwortlich.",
     m_err_upload:"Upload fehlgeschlagen, versuche es erneut.", m_err_save:"Speichern fehlgeschlagen, versuche es erneut.",
@@ -435,6 +452,7 @@ function slugify(s){ return (s||"file").toLowerCase().replace(/[^a-z0-9]+/g,"-")
 document.getElementById("pPrice").addEventListener("input",()=>{
   const p=parseInt(document.getElementById("pPrice").value)||0;
   document.getElementById("buyUrlField").style.display = p>0 ? "block" : "none";
+  document.getElementById("pwywField").style.display = p>0 ? "block" : "none";
 });
 
 document.getElementById("submitBtn").addEventListener("click", async ()=>{
@@ -448,6 +466,11 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
   if(!selectedFile){ setMsg(t("m_need_file"),"error"); return; }
   if(!document.getElementById("agree").checked){ setMsg(t("m_need_agree"),"error"); return; }
   if(!/\.html?$/i.test(selectedFile.name)){ setMsg(t("m_bad_type"),"error"); return; }
+  var SOFTCAP = 8;   // yeni hesaplar için yumuşak sınır (spam/kötüye kullanım freni)
+  try{
+    const cc = await db.from("projects").select("id",{count:"exact",head:true}).eq("user_id", currentUser.id);
+    if((cc.count||0) >= SOFTCAP){ setMsg(t("m_softcap").replace("{n}",SOFTCAP),"error"); return; }
+  }catch(e){}
   var MAXMB = 50;   // Supabase ücretsiz plan tavanı (Pro'da 500 GB'a çıkar)
   var BIGMB = 25;   // üstü admin paneline "büyük dosya" olarak düşer
   var sizeMB = +(selectedFile.size/1024/1024).toFixed(1);
@@ -490,7 +513,7 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
     setMsg(t("m_saving"),"info");
     const ins = await db.from("projects").insert({
       user_id: currentUser.id, title, description: desc, category, price,
-      file_url: fileUrl, cover_url: coverUrl, buy_url: (price>0 ? buyUrl : null), status: "pending"
+      file_url: fileUrl, cover_url: coverUrl, buy_url: (price>0 ? buyUrl : null), pwyw: (price>0 && document.getElementById("pPwyw").checked), status: "pending"
     });
     if(ins.error){ setMsg(t("m_err_save"),"error"); btn.disabled=false; return; }
 
@@ -502,6 +525,8 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
     document.getElementById("pPrice").value="0";
     document.getElementById("pBuyUrl").value="";
     document.getElementById("buyUrlField").style.display="none";
+    document.getElementById("pPwyw").checked=false;
+    document.getElementById("pwywField").style.display="none";
     fileInput.value=""; selectedFile=null;
     document.getElementById("fileDrop").classList.remove("has-file");
     document.getElementById("fdName").textContent="";
@@ -513,6 +538,17 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
   btn.disabled=false;
 });
 
+
+
+/* ===== ERKEN ERİŞİM LİNKİ: onay beklerken paylaşılabilir link (itch.io "download key" mantığı) ===== */
+function copyPreviewLink(p, row){
+  const url = location.origin + "/play?p=" + p.id + "&preview=" + p.preview_token;
+  const rowmsg=row.querySelector("[data-rowmsg]");
+  const done=()=>{ if(rowmsg){ rowmsg.textContent=t("mp_preview_copied"); rowmsg.className="msg success"; } };
+  try{
+    navigator.clipboard.writeText(url).then(done, ()=> window.prompt(t("mp_preview_manual"), url));
+  }catch(e){ window.prompt(t("mp_preview_manual"), url); }
+}
 
 /* ===== YENİ SÜRÜM: eski dosya arşivlenir, yenisi yayına alınır ===== */
 function newVersion(p, row){
@@ -576,7 +612,7 @@ async function loadMyProjects(){
   wrap.innerHTML=`<div class="mp-empty">...</div>`;
   try{
     const { data, error } = await db.from("projects")
-      .select("id,title,description,category,price,file_url,created_at,status,buy_url,version")
+      .select("id,title,description,category,price,file_url,created_at,status,buy_url,version,preview_token")
       .eq("user_id", currentUser.id).order("created_at",{ascending:false});
     if(error){ wrap.innerHTML=`<div class="mp-empty">${t("mp_err")}</div>`; return; }
     if(!data || !data.length){ wrap.innerHTML=`<div class="mp-empty">${t("mp_empty")}</div>`; return; }
@@ -592,6 +628,7 @@ async function loadMyProjects(){
             <div class="mp-meta">${catLabel} · <span class="price">${priceLabel}</span> · ${fmtDate(p.created_at)} · <span style="color:${stColor}; font-weight:600;">${t(stKey)}</span></div>
           </div>
           <div class="mp-actions">
+            ${p.status!=="approved" ? `<button class="ver" data-act="preview">${t("mp_preview")}</button>` : ""}
             <button class="ver" data-act="ver">${t("mp_newver")}</button>
             <button class="edit" data-act="edit">${t("mp_edit")}</button>
             <button class="del" data-act="del">${t("mp_del")}</button>
@@ -618,6 +655,8 @@ async function loadMyProjects(){
       row.querySelector('[data-act="del"]').addEventListener("click",()=> deleteProject(p, row));
       row.querySelector('[data-act="save"]').addEventListener("click",()=> saveProject(p, row));
       row.querySelector('[data-act="ver"]').addEventListener("click",()=> newVersion(p, row));
+      const pvBtn=row.querySelector('[data-act="preview"]');
+      if(pvBtn) pvBtn.addEventListener("click",()=> copyPreviewLink(p, row));
     });
   }catch(e){ wrap.innerHTML=`<div class="mp-empty">${t("mp_err")}</div>`; }
 }
@@ -665,12 +704,31 @@ async function init(){
   const { data } = await db.auth.getSession();
   if(data.session && data.session.user){
     currentUser = data.session.user;
-    document.getElementById("formWrap").classList.remove("hidden");
+    let role="player";
+    try{ const r=await db.from("profiles").select("role").eq("id",currentUser.id).maybeSingle(); role=(r.data&&r.data.role)||"player"; }catch(e){}
     document.getElementById("gate").classList.remove("show");
-    loadMyProjects();
-    loadFeedback();
+    if(role==="developer"){
+      document.getElementById("upgradeGate").style.display="none";
+      document.getElementById("formWrap").classList.remove("hidden");
+      loadMyProjects();
+      loadFeedback();
+    } else {
+      document.getElementById("formWrap").classList.add("hidden");
+      document.getElementById("myCard").style.display="none";
+      document.getElementById("fbCard").style.display="none";
+      document.getElementById("upgradeGate").style.display="block";
+      document.getElementById("upgradeBtn").onclick = async ()=>{
+        const b=document.getElementById("upgradeBtn"); b.disabled=true;
+        try{
+          await db.auth.updateUser({ data:{ account_type:"developer" } });
+          await db.from("profiles").update({ role:"developer" }).eq("id", currentUser.id);
+        }catch(e){}
+        init();
+      };
+    }
   } else {
     document.getElementById("formWrap").classList.add("hidden");
+    document.getElementById("upgradeGate").style.display="none";
     document.getElementById("gate").classList.add("show");
     document.getElementById("myCard").style.display="none";
   }
