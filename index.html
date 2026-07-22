@@ -135,7 +135,7 @@
   .tools .t-name:hover{color:var(--text);}
 
   .gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:18px;}
-  .g-card{background:var(--ink-2); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; transition:transform .2s ease, border-color .2s;}
+  .g-card{display:block; background:var(--ink-2); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; transition:transform .2s ease, border-color .2s;}
   .g-card:hover{transform:translateY(-4px); border-color:var(--line-2);}
   .g-art{height:130px; display:flex; align-items:center; justify-content:center; font-size:2.2rem; position:relative;}
   .g-art .tag{position:absolute; top:10px; left:10px; font-family:var(--font-m); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.06em; background:rgba(0,0,0,0.35); padding:4px 8px; border-radius:100px; color:var(--text);}
@@ -233,7 +233,7 @@
     <div class="nav-links">
       <a href="#nasil" data-i18n="nav_how">Nasıl çalışır</a>
       <a href="#vitrin" data-i18n="nav_gallery">Vitrin</a>
-      <a href="/demo" data-i18n="nav_demo">Demo</a>
+      <a href="/store" data-i18n="nav_demo">Demo</a>
     </div>
     <div class="nav-right">
       <a href="/auth" id="loginLink" class="nav-login" data-i18n="nav_login">Giriş</a>
@@ -247,12 +247,12 @@
   <div class="wrap">
     <div class="hero-grid">
       <div class="hero-copy">
-        <span class="eyebrow" data-i18n="hero_eyebrow">konsept · erken erişim açık</span>
+        <span class="eyebrow" data-i18n="hero_eyebrow">yayında · ücretsiz yükle</span>
         <h1 data-i18n="hero_title">Projen <span class="strike">localhost:3000</span>'ta değil, bir <span class="grad">vitrinde</span> yaşasın.</h1>
         <p class="lead" data-i18n="hero_lead">AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.</p>
         <div class="hero-cta">
-          <a href="#katil" class="btn btn-primary btn-lg" data-i18n="hero_cta1">Erken erişime katıl</a>
-          <a href="/demo" class="btn btn-ghost btn-lg" data-i18n="hero_cta2">▶ Canlı demoyu keşfet</a>
+          <a href="/upload" class="btn btn-primary btn-lg" data-i18n="hero_cta1">Projeni yükle</a>
+          <a href="/store" class="btn btn-ghost btn-lg" data-i18n="hero_cta2">▶ Mağazayı keşfet</a>
         </div>
         <div class="hero-note"><b data-i18n="hero_note_b">Oynanabilir ilk oyun hazır.</b> <span data-i18n="hero_note">Şimdi dene.</span></div>
       </div>
@@ -277,8 +277,8 @@
     </div>
 
     <div class="stats reveal">
-      <div class="stat"><div class="num"><span data-count="3">0</span></div><div class="lbl" data-i18n="stat1">desteklenen AI aracı</div></div>
-      <div class="stat"><div class="num"><span data-count="60" data-suffix="sn">0</span></div><div class="lbl" data-i18n="stat2">yayına geçiş süresi</div></div>
+      <div class="stat"><div class="num"><span id="statProjects" data-count="0">0</span></div><div class="lbl" data-i18n="stat1">yayındaki proje</div></div>
+      <div class="stat"><div class="num"><span id="statPlays" data-count="0">0</span></div><div class="lbl" data-i18n="stat2">toplam oynanma</div></div>
       <div class="stat"><div class="num">$<span data-count="0">0</span></div><div class="lbl" data-i18n="stat3">başlangıç maliyeti</div></div>
     </div>
   </div>
@@ -326,17 +326,14 @@
 <section class="block" id="vitrin">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="sec-eyebrow" data-i18n="gal_eyebrow">önizleme</div>
-      <h2 data-i18n="gal_title">Vitrin böyle görünecek</h2>
-      <p data-i18n="gal_desc">Aşağıdakiler örnek — Ailaa henüz erken erişim aşamasında.</p>
+      <div class="sec-eyebrow" data-i18n="gal_eyebrow">mağaza</div>
+      <h2 data-i18n="gal_title">Şu an mağazada</h2>
+      <p data-i18n="gal_desc">Topluluğun yüklediği gerçek projeler — hepsi tarayıcıda, tek dokunuşla.</p>
     </div>
-    <div class="gallery reveal">
-      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#3a2150,#1a1030);"><span class="tag" data-i18n="cat_game">oyun</span>🎮</div><div class="g-info"><h4>Piksel Zindanı</h4><div class="m"><span>rogue-lite</span><span class="price" data-i18n="free">ücretsiz</span></div></div></div>
-      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#153a3a,#0a2024);"><span class="tag" data-i18n="cat_tool">araç</span>🛠️</div><div class="g-info"><h4>Not Asistanı</h4><div class="m"><span data-i18n="cat_prod">verimlilik</span><span class="price">$3</span></div></div></div>
-      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#3a2a15,#241a0a);"><span class="tag" data-i18n="cat_game">oyun</span>🚀</div><div class="g-info"><h4>Uzay Tüccarı</h4><div class="m"><span data-i18n="cat_strat">strateji</span><span class="price">$5</span></div></div></div>
-      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#2a1538,#1a0a24);"><span class="tag" data-i18n="cat_tool">araç</span>📒</div><div class="g-info"><h4>Tarif Defteri</h4><div class="m"><span data-i18n="cat_life">yaşam tarzı</span><span class="price" data-i18n="free">ücretsiz</span></div></div></div>
+    <div class="gallery reveal" id="galGrid">
+      <div class="g-card"><div class="g-art" style="background:linear-gradient(135deg,#2a2150,#3a2a1a);"><span class="tag" data-i18n="cat_game">oyun</span>🏃</div><div class="g-info"><h4>NEONDROME</h4><div class="m"><span>ailaa</span><span class="price" data-i18n="free">ücretsiz</span></div></div></div>
     </div>
-    <div class="g-more"><a href="/demo" class="btn btn-ghost btn-lg" data-i18n="gal_cta">Canlı demoyu keşfet →</a></div>
+    <div class="g-more"><a href="/store" class="btn btn-ghost btn-lg" data-i18n="gal_cta">Mağazanın tamamını gez →</a></div>
   </div>
 </section>
 
@@ -344,12 +341,12 @@
   <div class="wrap">
     <div class="cta reveal">
       <h2 data-i18n="cta_title">Sıradaki proje, sonuncu localhost olsun.</h2>
-      <p data-i18n="cta_desc">Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.</p>
-      <div class="wl">
-        <input type="email" id="wlEmail" data-i18n-ph="cta_ph" placeholder="e-posta adresin" autocomplete="email" aria-label="E-posta">
-        <button class="btn btn-primary btn-lg" id="wlBtn" data-i18n="cta_btn">Katıl</button>
+      <p data-i18n="cta_desc">Ücretsiz hesap aç, projeni yükle, dakikalar içinde yayında ol.</p>
+      <div class="hero-cta" style="justify-content:center;">
+        <a href="/upload" class="btn btn-primary btn-lg" data-i18n="cta_b1">Projeni yükle</a>
+        <a href="/store" class="btn btn-ghost btn-lg" data-i18n="cta_b2">Mağazayı gez</a>
       </div>
-      <div class="wl-note dim" id="wlNote" data-i18n="cta_note">İlk 100 kişiye öncelikli erişim.</div>
+      <div class="wl-note dim" data-i18n="cta_note">Ücretsiz. Kredi kartı istemiyoruz.</div>
     </div>
   </div>
 </section>
@@ -366,7 +363,7 @@
         <h5 data-i18n="foot_product">Ürün</h5>
         <a href="#nasil" data-i18n="nav_how">Nasıl çalışır</a>
         <a href="#vitrin" data-i18n="nav_gallery">Vitrin</a>
-        <a href="/demo" data-i18n="foot_demo">Canlı demo</a>
+        <a href="/store" data-i18n="foot_demo">Canlı demo</a>
       </div>
       <div class="foot-col">
         <h5 data-i18n="foot_start">Başla</h5>
@@ -380,7 +377,7 @@
       </div>
     </div>
     <div class="foot-bottom">
-      <span data-i18n="foot_rights">ailaa © 2026 — konsept aşamasında, sevgiyle inşa ediliyor.</span>
+      <span data-i18n="foot_rights">ailaa © 2026 — vibe coder'ların vitrini.</span>
       <span class="lang" role="group" aria-label="Dil">
         <button type="button" data-lang="tr">TR</button>
         <button type="button" data-lang="en">EN</button>
@@ -393,14 +390,14 @@
 <script>
 var I18N = {
   tr:{
-    nav_how:"Nasıl çalışır", nav_gallery:"Vitrin", nav_demo:"Demo", nav_login:"Giriş", nav_account:"Hesabım", nav_admin:"🛡 Admin", nav_upload:"+ Yükle",
-    hero_eyebrow:"konsept · erken erişim açık",
+    nav_how:"Nasıl çalışır", nav_gallery:"Vitrin", nav_demo:"Mağaza", nav_login:"Giriş", nav_account:"Hesabım", nav_admin:"🛡 Admin", nav_upload:"+ Yükle",
+    hero_eyebrow:"yayında · ücretsiz yükle",
     hero_title:"Projen <span class=\"strike\">localhost:3000</span>'ta değil, bir <span class=\"grad\">vitrinde</span> yaşasın.",
     hero_lead:"AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla, paylaş, istersen sat. Deploy uğraşı yok, sunucu derdi yok.",
-    hero_cta1:"Erken erişime katıl", hero_cta2:"▶ Canlı demoyu keşfet",
+    hero_cta1:"Projeni yükle", hero_cta2:"▶ Mağazayı keşfet",
     hero_note_b:"Oynanabilir ilk oyun hazır.", hero_note:"Şimdi dene.",
     live_badge:"▶ oynanabilir", live_free:"ücretsiz",
-    stat1:"desteklenen AI aracı", stat2:"yayına geçiş süresi", stat3:"başlangıç maliyeti",
+    stat1:"yayındaki proje", stat2:"toplam oynanma", stat3:"başlangıç maliyeti",
     grave_eyebrow:"sorun", grave_title:"Şu an tarayıcı sekmelerinde çürüyen projeler var.",
     grave_desc:"Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzel oldu. Sonra… hiçbir şey. Link kimseyle paylaşılmadı, sunucu hiç açılmadı.",
     grave1:"yayınlanmadı", grave2:"unutuldu", grave3:"3 ay önce", grave4:"yarım kaldı",
@@ -409,25 +406,25 @@ var I18N = {
     step2_t:"Güvenli sandbox'ta yayınlan", step2_d:"Ailaa projeni izole bir ortamda barındırır. Sunucu, domain, SSL — hepsi otomatik.",
     step3_t:"Paylaş ya da sat", step3_d:"Herkese açık bir link al. İstersen ücretsiz yayınla, istersen fiyat koy.",
     tools_label:"Hangi araçla yaptığın fark etmez",
-    gal_eyebrow:"önizleme", gal_title:"Vitrin böyle görünecek", gal_desc:"Aşağıdakiler örnek — Ailaa henüz erken erişim aşamasında.",
-    gal_cta:"Canlı demoyu keşfet →",
+    gal_eyebrow:"mağaza", gal_title:"Şu an mağazada", gal_desc:"Topluluğun yüklediği gerçek projeler — hepsi tarayıcıda, tek dokunuşla.", gal_empty:"Mağaza yeni açıldı. İlk projeyi sen yükle.",
+    gal_cta:"Mağazanın tamamını gez →",
     cat_game:"oyun", cat_tool:"araç", cat_prod:"verimlilik", cat_strat:"strateji", cat_life:"yaşam tarzı", free:"ücretsiz",
-    cta_title:"Sıradaki proje, sonuncu localhost olsun.", cta_desc:"Erken erişim listesine katıl, Ailaa açıldığında ilk sen haber al.",
-    cta_ph:"e-posta adresin", cta_btn:"Katıl", cta_note:"İlk 100 kişiye öncelikli erişim.",
+    cta_title:"Sıradaki proje, sonuncu localhost olsun.", cta_desc:"Ücretsiz hesap aç, projeni yükle, dakikalar içinde yayında ol.", cta_b1:"Projeni yükle", cta_b2:"Mağazayı gez",
+    cta_note:"Ücretsiz. Kredi kartı istemiyoruz.",
     cta_sending:"Ekleniyor…", cta_ok:"Listedesin! Açılışta ilk sen haber alacaksın 🎉", cta_dup:"Bu e-posta zaten listede.", cta_bad:"Geçerli bir e-posta gir.", cta_err:"Bir şeyler ters gitti, tekrar dene.",
     foot_tag:"AI ile yaptığın projeye gerçek bir ev. Yükle, paylaş, istersen sat.",
     foot_product:"Ürün", foot_start:"Başla", foot_contact:"İletişim", foot_demo:"Canlı demo", foot_upload:"Proje yükle", foot_join:"Erken erişim",
-    foot_rights:"ailaa © 2026 — konsept aşamasında, sevgiyle inşa ediliyor."
+    foot_rights:"ailaa © 2026 — vibe coder'ların vitrini."
   },
   en:{
-    nav_how:"How it works", nav_gallery:"Showcase", nav_demo:"Demo", nav_login:"Log in", nav_account:"My account", nav_admin:"🛡 Admin", nav_upload:"+ Upload",
-    hero_eyebrow:"concept · early access open",
+    nav_how:"How it works", nav_gallery:"Showcase", nav_demo:"Store", nav_login:"Log in", nav_account:"My account", nav_admin:"🛡 Admin", nav_upload:"+ Upload",
+    hero_eyebrow:"live · free to publish",
     hero_title:"Your project deserves a <span class=\"grad\">showcase</span>, not <span class=\"strike\">localhost:3000</span>.",
     hero_lead:"Publish, share and even sell the games and apps you build with AI — in seconds. No deploy hassle, no server headaches.",
-    hero_cta1:"Join early access", hero_cta2:"▶ Explore the live demo",
+    hero_cta1:"Upload your project", hero_cta2:"▶ Explore the store",
     hero_note_b:"The first playable game is live.", hero_note:"Try it now.",
     live_badge:"▶ playable", live_free:"free",
-    stat1:"AI tools supported", stat2:"time to go live", stat3:"cost to start",
+    stat1:"projects live", stat2:"total plays", stat3:"cost to start",
     grave_eyebrow:"the problem", grave_title:"Right now there are projects rotting in browser tabs.",
     grave_desc:"You built something with AI over a weekend. It worked, it was great. Then… nothing. The link was never shared, the server never opened.",
     grave1:"never shipped", grave2:"forgotten", grave3:"3 months ago", grave4:"left half-done",
@@ -436,25 +433,25 @@ var I18N = {
     step2_t:"Go live in a safe sandbox", step2_d:"Ailaa hosts your project in an isolated environment. Server, domain, SSL — all automatic.",
     step3_t:"Share or sell", step3_d:"Get a public link. Publish it free, or put a price on it.",
     tools_label:"Whatever tool you built it with",
-    gal_eyebrow:"preview", gal_title:"Here's what the showcase looks like", gal_desc:"These are samples — Ailaa is still in early access.",
-    gal_cta:"Explore the live demo →",
+    gal_eyebrow:"the store", gal_title:"Live in the store right now", gal_desc:"Real projects uploaded by the community — all in the browser, one tap away.", gal_empty:"The store just opened. Be the first to upload.",
+    gal_cta:"Browse the whole store →",
     cat_game:"game", cat_tool:"tool", cat_prod:"productivity", cat_strat:"strategy", cat_life:"lifestyle", free:"free",
-    cta_title:"Let the next project be your last localhost.", cta_desc:"Join the early access list and be the first to know when Ailaa opens.",
-    cta_ph:"your email", cta_btn:"Join", cta_note:"Priority access for the first 100.",
+    cta_title:"Let the next project be your last localhost.", cta_desc:"Create a free account, upload your project, go live in minutes.", cta_b1:"Upload your project", cta_b2:"Browse the store",
+    cta_note:"Free. No credit card required.",
     cta_sending:"Adding…", cta_ok:"You're on the list! You'll be first to know 🎉", cta_dup:"This email is already on the list.", cta_bad:"Enter a valid email.", cta_err:"Something went wrong, try again.",
     foot_tag:"A real home for what you build with AI. Upload, share, and sell if you like.",
     foot_product:"Product", foot_start:"Start", foot_contact:"Contact", foot_demo:"Live demo", foot_upload:"Upload project", foot_join:"Early access",
-    foot_rights:"ailaa © 2026 — a concept, built with love."
+    foot_rights:"ailaa © 2026 — the showcase for vibe coders."
   },
   de:{
-    nav_how:"So funktioniert's", nav_gallery:"Schaufenster", nav_demo:"Demo", nav_login:"Anmelden", nav_account:"Mein Konto", nav_admin:"🛡 Admin", nav_upload:"+ Hochladen",
-    hero_eyebrow:"Konzept · Early Access offen",
+    nav_how:"So funktioniert's", nav_gallery:"Schaufenster", nav_demo:"Shop", nav_login:"Anmelden", nav_account:"Mein Konto", nav_admin:"🛡 Admin", nav_upload:"+ Hochladen",
+    hero_eyebrow:"live · kostenlos veröffentlichen",
     hero_title:"Dein Projekt verdient ein <span class=\"grad\">Schaufenster</span>, kein <span class=\"strike\">localhost:3000</span>.",
     hero_lead:"Veröffentliche, teile und verkaufe die Spiele und Apps, die du mit KI baust — in Sekunden. Kein Deploy-Stress, keine Server-Sorgen.",
-    hero_cta1:"Early Access beitreten", hero_cta2:"▶ Live-Demo entdecken",
+    hero_cta1:"Projekt hochladen", hero_cta2:"▶ Shop entdecken",
     hero_note_b:"Das erste spielbare Spiel ist da.", hero_note:"Jetzt testen.",
     live_badge:"▶ spielbar", live_free:"kostenlos",
-    stat1:"unterstützte KI-Tools", stat2:"bis live", stat3:"Startkosten",
+    stat1:"Projekte live", stat2:"Spielaufrufe gesamt", stat3:"Startkosten",
     grave_eyebrow:"das Problem", grave_title:"Gerade verrotten Projekte in Browser-Tabs.",
     grave_desc:"Du hast am Wochenende etwas mit KI gebaut. Es lief, es war gut. Dann… nichts. Der Link wurde nie geteilt, der Server nie geöffnet.",
     grave1:"nie veröffentlicht", grave2:"vergessen", grave3:"vor 3 Monaten", grave4:"halb fertig",
@@ -463,15 +460,15 @@ var I18N = {
     step2_t:"In sicherer Sandbox live gehen", step2_d:"Ailaa hostet dein Projekt isoliert. Server, Domain, SSL — alles automatisch.",
     step3_t:"Teilen oder verkaufen", step3_d:"Hol dir einen öffentlichen Link. Kostenlos oder mit Preis.",
     tools_label:"Egal mit welchem Tool gebaut",
-    gal_eyebrow:"Vorschau", gal_title:"So sieht das Schaufenster aus", gal_desc:"Dies sind Beispiele — Ailaa ist noch im Early Access.",
-    gal_cta:"Live-Demo entdecken →",
+    gal_eyebrow:"der Shop", gal_title:"Gerade im Shop", gal_desc:"Echte Projekte aus der Community — alles im Browser, ein Tipp genügt.", gal_empty:"Der Shop ist neu. Lade als Erste:r etwas hoch.",
+    gal_cta:"Ganzen Shop ansehen →",
     cat_game:"Spiel", cat_tool:"Tool", cat_prod:"Produktivität", cat_strat:"Strategie", cat_life:"Lifestyle", free:"kostenlos",
-    cta_title:"Lass das nächste Projekt dein letztes localhost sein.", cta_desc:"Tritt der Early-Access-Liste bei und erfahre als Erste:r, wenn Ailaa öffnet.",
-    cta_ph:"deine E-Mail", cta_btn:"Beitreten", cta_note:"Prioritätszugang für die ersten 100.",
+    cta_title:"Lass das nächste Projekt dein letztes localhost sein.", cta_desc:"Kostenloses Konto erstellen, Projekt hochladen, in Minuten live.", cta_b1:"Projekt hochladen", cta_b2:"Shop ansehen",
+    cta_note:"Kostenlos. Keine Kreditkarte nötig.",
     cta_sending:"Wird hinzugefügt…", cta_ok:"Du bist auf der Liste! 🎉", cta_dup:"Diese E-Mail ist bereits auf der Liste.", cta_bad:"Gib eine gültige E-Mail ein.", cta_err:"Etwas ist schiefgelaufen, versuche es erneut.",
     foot_tag:"Ein echtes Zuhause für das, was du mit KI baust. Hochladen, teilen, verkaufen.",
     foot_product:"Produkt", foot_start:"Start", foot_contact:"Kontakt", foot_demo:"Live-Demo", foot_upload:"Projekt hochladen", foot_join:"Early Access",
-    foot_rights:"ailaa © 2026 — ein Konzept, mit Liebe gebaut."
+    foot_rights:"ailaa © 2026 — das Schaufenster für Vibe Coder."
   }
 };
 var GEO_MAP={TR:"tr",CY:"tr",DE:"de",AT:"de",CH:"de",LI:"de",LU:"de"};
@@ -602,23 +599,38 @@ function runCounter(el){
     }).catch(function(){});
   }
 
-  var btn=document.getElementById("wlBtn"), input=document.getElementById("wlEmail"), note=document.getElementById("wlNote");
-  function setNote(txt,cls){ note.textContent=txt; note.className="wl-note "+(cls||"dim"); }
-  function join(){
-    var email=(input.value||"").trim();
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ setNote(I18N[currentLang].cta_bad,"err"); return; }
-    if(!db){ setNote(I18N[currentLang].cta_ok,"ok"); input.value=""; return; }
-    btn.disabled=true; setNote(I18N[currentLang].cta_sending,"dim");
-    db.from("waitlist").insert({email:email}).then(function(r){
-      if(r.error){
-        if((r.error.message||"").toLowerCase().indexOf("duplicate")>=0 || r.error.code==="23505"){ setNote(I18N[currentLang].cta_dup,"ok"); input.value=""; }
-        else { setNote(I18N[currentLang].cta_err,"err"); }
-      } else { setNote(I18N[currentLang].cta_ok,"ok"); input.value=""; }
-      btn.disabled=false;
-    }).catch(function(){ setNote(I18N[currentLang].cta_err,"err"); btn.disabled=false; });
-  }
-  if(btn) btn.addEventListener("click",join);
-  if(input) input.addEventListener("keydown",function(e){ if(e.key==="Enter") join(); });
+  /* ---- CANLI VERİ: mağazadaki gerçek projeler + sayaçlar ---- */
+  if(!db) return;
+  function esc(t){ return String(t==null?"":t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  var GRADS=["#3a2150,#1a1030","#153a3a,#0a2024","#3a2a15,#241a0a","#2a1538,#1a0a24"];
+
+  db.from("projects")
+    .select("id,title,category,price,cover_url,plays,created_at")
+    .eq("status","approved").order("created_at",{ascending:false}).limit(60)
+    .then(function(res){
+      var rows = (res && res.data) || [];
+      /* sayaçlar */
+      var plays = 0;
+      rows.forEach(function(p){ plays += (p.plays||0); });
+      var sp=document.getElementById("statProjects"), spl=document.getElementById("statPlays");
+      if(sp){ sp.setAttribute("data-count", rows.length); if(typeof runCounter==="function") runCounter(sp); }
+      if(spl){ spl.setAttribute("data-count", plays); if(typeof runCounter==="function") runCounter(spl); }
+
+      /* galeri: en yeni 4 gerçek proje */
+      var grid=document.getElementById("galGrid");
+      if(!grid || !rows.length) return;
+      var d=I18N[currentLang];
+      grid.innerHTML = rows.slice(0,4).map(function(p,i){
+        var isTool = p.category==="tool";
+        var art = p.cover_url
+          ? 'style="background-image:url(\''+esc(p.cover_url)+'\'); background-size:cover; background-position:center;"'
+          : 'style="background:linear-gradient(135deg,'+GRADS[i%GRADS.length]+');"';
+        var price = (p.price>0) ? ("$"+p.price) : d.free;
+        return '<a class="g-card" href="/store?p='+p.id+'">'
+             + '<div class="g-art" '+art+'><span class="tag">'+(isTool?d.cat_tool:d.cat_game)+'</span>'+(p.cover_url?'':(isTool?'🛠️':'🎮'))+'</div>'
+             + '<div class="g-info"><h4>'+esc(p.title)+'</h4><div class="m"><span>▶ '+(p.plays||0)+'</span><span class="price">'+price+'</span></div></div></a>';
+      }).join("");
+    }).catch(function(){});
 })();
 </script>
 
