@@ -258,6 +258,50 @@
   h1, h2{text-transform:uppercase; letter-spacing:-.01em;}
   h1{color:#fff; text-shadow:0 0 10px rgba(255,46,136,.5), 0 0 34px rgba(255,46,136,.4);}
   @media (prefers-reduced-motion:reduce){ .arcfx-scan{display:none;} }
+
+  /* ═══ ARCADE DERİN KATMAN ═══ */
+  h1{font-family:'Space Grotesk',sans-serif !important; font-weight:700;}
+  h2{font-family:'Space Grotesk',sans-serif !important;}
+  button, .btn{font-family:'JetBrains Mono',monospace !important; letter-spacing:.06em; text-transform:uppercase;}
+  input:focus, textarea:focus, select:focus{border-color:var(--mint) !important; box-shadow:0 0 14px rgba(33,240,214,.25);}
+  ::selection{background:var(--coral); color:#14020b;}
+
+  /* nav → salon girişi */
+  .home-link, .lib-btn, .nav-upload, #loginLink{font-family:'JetBrains Mono',monospace !important; font-size:.76rem !important; letter-spacing:.1em; text-transform:uppercase;}
+  .nav-upload{color:#14020b !important; background:linear-gradient(180deg,#ff6aa9,var(--coral)) !important; border:none !important; border-radius:4px !important; box-shadow:0 0 18px rgba(255,46,136,.5), inset 0 1px 0 rgba(255,255,255,.5) !important; font-weight:700 !important;}
+  .nav-upload:hover{transform:translateY(-2px); box-shadow:0 0 30px rgba(255,46,136,.6), inset 0 1px 0 rgba(255,255,255,.5) !important;}
+  /* başlık marquee */
+  .hero h1{font-size:clamp(2rem,6vw,3.4rem) !important; letter-spacing:-.02em; text-shadow:0 0 10px rgba(255,46,136,.5), 0 0 36px rgba(255,46,136,.4);}
+  /* arama → terminal */
+  .search-box input{font-family:'JetBrains Mono',monospace; border-radius:4px; background:#0A0510;}
+  .search-box .icon{color:var(--mint);}
+  /* filtreler → arcade sekmeleri */
+  .filters button{font-size:.72rem !important; border-radius:4px; background:#0A0510;}
+  .filters button.active{background:var(--coral) !important; color:#14020b !important; border-color:var(--coral) !important; box-shadow:0 0 16px rgba(255,46,136,.55); font-weight:700;}
+  #randomBtn{border-color:rgba(33,240,214,.4) !important; color:var(--mint) !important; background:rgba(33,240,214,.05) !important;}
+  #randomBtn:hover{box-shadow:0 0 18px rgba(33,240,214,.4);}
+  /* kartlar → kabinler */
+  .cart{border:2px solid var(--line) !important; border-radius:10px !important; background:linear-gradient(180deg,#160D26,#0C0714) !important;}
+  .cart:hover{transform:translateY(-6px) !important; border-color:var(--coral) !important; box-shadow:0 0 0 1px var(--coral), 0 0 34px rgba(255,46,136,.45) !important;}
+  .cart-art{position:relative;}
+  .cart-art::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(0,0,0,.15) 0 1px, transparent 1px 3px); pointer-events:none; z-index:1;}
+  .cart-art::after{content:"▸ INSERT COIN ◂"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(5,3,8,.74); opacity:0; transition:opacity .2s; font-family:'JetBrains Mono',monospace; font-size:.7rem; letter-spacing:.28em; color:var(--amber); text-shadow:0 0 14px rgba(255,179,71,.8); z-index:2; pointer-events:none;}
+  .cart:hover .cart-art::after{opacity:1; animation:coinBlink 1s steps(2) infinite;}
+  @keyframes coinBlink{50%{opacity:.3;}}
+  .cart h4{font-family:'Space Grotesk',sans-serif; text-transform:uppercase; letter-spacing:.02em;}
+  /* devam rayı */
+  .rail-title{color:var(--mint); letter-spacing:.22em; text-transform:uppercase;}
+  .rail-card{border:2px solid var(--line);}
+  .rail-card:hover{border-color:var(--mint); box-shadow:0 0 20px rgba(33,240,214,.3);}
+  /* modal → makinenin içi */
+  .modal{border:2px solid #3A2158 !important; box-shadow:0 0 0 1px rgba(255,46,136,.3), 0 0 60px rgba(255,46,136,.2), 0 40px 80px -20px #000 !important;}
+  .modal h2{text-shadow:0 0 10px rgba(180,76,255,.5), 0 0 30px rgba(180,76,255,.4);}
+  .modal-hero{box-shadow:inset 0 0 50px rgba(0,0,0,.5);}
+  /* oyun üst çubuğu */
+  .game-bar{background:linear-gradient(180deg,#1B0F2E,#0C0716) !important; border-bottom:2px solid #3A2158 !important;}
+  /* boş durum */
+  .empty-state{font-family:'JetBrains Mono',monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--dim-2);}
+
 </style>
 </head>
 <body>
@@ -1071,7 +1115,7 @@ function buildAccountMenu(user, isAdminUser, db){
     '<div class="who">'+(user.email||"")+'</div>'+
     '<a href="/profile" id="amProfile">&#128100; <span>'+(d.menu_profile||"Profilim")+'</span></a>'+
     '<a href="/upload">&#128230; <span>'+(d.menu_projects||"Projelerim")+'</span></a>'+
-    (isAdminUser ? '<a href="/admin" style="color:#F5A93B;">&#128737; <span>'+(d.nav_admin||"Admin")+'</span></a>' : '')+
+    (isAdminUser ? '<a href="/admin" style="color:#F5A93B;"><span>'+(d.nav_admin||"🛡 Admin")+'</span></a>' : '')+
     '<hr><button class="logout" id="amLogout">&#9211; <span>'+(d.menu_logout||"Cikis yap")+'</span></button>';
   wrap.appendChild(menu);
   link.setAttribute("href","#");

@@ -695,7 +695,7 @@ function runCounter(el){
     menu.innerHTML='<div style="font-family:\'JetBrains Mono\',monospace;font-size:.66rem;color:#5E5378;padding:8px 10px 10px;border-bottom:1px solid #241338;margin-bottom:5px;word-break:break-all;letter-spacing:.06em;">PLAYER 1<br>'+(user.email||"")+'</div>'+
       '<a href="/profile" id="amProfile" style="display:flex;gap:9px;color:#F2EDFA;font-size:.9rem;padding:9px 10px;border-radius:6px;">&#128100; '+(d.menu_profile||"Profilim")+'</a>'+
       '<a href="/upload" style="display:flex;gap:9px;color:#F2EDFA;font-size:.9rem;padding:9px 10px;border-radius:6px;">&#128230; '+(d.menu_projects||"Projelerim")+'</a>'+
-      (isAdminUser?'<a href="/admin" style="display:flex;gap:9px;color:#FFB347;font-size:.9rem;padding:9px 10px;border-radius:6px;">&#128737; '+(d.nav_admin||"Admin")+'</a>':'')+
+      (isAdminUser?'<a href="/admin" style="display:flex;gap:9px;color:#FFB347;font-size:.9rem;padding:9px 10px;border-radius:6px;">'+(d.nav_admin||"🛡 Admin")+'</a>':'')+
       '<hr style="border:none;border-top:1px solid #241338;margin:5px 0;"><button id="amLogout" style="display:flex;gap:9px;width:100%;text-align:left;background:none;border:none;color:#FF2E88;font-family:inherit;font-size:.9rem;padding:9px 10px;border-radius:6px;cursor:pointer;">&#9211; '+(d.menu_logout||"Çıkış")+'</button>';
     wrap.appendChild(menu);
     link.setAttribute("href","#");
