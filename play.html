@@ -15,6 +15,26 @@
         color:#0A0B12;background:#F5A93B;padding:5px 10px;border-radius:100px;text-decoration:none;font-weight:700;
         box-shadow:0 4px 14px -4px rgba(0,0,0,0.6);opacity:.92;}
   .mark:hover{opacity:1;}
+
+  /* ═══════ NEON TERMINAL KATMANI (arcade reskin) ═══════ */
+  :root{
+    --bg:#050308; --bg-raised:#0E0816; --bg-raised-2:#150C22;
+    --line:#241338; --text:#F2EDFA; --text-muted:#9A8FB8;
+    --mint:#21F0D6; --violet:#B44CFF; --amber:#FFB347; --coral:#FF2E88;
+  }
+  body{background:#050308 !important;}
+  .arcfx-scan{position:fixed; inset:0; z-index:96; pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply; opacity:.5;}
+  .arcfx-wash{position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;}
+  .arcfx-wash::before,.arcfx-wash::after{content:""; position:absolute; border-radius:50%; filter:blur(110px); opacity:.34;}
+  .arcfx-wash::before{width:60vw; height:60vw; top:-24vw; left:-16vw; background:radial-gradient(circle,rgba(255,46,136,.5),transparent 65%);}
+  .arcfx-wash::after{width:56vw; height:56vw; top:10vw; right:-20vw; background:radial-gradient(circle,rgba(33,240,214,.45),transparent 65%);}
+  .arcfx-vign{position:fixed; inset:0; z-index:95; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 45%, transparent 58%, rgba(0,0,0,.5) 100%);}
+  h1, h2{text-transform:uppercase; letter-spacing:-.01em;}
+  h1{color:#fff; text-shadow:0 0 10px rgba(255,46,136,.5), 0 0 34px rgba(255,46,136,.4);}
+  @media (prefers-reduced-motion:reduce){ .arcfx-scan{display:none;} }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0A0B12">
@@ -22,6 +42,7 @@
 <meta name="apple-mobile-web-app-title" content="Ailaa">
 </head>
 <body>
+<div class="arcfx-wash"></div><div class="arcfx-scan"></div><div class="arcfx-vign"></div>
 <div id="stage"><div class="msg" id="msg">yükleniyor…</div></div>
 <a class="mark" id="mark" href="https://ailaa.io" target="_blank" rel="noopener">ailaa.io ↗</a>
 
