@@ -1,0 +1,32 @@
+<!-- =========================================================================
+     AILAA → WRENCH EMPIRE · tek oturum açma (SSO)
+     Oyunu iframe içinde açan sayfaya ekle. Site üyesi zaten giriş yaptıysa
+     oyun onu otomatik tanır; misafirse hiçbir şey olmaz.
+     ========================================================================= -->
+
+<iframe id="weFrame" src="/games/wrench-empire.html"
+        style="width:100%;height:100%;border:0" allow="autoplay"></iframe>
+
+<script type="module">
+  // Ailaa'da zaten kullandığın supabase istemcisi:
+  // import { supabase } from '/js/supabase.js'   ← kendi yolunu koy
+
+  const frame = document.getElementById('weFrame');
+
+  async function handOff() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;                      // misafir: oyun misafir olarak açılır
+    frame.contentWindow.postMessage({
+      type: 'ailaa-auth',
+      access_token:  session.access_token,
+      refresh_token: session.refresh_token,
+      email:         session.user?.email || null
+    }, '*');
+  }
+
+  // oyun yüklenince bir kez gönder
+  frame.addEventListener('load', handOff);
+
+  // kullanıcı sayfadayken giriş/çıkış yaparsa tekrar gönder
+  supabase.auth.onAuthStateChange(() => handOff());
+</script>
