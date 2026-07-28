@@ -762,7 +762,63 @@ function runCounter(el){
       }).join("");
       grid.innerHTML = grid.innerHTML + html;
     }).catch(function(){});
-  <s
+})();
+</script>
+
+
+<!-- ══ WRENCH EMPIRE ↔ AILAA KÖPRÜSÜ ══════════════════════════════════════
+     Oyunlar sandbox'lı iframe içinde çalışıyor (allow-scripts, same-origin YOK).
+     Bu, güvenlik için doğru — ama sandbox'lı çerçevenin kendi localStorage'ı
+     yok, bu yüzden oyun kaydını tutamıyor. Köprü, oyunun kaydını SİTENİN
+     deposunda saklar ve oyun açıldığında geri verir. Harici dosya yok:
+     404 riski olmasın diye doğrudan buraya gömüldü.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var PREFIX = 'we:';
+  function dump(){
+    var d={};
+    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i);
+      if(k && k.indexOf(PREFIX)===0) d[k.slice(PREFIX.length)]=localStorage.getItem(k); } }catch(e){}
+    return d;
+  }
+  function send(t,m){ try{ t && t.postMessage(m,'*'); }catch(e){} }
+
+  window.addEventListener('message', function(ev){
+    var d = ev && ev.data;
+    if(!d || typeof d!=='object') return;
+    if(d.type==='we-store-req')      send(ev.source,{type:'we-store-data',data:dump()});
+    else if(d.type==='we-store-set' && d.key){ try{ localStorage.setItem(PREFIX+d.key,d.value); }catch(e){} }
+    else if(d.type==='we-store-del' && d.key){ try{ localStorage.removeItem(PREFIX+d.key); }catch(e){} }
+  });
+
+  /* Oyun açılır açılmaz kaydını gönder + site oturumunu devret */
+  function feed(fr){
+    if(!fr || fr.__weFed) return;
+    fr.__weFed = true;
+    var push=function(){
+      if(!fr.contentWindow) return;
+      send(fr.contentWindow,{type:'we-store-data',data:dump()});
+      handOff(fr);
+    };
+    fr.addEventListener('load',push);
+    push();
+    setTimeout(push,400);        // srcdoc ile yüklenenler için ikinci deneme
+  }
+  function handOff(fr){
+    var db = window.__ailaaDb || null;
+    if(!db || !db.auth || !fr.contentWindow) return;
+    db.auth.getSession().then(function(r){
+      var s = r && r.data && r.data.session;
+      if(!s) return;
+      send(fr.contentWindow,{type:'ailaa-auth',
+        access_token:s.access_token, refresh_token:s.refresh_token,
+        email:(s.user&&s.user.email)||null});
+    }).catch(function(){});
+  }
+  function scan(){ Array.prototype.forEach.call(document.querySelectorAll('iframe'),feed); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',scan); else scan();
+  try{ new MutationObserver(scan).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
 })();
 </script>
 
