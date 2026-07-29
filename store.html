@@ -1215,7 +1215,7 @@ detectLang();
   try{
     const url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
     if(url && !url.includes("BURAYA") && key && !key.includes("BURAYA") && typeof supabase!=="undefined"){
-      dbClient = supabase.createClient(url, key);
+      dbClient = supabase.createClient(url, key); try{window.__ailaaDb=dbClient}catch(e){}
       const { data } = await dbClient.auth.getSession();
       if(data.session && data.session.user){
         currentUser = data.session.user;

@@ -688,6 +688,7 @@ function runCounter(el){
   var url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
   var configured = url && String(url).indexOf("BURAYA")<0 && key && String(key).indexOf("BURAYA")<0 && typeof supabase!=="undefined";
   var db = configured ? supabase.createClient(url,key) : null;
+  try{window.__ailaaDb=db}catch(e){}
 
   function buildAccountMenu(user, isAdminUser){
     var link=document.getElementById("loginLink"); if(!link || document.getElementById("acctMenu")) return;
