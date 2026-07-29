@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AILAA — gece yarısı arcade'i</title>
-<meta name="description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için neon bir oyun salonu. Yükle, paylaş, istersen sat.">
+<title>AILAA — AI ile yapılmış oyunlar ve araçlar</title>
+<meta name="description" content="AI ile oyun ve uygulama yapan 'vibe coder'lar için neon bir mağaza. Yükle, paylaş, istersen sat.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ailaa">
-<meta property="og:title" content="AILAA — gece yarısı arcade'i">
-<meta property="og:description" content="Projen localhost'ta çürümesin. Neon salona tak, dünya oynasın.">
+<meta property="og:title" content="AILAA — AI ile yapılmış oyunlar ve araçlar">
+<meta property="og:description" content="Projen localhost'ta çürümesin. Mağazaya yükle, dünya oynasın.">
 <meta property="og:url" content="https://ailaa.io/">
 <meta property="og:image" content="https://ailaa.io/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -188,7 +188,11 @@
   .slot{position:relative; display:block; background:linear-gradient(180deg,#160D26,#0C0714); border:2px solid var(--line); border-radius:12px; overflow:hidden;
     transition:transform .18s ease, border-color .2s, box-shadow .25s;}
   .slot:hover{transform:translateY(-6px); border-color:var(--pink); box-shadow:0 0 0 1px var(--pink), 0 0 34px var(--pink-glow);}
-  .slot-art{height:135px; display:flex; align-items:center; justify-content:center; font-size:2.3rem; position:relative; background-size:cover; background-position:center;}
+  .slot-art{height:150px; display:flex; align-items:center; justify-content:center; font-size:2.3rem; position:relative; overflow:hidden; background-size:cover; background-position:center;}
+  /* kapak varsa: arkada bulanık dolgu, önde TAM sığan net görsel (hiç kırpılmaz) */
+  .slot-art.has-cover{background:#0C0714;}
+  .slot-art.has-cover::before{content:""; position:absolute; inset:-8%; background-image:var(--cv); background-size:cover; background-position:center; filter:blur(18px) brightness(.45) saturate(1.15); z-index:0;}
+  .slot-art .cv{position:absolute; inset:0; background-image:var(--cv); background-size:contain; background-repeat:no-repeat; background-position:center; z-index:1;}
   .slot-art::after{content:""; position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);}
   .slot-tag{position:absolute; top:10px; left:10px; z-index:2; font-family:var(--fm); font-size:.58rem; letter-spacing:.16em; text-transform:uppercase; background:rgba(0,0,0,.55); border:1px solid var(--line-hi); padding:4px 9px; border-radius:3px; color:var(--cyan);}
   .slot-info{padding:14px 15px 15px; border-top:1px solid var(--line);}
@@ -196,7 +200,7 @@
   .slot-info .m{display:flex; justify-content:space-between; font-family:var(--fm); font-size:.7rem; color:var(--dim); margin-top:6px;}
   .slot-info .pr{color:var(--amber);}
   .slot-coin{position:absolute; inset:0; z-index:3; display:flex; align-items:center; justify-content:center; background:rgba(5,3,8,.72); opacity:0; transition:opacity .2s;
-    font-family:var(--fm); font-size:.78rem; letter-spacing:.3em; text-transform:uppercase; color:var(--amber); text-shadow:0 0 14px rgba(255,179,71,.8);}
+    font-size:2.2rem; color:var(--amber); text-shadow:0 0 20px rgba(255,179,71,.9);}
   .slot:hover .slot-coin{opacity:1; animation:blinkTxt 1s steps(2) infinite;}
   .rack-more{text-align:center; margin-top:38px;}
 
@@ -281,7 +285,7 @@
 
 <div id="boot" aria-hidden="true">
   <div class="boot-line"></div>
-  <div class="boot-txt">INSERT COIN</div>
+  <div class="boot-txt">AILAA</div>
 </div>
 
 <header>
@@ -289,7 +293,7 @@
     <a href="/" class="logo">AIL<b>AA</b></a>
     <div class="nav-links">
       <a href="#nasil" data-i18n="nav_how">Nasıl çalışır</a>
-      <a href="#salon" data-i18n="nav_gallery">Salon</a>
+      <a href="#magaza" data-i18n="nav_gallery">Mağaza</a>
       <a href="/store" data-i18n="nav_demo">Mağaza</a>
     </div>
     <div class="nav-right">
@@ -305,11 +309,11 @@
     <div class="hero-grid">
       <div class="hero-copy">
         <span class="open-sign"><i></i><span data-i18n="hero_eyebrow">açık · 7/24 · ücretsiz yükle</span></span>
-        <h1 class="marquee" data-i18n="hero_title"><span class="dead">localhost:3000</span> kapandı.<br><span class="neon-p">Neon salon</span> <span class="neon-c">açık.</span></h1>
-        <p class="lead" data-i18n="hero_lead">AI ile yaptığın oyunları ve uygulamaları saniyeler içinde bu salona tak. Deploy yok, sunucu yok — sadece oyna ve oynat.</p>
+        <h1 class="marquee" data-i18n="hero_title"><span class="dead">localhost:3000</span> kapandı.<br><span class="neon-p">Mağaza</span> <span class="neon-c">açık.</span></h1>
+        <p class="lead" data-i18n="hero_lead">AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla. Deploy yok, sunucu yok — sadece yükle ve oynansın.</p>
         <div class="hero-cta">
-          <a href="/upload" class="coinbtn big" data-i18n="hero_cta1">▸ Kartuşunu tak</a>
-          <a href="/store" class="ghostbtn big" data-i18n="hero_cta2">salonu gez</a>
+          <a href="/upload" class="coinbtn big" data-i18n="hero_cta1">▸ Projeni yükle</a>
+          <a href="/store" class="ghostbtn big" data-i18n="hero_cta2">mağazayı gez</a>
         </div>
         <div class="hero-note"><b data-i18n="hero_note_b">NEONDROME şu an oynanabilir.</b> <span data-i18n="hero_note">Jeton bizden.</span></div>
       </div>
@@ -331,13 +335,13 @@
           <div class="joy"></div>
           <div class="btns"><span class="abtn c"></span><span class="abtn v"></span><span class="abtn a"></span></div>
         </div>
-        <div class="cab-coin" data-i18n="cab_coin">▸ INSERT COIN ◂</div>
+        <div class="cab-coin" data-i18n="cab_coin">▸ HAZIR ◂</div>
       </div>
     </div>
 
     <div class="scorebar rv">
-      <div class="score"><div class="num"><span id="statProjects" data-count="0">0</span></div><div class="lbl" data-i18n="stat1">makine yayında</div></div>
-      <div class="score"><div class="num"><span id="statPlays" data-count="0">0</span></div><div class="lbl" data-i18n="stat2">toplam oynanış</div></div>
+      <div class="score"><div class="num"><span id="statProjects" data-count="0">0</span></div><div class="lbl" data-i18n="stat1">yayındaki proje</div></div>
+      <div class="score"><div class="num"><span id="statPlays" data-count="0">0</span></div><div class="lbl" data-i18n="stat2">toplam oynanma</div></div>
       <div class="score"><div class="num">$0</div><div class="lbl" data-i18n="stat3">giriş ücreti</div></div>
     </div>
   </div>
@@ -347,7 +351,7 @@
   <div class="wrap">
     <div class="rv">
       <div class="sec-tag" data-i18n="grave_tag">arıza raporu</div>
-      <h2 class="zone" data-i18n="grave_title">Sekmelerde <span class="hl">unutulan makineler</span> var.</h2>
+      <h2 class="zone" data-i18n="grave_title">Sekmelerde <span class="hl">unutulan projeler</span> var.</h2>
       <p class="sec-sub" data-i18n="grave_desc">Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzeldi. Sonra… fiş çekildi. Link paylaşılmadı, kimse oynamadı.</p>
     </div>
     <div class="grave rv">
@@ -363,11 +367,11 @@
   <div class="wrap">
     <div class="rv">
       <div class="sec-tag" data-i18n="steps_tag">oyun kılavuzu</div>
-      <h2 class="zone" data-i18n="steps_title">Üç level'da <span class="hl">salona çık</span></h2>
+      <h2 class="zone" data-i18n="steps_title">Üç adımda <span class="hl">yayına çık</span></h2>
     </div>
     <div class="levels">
-      <div class="lvl rv"><div class="n">LEVEL 01</div><div class="ic">📦</div><h3 data-i18n="step1_t">Kartuşu tak</h3><p data-i18n="step1_d">HTML dosyanı sürükle bırak. Hangi araçla yaptığın fark etmez.</p></div>
-      <div class="lvl rv"><div class="n">LEVEL 02</div><div class="ic">🛡️</div><h3 data-i18n="step2_t">Güvenli kabinde çalış</h3><p data-i18n="step2_d">Projen izole bir makinede döner. Sunucu, domain, SSL — salon halleder.</p></div>
+      <div class="lvl rv"><div class="n">LEVEL 01</div><div class="ic">📦</div><h3 data-i18n="step1_t">Dosyanı yükle</h3><p data-i18n="step1_d">HTML dosyanı sürükle bırak. Hangi araçla yaptığın fark etmez.</p></div>
+      <div class="lvl rv"><div class="n">LEVEL 02</div><div class="ic">🛡️</div><h3 data-i18n="step2_t">Güvenli kutuda çalışsın</h3><p data-i18n="step2_d">Projen izole bir alanda döner. Sunucu, domain, SSL — biz hallederiz.</p></div>
       <div class="lvl rv"><div class="n">LEVEL 03</div><div class="ic">🪙</div><h3 data-i18n="step3_t">Oynat ya da sat</h3><p data-i18n="step3_d">Herkese açık linkini al. İstersen bedava, istersen jetonlu.</p></div>
     </div>
     <div class="toolstrip rv">
@@ -377,21 +381,21 @@
   </div>
 </section>
 
-<section class="blk" id="salon">
+<section class="blk" id="magaza">
   <div class="wrap">
     <div class="rv">
-      <div class="sec-tag" data-i18n="gal_tag">salon</div>
-      <h2 class="zone" data-i18n="gal_title">Şu an <span class="hl">çalışan makineler</span></h2>
-      <p class="sec-sub" data-i18n="gal_desc">Topluluğun taktığı gerçek kartuşlar — hepsi tarayıcıda, tek jetonla.</p>
+      <div class="sec-tag" data-i18n="gal_tag">mağaza</div>
+      <h2 class="zone" data-i18n="gal_title">Şu an <span class="hl">mağazada</span></h2>
+      <p class="sec-sub" data-i18n="gal_desc">Topluluğun yüklediği gerçek projeler — hepsi tarayıcıda, tek dokunuşla.</p>
     </div>
     <div class="rack rv" id="galGrid">
       <a class="slot" href="/store?p=neondrome">
         <div class="slot-art" style="background:linear-gradient(135deg,#2A0F45,#12071f);"><span class="slot-tag" data-i18n="cat_game">oyun</span>🏃</div>
         <div class="slot-info"><h4>NEONDROME</h4><div class="m"><span>ailaa</span><span class="pr" data-i18n="free">ücretsiz</span></div></div>
-        <div class="slot-coin">▸ INSERT COIN ◂</div>
+        <div class="slot-coin">▶</div>
       </a>
     </div>
-    <div class="rack-more"><a href="/store" class="ghostbtn big" data-i18n="gal_cta">tüm salonu gez ▸</a></div>
+    <div class="rack-more"><a href="/store" class="ghostbtn big" data-i18n="gal_cta">tüm mağazayı gez ▸</a></div>
   </div>
 </section>
 
@@ -399,10 +403,10 @@
   <div class="wrap">
     <div class="lastcall rv">
       <h2 data-i18n="cta_title">Sıradaki proje sonuncu localhost olsun.</h2>
-      <p data-i18n="cta_desc">Ücretsiz hesap aç, kartuşunu tak, dakikalar içinde salondasın.</p>
+      <p data-i18n="cta_desc">Ücretsiz hesap aç, projeni yükle, dakikalar içinde yayında ol.</p>
       <div class="hero-cta" style="justify-content:center;">
-        <a href="/upload" class="coinbtn big" data-i18n="cta_b1">▸ Kartuşunu tak</a>
-        <a href="/store" class="ghostbtn big" data-i18n="cta_b2">salonu gez</a>
+        <a href="/upload" class="coinbtn big" data-i18n="cta_b1">▸ Projeni yükle</a>
+        <a href="/store" class="ghostbtn big" data-i18n="cta_b2">mağazayı gez</a>
       </div>
       <div class="note" data-i18n="cta_note">ÜCRETSİZ · KREDİ KARTI YOK · JETON BİZDEN</div>
     </div>
@@ -415,18 +419,18 @@
     <div class="f-grid">
       <div class="f-brand">
         <a href="/" class="logo">AIL<b>AA</b></a>
-        <p data-i18n="foot_tag">AI ile yaptığın projeye neon bir salon. Tak, oynat, istersen sat.</p>
+        <p data-i18n="foot_tag">AI ile yaptığın projeye neon bir vitrin. Yükle, oynansın, istersen sat.</p>
       </div>
       <div class="f-col">
-        <h5 data-i18n="foot_product">Salon</h5>
+        <h5 data-i18n="foot_product">Mağaza</h5>
         <a href="#nasil" data-i18n="nav_how">Nasıl çalışır</a>
-        <a href="#salon" data-i18n="nav_gallery">Makineler</a>
+        <a href="#magaza" data-i18n="nav_gallery">Mağaza</a>
         <a href="/store" data-i18n="foot_demo">Mağaza</a>
       </div>
       <div class="f-col">
         <h5 data-i18n="foot_start">Başla</h5>
         <a href="/auth" data-i18n="nav_login">Giriş</a>
-        <a href="/upload" data-i18n="foot_upload">Kartuş tak</a>
+        <a href="/upload" data-i18n="foot_upload">Proje yükle</a>
         <a href="/game" data-i18n="foot_play">NEONDROME oyna</a>
       </div>
       <div class="f-col">
@@ -468,94 +472,94 @@
 /* ================= i18n ================= */
 var I18N = {
   tr:{
-    nav_how:"Nasıl çalışır", nav_gallery:"Salon", nav_demo:"Mağaza", nav_login:"Giriş", nav_account:"Hesabım", nav_admin:"🛡 Admin", nav_upload:"+ Yükle",
+    nav_how:"Nasıl çalışır", nav_gallery:"Mağaza", nav_demo:"Mağaza", nav_login:"Giriş", nav_account:"Hesabım", nav_admin:"🛡 Admin", nav_upload:"+ Yükle",
     menu_profile:"Profilim", menu_projects:"Projelerim", menu_logout:"Çıkış yap",
     hero_eyebrow:"açık · 7/24 · ücretsiz yükle",
-    hero_title:'<span class="dead">localhost:3000</span> kapandı.<br><span class="neon-p">Neon salon</span> <span class="neon-c">açık.</span>',
-    hero_lead:"AI ile yaptığın oyunları ve uygulamaları saniyeler içinde bu salona tak. Deploy yok, sunucu yok — sadece oyna ve oynat.",
-    hero_cta1:"▸ Kartuşunu tak", hero_cta2:"salonu gez",
+    hero_title:'<span class="dead">localhost:3000</span> kapandı.<br><span class="neon-p">Mağaza</span> <span class="neon-c">açık.</span>',
+    hero_lead:"AI ile yaptığın oyunları ve uygulamaları saniyeler içinde yayınla. Deploy yok, sunucu yok — sadece yükle ve oynansın.",
+    hero_cta1:"▸ Projeni yükle", hero_cta2:"mağazayı gez",
     hero_note_b:"NEONDROME şu an oynanabilir.", hero_note:"Jeton bizden.",
-    cab_coin:"▸ INSERT COIN ◂",
-    stat1:"makine yayında", stat2:"toplam oynanış", stat3:"giriş ücreti",
-    grave_tag:"arıza raporu", grave_title:'Sekmelerde <span class="hl">unutulan makineler</span> var.',
+    cab_coin:"▸ HAZIR ◂",
+    stat1:"yayındaki proje", stat2:"toplam oynanma", stat3:"giriş ücreti",
+    grave_tag:"arıza raporu", grave_title:'Sekmelerde <span class="hl">unutulan projeler</span> var.',
     grave_desc:"Bir hafta sonu AI ile bir şey ürettin. Çalıştı, güzeldi. Sonra… fiş çekildi. Link paylaşılmadı, kimse oynamadı.",
     grave1:"hiç yayınlanmadı", grave2:"unutuldu", grave3:"3 ay önce", grave4:"yarım kaldı",
-    steps_tag:"oyun kılavuzu", steps_title:'Üç level\'da <span class="hl">salona çık</span>',
-    step1_t:"Kartuşu tak", step1_d:"HTML dosyanı sürükle bırak. Hangi araçla yaptığın fark etmez.",
-    step2_t:"Güvenli kabinde çalış", step2_d:"Projen izole bir makinede döner. Sunucu, domain, SSL — salon halleder.",
+    steps_tag:"oyun kılavuzu", steps_title:'Üç adımda <span class="hl">yayına çık</span>',
+    step1_t:"Dosyanı yükle", step1_d:"HTML dosyanı sürükle bırak. Hangi araçla yaptığın fark etmez.",
+    step2_t:"Güvenli kutuda çalışsın", step2_d:"Projen izole bir alanda döner. Sunucu, domain, SSL — biz hallederiz.",
     step3_t:"Oynat ya da sat", step3_d:"Herkese açık linkini al. İstersen bedava, istersen jetonlu.",
     tools_label:"hangi araç olursa",
-    gal_tag:"salon", gal_title:'Şu an <span class="hl">çalışan makineler</span>',
-    gal_desc:"Topluluğun taktığı gerçek kartuşlar — hepsi tarayıcıda, tek jetonla.",
-    gal_empty:"Salon yeni açıldı. İlk kartuşu sen tak.",
-    gal_cta:"tüm salonu gez ▸",
+    gal_tag:"mağaza", gal_title:'Şu an <span class="hl">mağazada</span>',
+    gal_desc:"Topluluğun yüklediği gerçek projeler — hepsi tarayıcıda, tek dokunuşla.",
+    gal_empty:"Mağaza yeni açıldı. İlk projeyi sen yükle.",
+    gal_cta:"tüm mağazayı gez ▸",
     cat_game:"oyun", cat_tool:"araç", free:"ücretsiz",
-    cta_title:"Sıradaki proje sonuncu localhost olsun.", cta_desc:"Ücretsiz hesap aç, kartuşunu tak, dakikalar içinde salondasın.",
-    cta_b1:"▸ Kartuşunu tak", cta_b2:"salonu gez", cta_note:"ÜCRETSİZ · KREDİ KARTI YOK · JETON BİZDEN",
-    foot_tag:"AI ile yaptığın projeye neon bir salon. Tak, oynat, istersen sat.",
-    foot_product:"Salon", foot_start:"Başla", foot_contact:"İletişim", foot_demo:"Mağaza", foot_upload:"Kartuş tak", foot_play:"NEONDROME oyna",
+    cta_title:"Sıradaki proje sonuncu localhost olsun.", cta_desc:"Ücretsiz hesap aç, projeni yükle, dakikalar içinde yayında ol.",
+    cta_b1:"▸ Projeni yükle", cta_b2:"mağazayı gez", cta_note:"ÜCRETSİZ · KREDİ KARTI YOK · JETON BİZDEN",
+    foot_tag:"AI ile yaptığın projeye neon bir vitrin. Yükle, oynansın, istersen sat.",
+    foot_product:"Mağaza", foot_start:"Başla", foot_contact:"İletişim", foot_demo:"Mağaza", foot_upload:"Proje yükle", foot_play:"NEONDROME oyna",
     foot_rights:"AILAA © 2026 — gece vardiyası hep açık.",
-    aila:["gece vardiyası açık 🌙","insert coin ▸","npm run coffee ☕","kartuşunu bekliyorum 👾","hi-score seni bekliyor"]
+    aila:["gece vardiyası açık 🌙","insert coin ▸","npm run coffee ☕","projeni bekliyorum 👾","hi-score seni bekliyor"]
   },
   en:{
-    nav_how:"How it works", nav_gallery:"The floor", nav_demo:"Store", nav_login:"Log in", nav_account:"My account", nav_admin:"🛡 Admin", nav_upload:"+ Upload",
+    nav_how:"How it works", nav_gallery:"Store", nav_demo:"Store", nav_login:"Log in", nav_account:"My account", nav_admin:"🛡 Admin", nav_upload:"+ Upload",
     menu_profile:"My profile", menu_projects:"My projects", menu_logout:"Log out",
     hero_eyebrow:"open · 24/7 · free to publish",
-    hero_title:'<span class="dead">localhost:3000</span> closed.<br>The <span class="neon-p">neon arcade</span> is <span class="neon-c">open.</span>',
-    hero_lead:"Plug the games and apps you build with AI into this arcade in seconds. No deploy, no servers — just play and be played.",
-    hero_cta1:"▸ Insert your cartridge", hero_cta2:"walk the floor",
+    hero_title:'<span class="dead">localhost:3000</span> closed.<br>The <span class="neon-p">store</span> is <span class="neon-c">open.</span>',
+    hero_lead:"Publish the games and apps you build with AI in seconds. No deploy, no servers — just upload and get played.",
+    hero_cta1:"▸ Upload your project", hero_cta2:"browse the store",
     hero_note_b:"NEONDROME is playable right now.", hero_note:"Coins on us.",
-    cab_coin:"▸ INSERT COIN ◂",
-    stat1:"machines live", stat2:"total plays", stat3:"entry fee",
-    grave_tag:"malfunction report", grave_title:'There are <span class="hl">forgotten machines</span> in your tabs.',
+    cab_coin:"▸ READY ◂",
+    stat1:"projects live", stat2:"total plays", stat3:"entry fee",
+    grave_tag:"malfunction report", grave_title:'There are <span class="hl">forgotten projects</span> in your tabs.',
     grave_desc:"You built something with AI over a weekend. It worked, it was great. Then… someone pulled the plug. The link was never shared.",
     grave1:"never shipped", grave2:"forgotten", grave3:"3 months ago", grave4:"left half-done",
-    steps_tag:"how to play", steps_title:'Reach the floor in <span class="hl">three levels</span>',
-    step1_t:"Insert cartridge", step1_d:"Drag and drop your HTML file. Any tool works.",
-    step2_t:"Run in a safe cabinet", step2_d:"Your project spins in an isolated machine. Servers, domain, SSL — the arcade handles it.",
+    steps_tag:"how to play", steps_title:'Go live in <span class="hl">three steps</span>',
+    step1_t:"Upload your file", step1_d:"Drag and drop your HTML file. Any tool works.",
+    step2_t:"Run in a safe sandbox", step2_d:"Your project runs isolated. Servers, domain, SSL — we handle it.",
     step3_t:"Share or sell", step3_d:"Get your public link. Free play or coin-op — your call.",
     tools_label:"any tool works",
-    gal_tag:"the floor", gal_title:'Machines <span class="hl">running right now</span>',
-    gal_desc:"Real cartridges from the community — all in the browser, one coin away.",
-    gal_empty:"The arcade just opened. Insert the first cartridge.",
-    gal_cta:"walk the whole floor ▸",
+    gal_tag:"the store", gal_title:'Live <span class="hl">in the store now</span>',
+    gal_desc:"Real projects from the community — all in the browser, one tap away.",
+    gal_empty:"The store just opened. Be the first to upload.",
+    gal_cta:"browse the whole store ▸",
     cat_game:"game", cat_tool:"tool", free:"free",
-    cta_title:"Let the next project be your last localhost.", cta_desc:"Create a free account, insert your cartridge, hit the floor in minutes.",
-    cta_b1:"▸ Insert your cartridge", cta_b2:"walk the floor", cta_note:"FREE · NO CREDIT CARD · COINS ON US",
-    foot_tag:"A neon arcade for what you build with AI. Plug in, get played, sell if you like.",
-    foot_product:"Arcade", foot_start:"Start", foot_contact:"Contact", foot_demo:"Store", foot_upload:"Insert cartridge", foot_play:"Play NEONDROME",
+    cta_title:"Let the next project be your last localhost.", cta_desc:"Create a free account, upload your project, go live in minutes.",
+    cta_b1:"▸ Upload your project", cta_b2:"browse the store", cta_note:"FREE · NO CREDIT CARD · COINS ON US",
+    foot_tag:"A neon showcase for what you build with AI. Upload, get played, sell if you like.",
+    foot_product:"Store", foot_start:"Start", foot_contact:"Contact", foot_demo:"Store", foot_upload:"Upload project", foot_play:"Play NEONDROME",
     foot_rights:"AILAA © 2026 — night shift never ends.",
-    aila:["night shift is on 🌙","insert coin ▸","npm run coffee ☕","waiting for your cartridge 👾","hi-score awaits"]
+    aila:["night shift is on 🌙","insert coin ▸","npm run coffee ☕","waiting for your project 👾","hi-score awaits"]
   },
   de:{
-    nav_how:"So funktioniert's", nav_gallery:"Die Halle", nav_demo:"Shop", nav_login:"Anmelden", nav_account:"Mein Konto", nav_admin:"🛡 Admin", nav_upload:"+ Hochladen",
+    nav_how:"So funktioniert's", nav_gallery:"Shop", nav_demo:"Shop", nav_login:"Anmelden", nav_account:"Mein Konto", nav_admin:"🛡 Admin", nav_upload:"+ Hochladen",
     menu_profile:"Mein Profil", menu_projects:"Meine Projekte", menu_logout:"Abmelden",
     hero_eyebrow:"offen · 24/7 · kostenlos veröffentlichen",
-    hero_title:'<span class="dead">localhost:3000</span> ist zu.<br>Die <span class="neon-p">Neon-Arcade</span> ist <span class="neon-c">offen.</span>',
-    hero_lead:"Steck die Spiele und Apps, die du mit KI baust, in Sekunden in diese Arcade. Kein Deploy, keine Server — nur spielen und gespielt werden.",
-    hero_cta1:"▸ Modul einstecken", hero_cta2:"durch die Halle",
+    hero_title:'<span class="dead">localhost:3000</span> ist zu.<br>Der <span class="neon-p">Shop</span> ist <span class="neon-c">offen.</span>',
+    hero_lead:"Veröffentliche die Spiele und Apps, die du mit KI baust, in Sekunden. Kein Deploy, keine Server — nur hochladen und gespielt werden.",
+    hero_cta1:"▸ Projekt hochladen", hero_cta2:"Shop ansehen",
     hero_note_b:"NEONDROME ist jetzt spielbar.", hero_note:"Münzen gehen auf uns.",
-    cab_coin:"▸ INSERT COIN ◂",
-    stat1:"Maschinen live", stat2:"Spiele gesamt", stat3:"Eintritt",
-    grave_tag:"Störungsbericht", grave_title:'In deinen Tabs stehen <span class="hl">vergessene Maschinen</span>.',
+    cab_coin:"▸ BEREIT ◂",
+    stat1:"Projekte live", stat2:"Spielaufrufe gesamt", stat3:"Eintritt",
+    grave_tag:"Störungsbericht", grave_title:'In deinen Tabs stehen <span class="hl">vergessene Projekte</span>.',
     grave_desc:"Du hast am Wochenende etwas mit KI gebaut. Es lief, es war gut. Dann… Stecker gezogen. Der Link wurde nie geteilt.",
     grave1:"nie veröffentlicht", grave2:"vergessen", grave3:"vor 3 Monaten", grave4:"halb fertig",
-    steps_tag:"Spielanleitung", steps_title:'In <span class="hl">drei Leveln</span> in die Halle',
-    step1_t:"Modul einstecken", step1_d:"Zieh deine HTML-Datei einfach rein. Jedes Tool funktioniert.",
-    step2_t:"Im sicheren Automaten laufen", step2_d:"Dein Projekt läuft isoliert. Server, Domain, SSL — die Arcade übernimmt.",
+    steps_tag:"Spielanleitung", steps_title:'In <span class="hl">drei Schritten</span> live',
+    step1_t:"Datei hochladen", step1_d:"Zieh deine HTML-Datei einfach rein. Jedes Tool funktioniert.",
+    step2_t:"In sicherer Sandbox laufen", step2_d:"Dein Projekt läuft isoliert. Server, Domain, SSL — wir übernehmen.",
     step3_t:"Teilen oder verkaufen", step3_d:"Hol dir deinen öffentlichen Link. Freispiel oder Münzeinwurf — du entscheidest.",
     tools_label:"jedes Tool zählt",
-    gal_tag:"die Halle", gal_title:'Maschinen, die <span class="hl">gerade laufen</span>',
-    gal_desc:"Echte Module aus der Community — alles im Browser, eine Münze entfernt.",
-    gal_empty:"Die Arcade ist neu. Steck das erste Modul ein.",
-    gal_cta:"die ganze Halle ▸",
+    gal_tag:"der Shop", gal_title:'Gerade <span class="hl">im Shop</span>',
+    gal_desc:"Echte Projekte aus der Community — alles im Browser, ein Tipp entfernt.",
+    gal_empty:"Der Shop ist neu. Lade als Erste:r etwas hoch.",
+    gal_cta:"den ganzen Shop ▸",
     cat_game:"Spiel", cat_tool:"Tool", free:"kostenlos",
-    cta_title:"Das nächste Projekt sei dein letztes localhost.", cta_desc:"Kostenloses Konto, Modul rein, in Minuten in der Halle.",
-    cta_b1:"▸ Modul einstecken", cta_b2:"durch die Halle", cta_note:"KOSTENLOS · KEINE KREDITKARTE · MÜNZEN GEHEN AUF UNS",
-    foot_tag:"Eine Neon-Arcade für das, was du mit KI baust. Einstecken, gespielt werden, verkaufen.",
-    foot_product:"Arcade", foot_start:"Start", foot_contact:"Kontakt", foot_demo:"Shop", foot_upload:"Modul einstecken", foot_play:"NEONDROME spielen",
+    cta_title:"Das nächste Projekt sei dein letztes localhost.", cta_desc:"Kostenloses Konto, Projekt hochladen, in Minuten live.",
+    cta_b1:"▸ Projekt hochladen", cta_b2:"Shop ansehen", cta_note:"KOSTENLOS · KEINE KREDITKARTE · MÜNZEN GEHEN AUF UNS",
+    foot_tag:"Ein Neon-Schaufenster für das, was du mit KI baust. Hochladen, gespielt werden, verkaufen.",
+    foot_product:"Shop", foot_start:"Start", foot_contact:"Kontakt", foot_demo:"Shop", foot_upload:"Projekt hochladen", foot_play:"NEONDROME spielen",
     foot_rights:"AILAA © 2026 — Nachtschicht endet nie.",
-    aila:["Nachtschicht läuft 🌙","insert coin ▸","npm run coffee ☕","warte auf dein Modul 👾","Hi-Score wartet"]
+    aila:["Nachtschicht läuft 🌙","insert coin ▸","npm run coffee ☕","warte auf dein Projekt 👾","Hi-Score wartet"]
   }
 };
 var GEO_MAP={TR:"tr",CY:"tr",DE:"de",AT:"de",CH:"de",LI:"de",LU:"de"};
@@ -751,74 +755,18 @@ function runCounter(el){
       var d=I18N[currentLang];
       var html = rows.slice(0,3).map(function(p,i){
         var isTool = p.category==="tool";
-        var art = p.cover_url
-          ? 'style="background-image:url(\''+safeUrl(p.cover_url)+'\');"'
-          : 'style="background:linear-gradient(135deg,'+GRADS[i%GRADS.length]+');"';
+        var cv = p.cover_url ? safeUrl(p.cover_url) : "";
+        var artOpen = cv
+          ? '<div class="slot-art has-cover" style="--cv:url(\''+cv+'\');"><span class="cv"></span>'
+          : '<div class="slot-art" style="background:linear-gradient(135deg,'+GRADS[i%GRADS.length]+');">';
         var price=(p.price>0)?("$"+p.price):d.free;
         return '<a class="slot" href="/store?p=c'+p.id+'">'
-          + '<div class="slot-art" '+art+'><span class="slot-tag">'+(isTool?d.cat_tool:d.cat_game)+'</span>'+(p.cover_url?'':(isTool?'🛠️':'🎮'))+'</div>'
+          + artOpen + '<span class="slot-tag">'+(isTool?d.cat_tool:d.cat_game)+'</span>'+(cv?'':(isTool?'🛠️':'🎮'))+'</div>'
           + '<div class="slot-info"><h4>'+esc(p.title)+'</h4><div class="m"><span>▶ '+(p.plays||0)+'</span><span class="pr">'+price+'</span></div></div>'
-          + '<div class="slot-coin">▸ INSERT COIN ◂</div></a>';
+          + '<div class="slot-coin">▶</div></a>';
       }).join("");
       grid.innerHTML = grid.innerHTML + html;
     }).catch(function(){});
-})();
-</script>
-
-
-<!-- ══ WRENCH EMPIRE ↔ AILAA KÖPRÜSÜ ══════════════════════════════════════
-     Oyunlar sandbox'lı iframe içinde çalışıyor (allow-scripts, same-origin YOK).
-     Bu, güvenlik için doğru — ama sandbox'lı çerçevenin kendi localStorage'ı
-     yok, bu yüzden oyun kaydını tutamıyor. Köprü, oyunun kaydını SİTENİN
-     deposunda saklar ve oyun açıldığında geri verir. Harici dosya yok:
-     404 riski olmasın diye doğrudan buraya gömüldü.
-     ═══════════════════════════════════════════════════════════════════════ -->
-<script>
-(function () {
-  var PREFIX = 'we:';
-  function dump(){
-    var d={};
-    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i);
-      if(k && k.indexOf(PREFIX)===0) d[k.slice(PREFIX.length)]=localStorage.getItem(k); } }catch(e){}
-    return d;
-  }
-  function send(t,m){ try{ t && t.postMessage(m,'*'); }catch(e){} }
-
-  window.addEventListener('message', function(ev){
-    var d = ev && ev.data;
-    if(!d || typeof d!=='object') return;
-    if(d.type==='we-store-req')      send(ev.source,{type:'we-store-data',data:dump()});
-    else if(d.type==='we-store-set' && d.key){ try{ localStorage.setItem(PREFIX+d.key,d.value); }catch(e){} }
-    else if(d.type==='we-store-del' && d.key){ try{ localStorage.removeItem(PREFIX+d.key); }catch(e){} }
-  });
-
-  /* Oyun açılır açılmaz kaydını gönder + site oturumunu devret */
-  function feed(fr){
-    if(!fr || fr.__weFed) return;
-    fr.__weFed = true;
-    var push=function(){
-      if(!fr.contentWindow) return;
-      send(fr.contentWindow,{type:'we-store-data',data:dump()});
-      handOff(fr);
-    };
-    fr.addEventListener('load',push);
-    push();
-    setTimeout(push,400);        // srcdoc ile yüklenenler için ikinci deneme
-  }
-  function handOff(fr){
-    var db = window.__ailaaDb || null;
-    if(!db || !db.auth || !fr.contentWindow) return;
-    db.auth.getSession().then(function(r){
-      var s = r && r.data && r.data.session;
-      if(!s) return;
-      send(fr.contentWindow,{type:'ailaa-auth',
-        access_token:s.access_token, refresh_token:s.refresh_token,
-        email:(s.user&&s.user.email)||null});
-    }).catch(function(){});
-  }
-  function scan(){ Array.prototype.forEach.call(document.querySelectorAll('iframe'),feed); }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',scan); else scan();
-  try{ new MutationObserver(scan).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
 })();
 </script>
 

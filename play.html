@@ -77,7 +77,7 @@
     if(!allowed){ fail(p.status==="pending" ? "Bu proje henüz onay bekliyor. Erken erişim linkiyle açman gerekiyor." : "Bu proje yayında değil."); return; }
     document.title="Ailaa — "+(p.title||"Oynat");
     document.getElementById("mark").href="https://ailaa.io/store?p="+p.id;
-    if(p.status==="approved"){ try{ db.rpc("increment_plays",{ pid: p.id }); }catch(e){} }
+    if(p.status==="approved"){ try{ db.rpc("increment_plays",{ pid: p.id }).then(function(){},function(){}); }catch(e){} }
     fetch(p.file_url).then(function(res){ return res.text(); }).then(function(html){
       var f=document.createElement("iframe");
       f.setAttribute("sandbox","allow-scripts");

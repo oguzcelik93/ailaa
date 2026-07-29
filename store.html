@@ -51,11 +51,16 @@
   .bell{position:relative; background:none; border:none; color:var(--text-muted); font-size:1.05rem; cursor:pointer; padding:4px 6px; display:none;}
   .bell.show{display:inline-block;}
   .bell .dot{position:absolute; top:0; right:0; min-width:16px; height:16px; background:var(--coral); color:#fff; border-radius:100px; font-size:0.62rem; line-height:16px; font-family:'JetBrains Mono',monospace; padding:0 4px;}
-  .notif-panel{position:absolute; right:0; top:calc(100% + 10px); width:270px; max-height:320px; overflow-y:auto; background:#0F1120; border:1px solid rgba(255,255,255,0.13); border-radius:12px; padding:6px; box-shadow:0 24px 50px -18px rgba(0,0,0,0.85); display:none; z-index:200;}
+  .notif-panel{position:absolute; right:0; left:auto; top:calc(100% + 10px); width:270px; max-width:calc(100vw - 24px); max-height:320px; overflow-y:auto; background:#0F1120; border:1px solid rgba(255,255,255,0.13); border-radius:12px; padding:6px; box-shadow:0 24px 50px -18px rgba(0,0,0,0.85); display:none; z-index:200;}
   .notif-panel.open{display:block;}
-  .notif-item{display:block; padding:10px; border-radius:8px; font-size:0.84rem; color:var(--text); border-bottom:1px solid rgba(255,255,255,0.05);}
+  .notif-item{display:block; padding:10px; border-radius:8px; font-size:0.84rem; color:var(--text); border-bottom:1px solid rgba(255,255,255,0.05); white-space:normal; overflow-wrap:anywhere;}
   .notif-item:last-child{border-bottom:none;}
   .notif-item.unread{background:rgba(245,169,59,0.07);}
+  @media (max-width:700px){
+    /* dar ekranda panel ekranın altına sabitlensin — kenardan taşmasın */
+    .notif-panel{position:fixed; left:12px; right:12px; top:auto; bottom:auto; width:auto; max-width:none; margin-top:0;
+      top:60px; max-height:60vh;}
+  }
   .notif-item .tm{display:block; font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--text-muted); margin-top:4px;}
   .notif-empty{padding:16px; text-align:center; font-size:0.82rem; color:var(--text-muted);}
 
@@ -266,7 +271,7 @@
   input:focus, textarea:focus, select:focus{border-color:var(--mint) !important; box-shadow:0 0 14px rgba(33,240,214,.25);}
   ::selection{background:var(--coral); color:#14020b;}
 
-  /* nav → salon girişi */
+  /* nav */
   .home-link, .lib-btn, .nav-upload, #loginLink{font-family:'JetBrains Mono',monospace !important; font-size:.76rem !important; letter-spacing:.1em; text-transform:uppercase;}
   .nav-upload{color:#14020b !important; background:linear-gradient(180deg,#ff6aa9,var(--coral)) !important; border:none !important; border-radius:4px !important; box-shadow:0 0 18px rgba(255,46,136,.5), inset 0 1px 0 rgba(255,255,255,.5) !important; font-weight:700 !important;}
   .nav-upload:hover{transform:translateY(-2px); box-shadow:0 0 30px rgba(255,46,136,.6), inset 0 1px 0 rgba(255,255,255,.5) !important;}
@@ -285,7 +290,7 @@
   .cart:hover{transform:translateY(-6px) !important; border-color:var(--coral) !important; box-shadow:0 0 0 1px var(--coral), 0 0 34px rgba(255,46,136,.45) !important;}
   .cart-art{position:relative;}
   .cart-art::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(0,0,0,.15) 0 1px, transparent 1px 3px); pointer-events:none; z-index:1;}
-  .cart-art::after{content:"▸ INSERT COIN ◂"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(5,3,8,.74); opacity:0; transition:opacity .2s; font-family:'JetBrains Mono',monospace; font-size:.7rem; letter-spacing:.28em; color:var(--amber); text-shadow:0 0 14px rgba(255,179,71,.8); z-index:2; pointer-events:none;}
+  .cart-art::after{content:"▶"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(5,3,8,.74); opacity:0; transition:opacity .2s; font-family:'JetBrains Mono',monospace; font-size:2rem; color:var(--amber); text-shadow:0 0 20px rgba(255,179,71,.9); z-index:2; pointer-events:none;}
   .cart:hover .cart-art::after{opacity:1; animation:coinBlink 1s steps(2) infinite;}
   @keyframes coinBlink{50%{opacity:.3;}}
   .cart h4{font-family:'Space Grotesk',sans-serif; text-transform:uppercase; letter-spacing:.02em;}
@@ -935,11 +940,11 @@ async function adminDelete(app){
 function launchGame(app){
   // oynanma sayacı (topluluk projeleri)
   if(app && app.pid){
-    try{ (dbClient||roClient) && (dbClient||roClient).rpc("increment_plays",{ pid: app.pid }); }catch(e){}
+    try{ var _c=(dbClient||roClient); if(_c) _c.rpc("increment_plays",{ pid: app.pid }).then(function(){},function(){}); }catch(e){}
     const st=statsMap[app.pid]; if(st) st.plays++;
     // "kaldığın yerden devam et" için oynama geçmişi
     if(dbClient && currentUser){
-      try{ dbClient.from("play_history").insert({ user_id: currentUser.id, project_id: app.pid }); }catch(e){}
+      try{ dbClient.from("play_history").insert({ user_id: currentUser.id, project_id: app.pid }).then(function(){},function(){}); }catch(e){}
     }
     try{
       const k="ailaa_recent";
@@ -1210,7 +1215,7 @@ detectLang();
   try{
     const url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
     if(url && !url.includes("BURAYA") && key && !key.includes("BURAYA") && typeof supabase!=="undefined"){
-      dbClient = supabase.createClient(url, key); try{window.__ailaaDb=dbClient}catch(e){}
+      dbClient = supabase.createClient(url, key);
       const { data } = await dbClient.auth.getSession();
       if(data.session && data.session.user){
         currentUser = data.session.user;
@@ -1233,63 +1238,6 @@ detectLang();
   try{ await loadMyVotes(); }catch(e){}
   // ?p= derin bağlantısı varsa projeyi direkt aç
   try{ tryDeepLink(); }catch(e){}
-})();
-</script>
-
-
-<!-- ══ WRENCH EMPIRE ↔ AILAA KÖPRÜSÜ ══════════════════════════════════════
-     Oyunlar sandbox'lı iframe içinde çalışıyor (allow-scripts, same-origin YOK).
-     Bu, güvenlik için doğru — ama sandbox'lı çerçevenin kendi localStorage'ı
-     yok, bu yüzden oyun kaydını tutamıyor. Köprü, oyunun kaydını SİTENİN
-     deposunda saklar ve oyun açıldığında geri verir. Harici dosya yok:
-     404 riski olmasın diye doğrudan buraya gömüldü.
-     ═══════════════════════════════════════════════════════════════════════ -->
-<script>
-(function () {
-  var PREFIX = 'we:';
-  function dump(){
-    var d={};
-    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i);
-      if(k && k.indexOf(PREFIX)===0) d[k.slice(PREFIX.length)]=localStorage.getItem(k); } }catch(e){}
-    return d;
-  }
-  function send(t,m){ try{ t && t.postMessage(m,'*'); }catch(e){} }
-
-  window.addEventListener('message', function(ev){
-    var d = ev && ev.data;
-    if(!d || typeof d!=='object') return;
-    if(d.type==='we-store-req')      send(ev.source,{type:'we-store-data',data:dump()});
-    else if(d.type==='we-store-set' && d.key){ try{ localStorage.setItem(PREFIX+d.key,d.value); }catch(e){} }
-    else if(d.type==='we-store-del' && d.key){ try{ localStorage.removeItem(PREFIX+d.key); }catch(e){} }
-  });
-
-  /* Oyun açılır açılmaz kaydını gönder + site oturumunu devret */
-  function feed(fr){
-    if(!fr || fr.__weFed) return;
-    fr.__weFed = true;
-    var push=function(){
-      if(!fr.contentWindow) return;
-      send(fr.contentWindow,{type:'we-store-data',data:dump()});
-      handOff(fr);
-    };
-    fr.addEventListener('load',push);
-    push();
-    setTimeout(push,400);        // srcdoc ile yüklenenler için ikinci deneme
-  }
-  function handOff(fr){
-    var db = window.__ailaaDb || null;
-    if(!db || !db.auth || !fr.contentWindow) return;
-    db.auth.getSession().then(function(r){
-      var s = r && r.data && r.data.session;
-      if(!s) return;
-      send(fr.contentWindow,{type:'ailaa-auth',
-        access_token:s.access_token, refresh_token:s.refresh_token,
-        email:(s.user&&s.user.email)||null});
-    }).catch(function(){});
-  }
-  function scan(){ Array.prototype.forEach.call(document.querySelectorAll('iframe'),feed); }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',scan); else scan();
-  try{ new MutationObserver(scan).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
 })();
 </script>
 
