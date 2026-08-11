@@ -43,7 +43,7 @@ tailwind.config = { theme: { extend: {
 <main class="max-w-lg mx-auto px-4 pb-24 pt-5">
   <section id="login">
     <h2 class="text-2xl font-extrabold tracking-tight">Moderatör girişi</h2>
-    <p class="text-[13px] text-slate-400 mt-2 leading-relaxed">Supabase panelinde oluşturduğun kullanıcıyla gir. Yetki sunucuda <span class="font-mono text-[12px]">moderators</span> tablosundan kontrol edilir; listede değilsen hiçbir veri gelmez.</p>
+    <p class="text-[13px] text-slate-400 mt-2 leading-relaxed">Hesabınla gir. Yetki sunucuda <span class="font-mono text-[12px]">rc_moderators</span> tablosundan kontrol edilir; listede değilsen giriş yapsan bile hiçbir veri gelmez.</p>
     <div class="glass rounded-2xl p-4 mt-5 space-y-3">
       <input id="email" type="email" inputmode="email" placeholder="e-posta" class="field w-full rounded-xl px-4 py-3.5 text-[15px]">
       <input id="pass" type="password" placeholder="parola" class="field w-full rounded-xl px-4 py-3.5 text-[15px]">
@@ -57,7 +57,7 @@ tailwind.config = { theme: { extend: {
   <section id="panel" class="hidden">
     <div id="claim" class="glass rounded-2xl p-4 mb-4 hidden">
       <h3 class="font-extrabold text-[15px]">Yönetici ol</h3>
-      <p class="text-[12.5px] text-slate-400 mt-1.5 leading-relaxed">Bu hesabın henüz yetkisi yok. Davet kodunu gir; bir daha sormayacağız.</p>
+      <p class="text-[12.5px] text-slate-400 mt-1.5 leading-relaxed">Bu hesabın henüz yetkisi yok. İlk yöneticiysen kutuyu boş bırakıp Onayla'ya bas; değilsen davet kodunu gir.</p>
       <div class="flex gap-2 mt-3">
         <input id="code" placeholder="RC-XXXX-XXXX-XXXX" class="field flex-1 rounded-xl px-4 py-3 text-[14px] uppercase">
         <button id="claimGo" class="shrink-0 rounded-xl px-4 font-bold text-[13px] bg-ok text-ink">Onayla</button>
@@ -179,7 +179,6 @@ async function afterLogin(){
 $('claimGo').onclick = async () => {
   $('claimErr').classList.add('hidden');
   const code = $('code').value.trim().toUpperCase();
-  if (!code) return;
   $('claimGo').textContent = '...';
   try {
     await api('/rest/v1/rpc/rc_claim_moderator', { method:'POST', body: JSON.stringify({ p_code: code }) });
