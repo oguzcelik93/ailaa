@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f19">
+<meta name="robots" content="noindex, nofollow">
+<title>RustCheck · Moderasyon</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script>
+tailwind.config = { theme: { extend: {
+  colors:{ ink:'#0b0f19', ok:'#10b981', warn:'#f59e0b', bad:'#ef4444' },
+  fontFamily:{ sans:['Plus Jakarta Sans','system-ui','sans-serif'], mono:['JetBrains Mono','monospace'] } } } }
+</script>
+<style>
+  :root{color-scheme:dark}
+  body{background:radial-gradient(900px 400px at 50% -10%,rgba(239,68,68,.10),transparent 60%),#0b0f19;-webkit-tap-highlight-color:transparent}
+  .glass{background:linear-gradient(160deg,rgba(30,41,59,.84),rgba(15,23,42,.74));border:1px solid rgba(148,163,184,.16);backdrop-filter:blur(14px)}
+  .num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  .field{background:rgba(15,23,42,.85);border:1px solid rgba(148,163,184,.22)}
+  .field:focus{outline:none;border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.16)}
+  .tab.on{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);color:#fca5a5}
+  button:active{transform:scale(.985)}
+  ::-webkit-scrollbar{width:0;height:0}
+</style>
+</head>
+<body class="font-sans text-slate-100 antialiased min-h-screen">
+
+<header class="sticky top-0 z-20 backdrop-blur-xl bg-ink/85 border-b border-white/5">
+  <div class="max-w-lg mx-auto px-4 py-3 flex items-center gap-3" style="padding-top:calc(env(safe-area-inset-top) + 12px)">
+    <div class="w-9 h-9 rounded-xl grid place-items-center bg-bad/15 border border-bad/30"><i class="fa-solid fa-gavel text-bad"></i></div>
+    <div class="flex-1 min-w-0">
+      <h1 class="text-[15px] font-extrabold leading-none">Moderasyon</h1>
+      <p id="who" class="text-[11px] text-slate-400 mt-1 truncate">Giriş bekleniyor</p>
+    </div>
+    <button id="reload" class="hidden text-[12px] font-bold text-slate-300 border border-white/10 rounded-lg px-2.5 py-1.5"><i class="fa-solid fa-rotate"></i></button>
+    <button id="logout" class="hidden text-[12px] font-bold text-slate-300 border border-white/10 rounded-lg px-2.5 py-1.5"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+  </div>
+</header>
+
+<main class="max-w-lg mx-auto px-4 pb-24 pt-5">
+  <section id="login">
+    <h2 class="text-2xl font-extrabold tracking-tight">Moderatör girişi</h2>
+    <p class="text-[13px] text-slate-400 mt-2 leading-relaxed">Supabase panelinde oluşturduğun kullanıcıyla gir. Yetki sunucuda <span class="font-mono text-[12px]">moderators</span> tablosundan kontrol edilir; listede değilsen hiçbir veri gelmez.</p>
+    <div class="glass rounded-2xl p-4 mt-5 space-y-3">
+      <input id="email" type="email" inputmode="email" placeholder="e-posta" class="field w-full rounded-xl px-4 py-3.5 text-[15px]">
+      <input id="pass" type="password" placeholder="parola" class="field w-full rounded-xl px-4 py-3.5 text-[15px]">
+      <button id="go" class="w-full rounded-xl py-3.5 font-extrabold text-[15px] bg-ok text-ink">Giriş</button>
+      <button id="signup" class="w-full rounded-xl py-3 font-bold text-[13.5px] bg-white/8 border border-white/10">İlk kez giriyorum — kayıt ol</button>
+      <p id="err" class="text-[12.5px] text-bad leading-relaxed hidden"></p>
+      <p id="ok" class="text-[12.5px] text-ok leading-relaxed hidden"></p>
+    </div>
+  </section>
+
+  <section id="panel" class="hidden">
+    <div id="claim" class="glass rounded-2xl p-4 mb-4 hidden">
+      <h3 class="font-extrabold text-[15px]">Yönetici ol</h3>
+      <p class="text-[12.5px] text-slate-400 mt-1.5 leading-relaxed">Bu hesabın henüz yetkisi yok. Davet kodunu gir; bir daha sormayacağız.</p>
+      <div class="flex gap-2 mt-3">
+        <input id="code" placeholder="RC-XXXX-XXXX-XXXX" class="field flex-1 rounded-xl px-4 py-3 text-[14px] uppercase">
+        <button id="claimGo" class="shrink-0 rounded-xl px-4 font-bold text-[13px] bg-ok text-ink">Onayla</button>
+      </div>
+      <p id="claimErr" class="text-[12.5px] text-bad mt-2 hidden"></p>
+    </div>
+    <div id="invite" class="glass rounded-2xl p-4 mb-4 hidden">
+      <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+          <p class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Davet kodu</p>
+          <p id="inviteCode" class="text-[14px] font-bold num mt-1">—</p>
+        </div>
+        <button id="rotate" class="text-[12px] font-bold text-slate-300 border border-white/10 rounded-lg px-3 py-2">Yenile</button>
+      </div>
+      <p class="text-[11.5px] text-slate-500 mt-2 leading-relaxed">Bu kodu bilen herkes yönetici olabilir. Paylaşma; şüphelenirsen yenile.</p>
+    </div>
+    <div id="stats" class="grid grid-cols-4 gap-2 mb-4"></div>
+    <div class="flex gap-2 mb-3">
+      <input id="q" inputmode="numeric" placeholder="İlan numarası ara" class="field flex-1 rounded-xl px-4 py-3 text-[14px] num">
+      <button id="qGo" class="shrink-0 rounded-xl px-4 bg-white/8 border border-white/10"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+    <div class="grid grid-cols-4 gap-1.5 mb-4">
+      <button data-f="flagged" class="tab on rounded-xl py-2.5 border border-white/10 text-[11.5px] font-bold">Şikayetli</button>
+      <button data-f="new" class="tab rounded-xl py-2.5 border border-white/10 text-[11.5px] font-bold">Yeni</button>
+      <button data-f="hidden" class="tab rounded-xl py-2.5 border border-white/10 text-[11.5px] font-bold">Gizli</button>
+      <button data-f="all" class="tab rounded-xl py-2.5 border border-white/10 text-[11.5px] font-bold">Tümü</button>
+    </div>
+    <div id="list" class="space-y-3"></div>
+  </section>
+</main>
+
+<div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-8 z-50 hidden">
+  <div class="glass rounded-xl px-4 py-3 text-[13px] font-semibold shadow-2xl"><span id="toastText"></span></div>
+</div>
+
+<script>
+const CFG = {
+  url: 'https://wmnnoprfahkgxzbfmhxc.supabase.co',
+  key: 'sb_publishable_hJzsPW2cZfbSfBkrWCE3-Q_lKF5kXMp'
+};
+const KINDS = { odo:'Kilometre düşürülmüş', damage:'Gizlenen ağır hasar', title:'Gizlenen hasar kaydı',
+  fake:'Sahte ilan', deposit:'Kapora dolandırıcılığı', curb:'Galerici şahıs görünüyor', vin:'VIN uyuşmuyor' };
+let TOKEN = null, FILTER = 'flagged', ROWS = [];
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const ago = ts => { const d=Math.round((Date.now()-Date.parse(ts))/86400000); return d===0?'bugün':d+' gün önce'; };
+function toast(m){ $('toastText').textContent=m; $('toast').classList.remove('hidden');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>$('toast').classList.add('hidden'),2400); }
+
+async function api(path, opts){
+  const o = Object.assign({}, opts||{});
+  o.headers = Object.assign({ apikey:CFG.key, 'Content-Type':'application/json',
+    Authorization: 'Bearer ' + (TOKEN || CFG.key) }, o.headers||{});
+  const res = await fetch(CFG.url + path, o);
+  if (res.status === 401){ TOKEN=null; showLogin('Oturum düştü, tekrar gir.'); throw new Error('401'); }
+  if (!res.ok) throw new Error(res.status + ' ' + (await res.text()));
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+/* ---------- giriş ---------- */
+function showLogin(msg){
+  $('panel').classList.add('hidden'); $('login').classList.remove('hidden');
+  $('logout').classList.add('hidden'); $('reload').classList.add('hidden');
+  $('who').textContent = 'Giriş bekleniyor';
+  if (msg){ $('err').textContent = msg; $('err').classList.remove('hidden'); }
+}
+$('go').onclick = async () => {
+  $('err').classList.add('hidden');
+  const email = $('email').value.trim(), password = $('pass').value;
+  if (!email || !password) return;
+  $('go').textContent = 'Giriş yapılıyor...';
+  try {
+    const res = await fetch(CFG.url + '/auth/v1/token?grant_type=password', {
+      method:'POST', headers:{ apikey:CFG.key, 'Content-Type':'application/json' },
+      body: JSON.stringify({ email, password }) });
+    const j = await res.json();
+    if (!res.ok || !j.access_token) throw new Error(j.error_description || j.msg || 'Giriş başarısız');
+    TOKEN = j.access_token;
+    $('who').textContent = email;
+    $('login').classList.add('hidden'); $('panel').classList.remove('hidden');
+    $('logout').classList.remove('hidden'); $('reload').classList.remove('hidden');
+    await afterLogin();
+  } catch(e){
+    $('err').textContent = String(e.message||e); $('err').classList.remove('hidden');
+  }
+  $('go').textContent = 'Giriş';
+};
+
+$('signup').onclick = async () => {
+  $('err').classList.add('hidden'); $('ok').classList.add('hidden');
+  const email = $('email').value.trim(), password = $('pass').value;
+  if (!email || password.length < 6){ $('err').textContent='E-posta ve en az 6 karakterli parola gir.'; $('err').classList.remove('hidden'); return; }
+  $('signup').textContent = 'Kayıt yapılıyor...';
+  try {
+    const res = await fetch(CFG.url + '/auth/v1/signup', { method:'POST',
+      headers:{ apikey:CFG.key, 'Content-Type':'application/json' },
+      body: JSON.stringify({ email, password }) });
+    const j = await res.json();
+    if (!res.ok) throw new Error(j.msg || j.error_description || j.error || 'Kayıt başarısız');
+    if (j.access_token){ $('ok').textContent='Hesap açıldı, giriş yapılıyor.'; $('ok').classList.remove('hidden'); $('go').click(); }
+    else { $('ok').textContent='Hesap açıldı. E-postana gelen onay bağlantısına tıkla, sonra Giriş de.'; $('ok').classList.remove('hidden'); }
+  } catch(e){ $('err').textContent = String(e.message||e); $('err').classList.remove('hidden'); }
+  $('signup').textContent = 'İlk kez giriyorum — kayıt ol';
+};
+
+async function afterLogin(){
+  let isMod = true;
+  try { await api('/rest/v1/rpc/rc_mod_stats', { method:'POST', body:'{}' }); }
+  catch(e){ isMod = false; }
+  $('claim').classList.toggle('hidden', isMod);
+  $('invite').classList.toggle('hidden', !isMod);
+  if (isMod){
+    await loadStats(); await load();
+    try { const c = await api('/rest/v1/rpc/rc_get_code', { method:'POST', body:'{}' });
+      $('inviteCode').textContent = typeof c === 'string' ? c : '—'; } catch(e){}
+  } else { $('stats').innerHTML=''; $('list').innerHTML=''; }
+}
+$('claimGo').onclick = async () => {
+  $('claimErr').classList.add('hidden');
+  const code = $('code').value.trim().toUpperCase();
+  if (!code) return;
+  $('claimGo').textContent = '...';
+  try {
+    await api('/rest/v1/rpc/rc_claim_moderator', { method:'POST', body: JSON.stringify({ p_code: code }) });
+    toast('Yetki verildi'); await afterLogin();
+  } catch(e){
+    $('claimErr').textContent = /bad_code/.test(String(e.message)) ? 'Kod hatalı.' : String(e.message).slice(0,90);
+    $('claimErr').classList.remove('hidden');
+  }
+  $('claimGo').textContent = 'Onayla';
+};
+$('rotate').onclick = async () => {
+  if (!confirm('Yeni bir davet kodu üretilsin mi? Eski kod geçersiz olur.')) return;
+  try { const c = await api('/rest/v1/rpc/rc_rotate_code', { method:'POST', body:'{}' });
+    $('inviteCode').textContent = typeof c === 'string' ? c : '—'; toast('Kod yenilendi'); }
+  catch(e){ toast('Hata: ' + String(e.message).slice(0,50)); }
+};
+$('logout').onclick = () => { TOKEN=null; $('pass').value=''; showLogin(); };
+$('reload').onclick = async () => { await afterLogin(); toast('Yenilendi'); };
+$('pass').addEventListener('keydown', e => { if(e.key==='Enter') $('go').click(); });
+
+/* ---------- veri ---------- */
+async function loadStats(){
+  try {
+    const out = await api('/rest/v1/rpc/rc_mod_stats', { method:'POST', body:'{}' });
+    const s = Array.isArray(out) ? out[0] : out;
+    const cells = [['Bildirim', s.reports_total, '#f8fafc'], ['24 saat', s.reports_24h, '#10b981'],
+      ['Şikayetli', s.flagged, '#f59e0b'], ['Gizli', s.hidden_total, '#ef4444']];
+    $('stats').innerHTML = cells.map(c => `<div class="glass rounded-xl p-2.5 text-center">
+      <p class="text-[17px] font-extrabold num" style="color:${c[2]}">${c[1]}</p>
+      <p class="text-[10px] text-slate-500 mt-0.5">${c[0]}</p></div>`).join('') +
+      `<div class="col-span-4 text-[11px] text-slate-500 num text-center">${s.checks_total} kontrol · son 24 saat ${s.checks_24h}</div>`;
+  } catch(e){
+    $('stats').innerHTML = `<div class="col-span-4 glass rounded-xl p-3 text-[12px] text-bad">Yetki yok — yukarıdaki kutuya davet kodunu gir.</div>`;
+  }
+}
+async function load(term){
+  $('list').innerHTML = `<div class="text-center text-slate-500 text-[13px] py-8"><i class="fa-solid fa-circle-notch fa-spin"></i></div>`;
+  let q = '/rest/v1/rc_reports?select=*&order=abuse.desc,created_at.desc&limit=80';
+  if (term) q += '&listing=eq.' + encodeURIComponent(term.replace(/\D/g,''));
+  else if (FILTER === 'flagged') q += '&abuse=gte.1';
+  else if (FILTER === 'hidden')  q += '&hidden=is.true';
+  else if (FILTER === 'new')     q += '&order=created_at.desc';
+  try { ROWS = await api(q) || []; } catch(e){ $('list').innerHTML = `<p class="text-[13px] text-bad">${esc(e.message)}</p>`; return; }
+  render();
+}
+function render(){
+  if (!ROWS.length){ $('list').innerHTML = `<div class="glass rounded-2xl p-6 text-center text-[13px] text-slate-400">Kayıt yok</div>`; return; }
+  $('list').innerHTML = ROWS.map(r => {
+    const col = r.hidden ? '#64748b' : r.abuse > 0 ? '#f59e0b' : '#ef4444';
+    return `<div class="glass rounded-2xl p-4" style="border-color:${col}40">
+      <div class="flex items-start gap-2.5">
+        <i class="fa-solid ${r.hidden?'fa-eye-slash':'fa-flag'} text-[12px] mt-1" style="color:${col}"></i>
+        <div class="flex-1 min-w-0">
+          <p class="font-extrabold text-[14.5px] leading-snug">${esc(KINDS[r.kind]||r.kind)}</p>
+          <p class="text-[11.5px] text-slate-400 mt-1 num">${esc(r.site||'—')} · ${esc(r.listing)} · ${esc([r.brand,r.model,r.model_year].filter(Boolean).join(' '))}</p>
+          <p class="text-[11px] text-slate-500 mt-1 num">${ago(r.created_at)} · cihaz ${esc(String(r.device||'').slice(0,14))}</p>
+        </div>
+      </div>
+      ${(r.claimed||r.actual)?`<p class="text-[12.5px] mt-2.5 num"><span class="text-slate-500">${esc(r.claimed||'—')}</span> → <span class="text-red-300 font-bold">${esc(r.actual||'—')}</span></p>`:''}
+      <p class="text-[13px] text-slate-300 mt-2.5 leading-relaxed">${esc(r.note)}</p>
+      ${(r.photos||[]).length?`<div class="grid grid-cols-3 gap-2 mt-3">${r.photos.map(p=>`<a href="${esc(p)}" target="_blank" rel="noopener"><img src="${esc(p)}" class="w-full h-20 object-cover rounded-lg border border-white/10"></a>`).join('')}</div>`:''}
+      ${r.seller_reply?`<div class="mt-3 rounded-xl bg-white/5 border border-white/10 p-3">
+        <p class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Satıcı yanıtı</p>
+        <p class="text-[12.5px] text-slate-300 mt-1 leading-relaxed">${esc(r.seller_reply)}</p></div>`:''}
+      <div class="flex flex-wrap gap-1.5 mt-3 text-[11px] num">
+        <span class="bg-white/6 rounded-lg px-2 py-1">${r.confirms||0} teyit</span>
+        <span class="bg-white/6 rounded-lg px-2 py-1">${r.disputes||0} itiraz</span>
+        <span class="rounded-lg px-2 py-1 ${r.abuse?'bg-warn/15 text-amber-300':'bg-white/6'}">${r.abuse||0} şikayet</span>
+        ${(r.ev||[]).map(e=>`<span class="bg-ok/12 text-emerald-300 rounded-lg px-2 py-1">${esc(e)}</span>`).join('')}
+      </div>
+      <div class="grid grid-cols-3 gap-2 mt-3">
+        <button data-act="toggle" data-id="${r.id}" class="rounded-xl py-2.5 text-[12px] font-bold bg-white/8 border border-white/10">
+          <i class="fa-solid ${r.hidden?'fa-eye':'fa-eye-slash'} mr-1"></i>${r.hidden?'Yayınla':'Gizle'}</button>
+        <button data-act="block" data-id="${r.id}" class="rounded-xl py-2.5 text-[12px] font-bold bg-warn/12 border border-warn/25 text-amber-300">
+          <i class="fa-solid fa-user-slash mr-1"></i>Cihazı engelle</button>
+        <button data-act="del" data-id="${r.id}" class="rounded-xl py-2.5 text-[12px] font-bold bg-bad/12 border border-bad/25 text-red-300">
+          <i class="fa-solid fa-trash mr-1"></i>Sil</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('list').querySelectorAll('[data-act]').forEach(b => b.onclick = () => act(b.dataset.act, b.dataset.id));
+}
+async function act(kind, id){
+  const r = ROWS.find(x => x.id === id); if(!r) return;
+  try{
+    if (kind === 'toggle'){
+      await api('/rest/v1/rc_reports?id=eq.'+id, { method:'PATCH', body: JSON.stringify({ hidden: !r.hidden }) });
+      r.hidden = !r.hidden; toast(r.hidden ? 'Gizlendi' : 'Yayınlandı'); render();
+    }
+    if (kind === 'del'){
+      if (!confirm('Bu bildirim kalıcı olarak silinsin mi?')) return;
+      await api('/rest/v1/rc_reports?id=eq.'+id, { method:'DELETE' });
+      ROWS = ROWS.filter(x => x.id !== id); toast('Silindi'); render();
+    }
+    if (kind === 'block'){
+      if (!confirm('Bu cihaz yeni bildirim gönderemesin mi?')) return;
+      await api('/rest/v1/rc_blocked_devices', { method:'POST',
+        body: JSON.stringify({ device: r.device, reason: 'moderasyon · ' + (KINDS[r.kind]||r.kind) }) });
+      toast('Cihaz engellendi');
+    }
+    await loadStats();
+  }catch(e){ toast('Hata: ' + String(e.message||e).slice(0,60)); }
+}
+document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[data-f]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); FILTER = b.dataset.f; $('q').value = ''; load();
+});
+$('qGo').onclick = () => load($('q').value);
+$('q').addEventListener('keydown', e => { if(e.key==='Enter') load($('q').value); });
+</script>
+</body>
+</html>
