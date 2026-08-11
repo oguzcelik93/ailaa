@@ -59,6 +59,17 @@
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+function withBase(html, entryUrl){
+  try{
+    var folder = String(entryUrl).replace(/[^/]*$/, "");
+    if(/<base\s/i.test(html)) return html;
+    var tag = '<base href="' + folder.replace(/"/g,"&quot;") + '">';
+    if(/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function(m){ return m + tag; });
+    if(/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, function(m){ return m + "<head>" + tag + "</head>"; });
+    return tag + html;
+  }catch(e){ return html; }
+}
+
 (function(){
   var stage=document.getElementById("stage"), msg=document.getElementById("msg");
   function fail(t){ if(msg) msg.textContent=t; }
@@ -78,20 +89,10 @@
     document.title="Ailaa — "+(p.title||"Oynat");
     document.getElementById("mark").href="https://ailaa.io/store?p="+p.id;
     if(p.status==="approved"){ try{ db.rpc("increment_plays",{ pid: p.id }).then(function(){},function(){}); }catch(e){} }
-    if(p.bundle){
-      // çok dosyalı paket: göreli yollar çalışsın diye doğrudan src
-      var bf=document.createElement("iframe");
-      bf.setAttribute("sandbox","allow-scripts allow-pointer-lock");
-      bf.setAttribute("allow","autoplay; fullscreen");
-      bf.setAttribute("allowfullscreen","");
-      bf.setAttribute("title", p.title||"oyun");
-      bf.src=p.file_url;
-      stage.innerHTML=""; stage.appendChild(bf);
-      return;
-    }
     fetch(p.file_url).then(function(res){ return res.text(); }).then(function(html){
+      if(p.bundle) html = withBase(html, p.file_url);
       var f=document.createElement("iframe");
-      f.setAttribute("sandbox","allow-scripts");
+      f.setAttribute("sandbox","allow-scripts allow-pointer-lock");
       f.setAttribute("allow","autoplay; fullscreen");
       f.setAttribute("allowfullscreen","");
       f.setAttribute("title", p.title||"oyun");

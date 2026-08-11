@@ -613,6 +613,19 @@ async function fetchCommunity(){
 }
 
 
+
+/* Paket HTML'ine <base> enjekte et: göreli yollar paketin klasörüne çözülsün. */
+function withBase(html, entryUrl){
+  try{
+    var folder = String(entryUrl).replace(/[^/]*$/, "");
+    if(/<base\s/i.test(html)) return html;                 // zaten varsa dokunma
+    var tag = '<base href="' + folder.replace(/"/g,"&quot;") + '">';
+    if(/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function(m){ return m + tag; });
+    if(/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, function(m){ return m + "<head>" + tag + "</head>"; });
+    return tag + html;
+  }catch(e){ return html; }
+}
+
 /* ===== GÜNCELLENDİ ROZETİ =====
    Sürümü 1'den büyük VE son 14 gün içinde güncellenmiş projeler taze sayılır. */
 var FRESH_DAYS = 14;
@@ -983,10 +996,22 @@ function launchGame(app){
   document.body.style.overflow="hidden";
 
   if(app && app.fileUrl && app.bundle){
-    // ÇOK DOSYALI PAKET: doğrudan src ile aç ki göreli yollar (css/js/görsel) çözülsün.
-    // Depo farklı bir alan adı olduğu için içerik zaten yalıtılmış kalır.
+    // ÇOK DOSYALI PAKET: index.html'i çekip <base> ekleyerek srcdoc ile çalıştır.
+    // Böylece göreli yollar (css/js/görsel) paketin klasörüne çözülür VE depo dosyayı
+    // hangi türle sunarsa sunsun uygulama ÇALIŞIR (kod olarak görünmez).
     if(bar) bar.textContent="▶ "+(app.title||"oyun");
-    inner.innerHTML=`<iframe src="${safeUrl(app.fileUrl)}" sandbox="allow-scripts allow-pointer-lock" title="${escapeHtml(app.title||'oyun')}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+    inner.innerHTML=`<div style="color:#8E90A8;font-family:monospace;padding:48px;text-align:center;width:100%;">⏳</div>`;
+    fetch(app.fileUrl).then(r=>r.text()).then(html=>{
+      const iframe=document.createElement("iframe");
+      iframe.setAttribute("sandbox","allow-scripts allow-pointer-lock");
+      iframe.setAttribute("allow","autoplay; fullscreen");
+      iframe.setAttribute("allowfullscreen","");
+      iframe.setAttribute("title", app.title||"oyun");
+      iframe.srcdoc=withBase(html, app.fileUrl);
+      inner.innerHTML=""; inner.appendChild(iframe);
+    }).catch(()=>{
+      inner.innerHTML=`<iframe src="${safeUrl(app.fileUrl)}" sandbox="allow-scripts allow-pointer-lock" title="${escapeHtml(app.title||'oyun')}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+    });
   } else if(app && app.fileUrl){
     // TEK DOSYA: içeriği çekip srcdoc ile enjekte et.
     // Böylece Supabase içeriği hangi content-type ile sunarsa sunsun oyun ÇALIŞIR (kod olarak görünmez).
