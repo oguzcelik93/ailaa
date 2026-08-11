@@ -195,6 +195,10 @@
   .slot-art .cv{position:absolute; inset:0; background-image:var(--cv); background-size:contain; background-repeat:no-repeat; background-position:center; z-index:1;}
   .slot-art::after{content:""; position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);}
   .slot-tag{position:absolute; top:10px; left:10px; z-index:2; font-family:var(--fm); font-size:.58rem; letter-spacing:.16em; text-transform:uppercase; background:rgba(0,0,0,.55); border:1px solid var(--line-hi); padding:4px 9px; border-radius:3px; color:var(--cyan);}
+  .slot-upd{position:absolute; left:10px; bottom:10px; z-index:3; font-family:var(--fm); font-size:.58rem;
+    letter-spacing:.06em; text-transform:uppercase; font-weight:700; color:#04170D;
+    background:linear-gradient(180deg,#7EE3AC,#43BF7F); padding:4px 9px; border-radius:100px;
+    box-shadow:0 0 14px rgba(76,217,123,.5);}
   .slot-info{padding:14px 15px 15px; border-top:1px solid var(--line);}
   .slot-info h4{font-family:var(--fd); font-size:1.02rem; text-transform:uppercase; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .slot-info .m{display:flex; justify-content:space-between; font-family:var(--fm); font-size:.7rem; color:var(--dim); margin-top:6px;}
@@ -493,7 +497,7 @@ var I18N = {
     gal_desc:"Topluluğun yüklediği gerçek projeler — hepsi tarayıcıda, tek dokunuşla.",
     gal_empty:"Mağaza yeni açıldı. İlk projeyi sen yükle.",
     gal_cta:"tüm mağazayı gez ▸",
-    cat_game:"oyun", cat_tool:"araç", free:"ücretsiz",
+    cat_game:"oyun", cat_tool:"araç", free:"ücretsiz", updated_badge:"güncellendi",
     cta_title:"Sıradaki proje sonuncu localhost olsun.", cta_desc:"Ücretsiz hesap aç, projeni yükle, dakikalar içinde yayında ol.",
     cta_b1:"▸ Projeni yükle", cta_b2:"mağazayı gez", cta_note:"ÜCRETSİZ · KREDİ KARTI YOK · JETON BİZDEN",
     foot_tag:"AI ile yaptığın projeye neon bir vitrin. Yükle, oynansın, istersen sat.",
@@ -523,7 +527,7 @@ var I18N = {
     gal_desc:"Real projects from the community — all in the browser, one tap away.",
     gal_empty:"The store just opened. Be the first to upload.",
     gal_cta:"browse the whole store ▸",
-    cat_game:"game", cat_tool:"tool", free:"free",
+    cat_game:"game", cat_tool:"tool", free:"free", updated_badge:"updated",
     cta_title:"Let the next project be your last localhost.", cta_desc:"Create a free account, upload your project, go live in minutes.",
     cta_b1:"▸ Upload your project", cta_b2:"browse the store", cta_note:"FREE · NO CREDIT CARD · COINS ON US",
     foot_tag:"A neon showcase for what you build with AI. Upload, get played, sell if you like.",
@@ -553,7 +557,7 @@ var I18N = {
     gal_desc:"Echte Projekte aus der Community — alles im Browser, ein Tipp entfernt.",
     gal_empty:"Der Shop ist neu. Lade als Erste:r etwas hoch.",
     gal_cta:"den ganzen Shop ▸",
-    cat_game:"Spiel", cat_tool:"Tool", free:"kostenlos",
+    cat_game:"Spiel", cat_tool:"Tool", free:"kostenlos", updated_badge:"aktualisiert",
     cta_title:"Das nächste Projekt sei dein letztes localhost.", cta_desc:"Kostenloses Konto, Projekt hochladen, in Minuten live.",
     cta_b1:"▸ Projekt hochladen", cta_b2:"Shop ansehen", cta_note:"KOSTENLOS · KEINE KREDITKARTE · MÜNZEN GEHEN AUF UNS",
     foot_tag:"Ein Neon-Schaufenster für das, was du mit KI baust. Hochladen, gespielt werden, verkaufen.",
@@ -688,7 +692,6 @@ function runCounter(el){
   var url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
   var configured = url && String(url).indexOf("BURAYA")<0 && key && String(key).indexOf("BURAYA")<0 && typeof supabase!=="undefined";
   var db = configured ? supabase.createClient(url,key) : null;
-  try{window.__ailaaDb=db}catch(e){}
 
   function buildAccountMenu(user, isAdminUser){
     var link=document.getElementById("loginLink"); if(!link || document.getElementById("acctMenu")) return;
@@ -742,7 +745,7 @@ function runCounter(el){
   var GRADS=["#2A0F45,#12071f","#0A2E2A,#051512","#3A1A0F,#170A05","#12103F,#080720"];
 
   db.from("projects")
-    .select("id,title,category,price,cover_url,plays,created_at")
+    .select("id,title,category,price,cover_url,plays,created_at,updated_at,version")
     .eq("status","approved").order("created_at",{ascending:false}).limit(60)
     .then(function(res){
       var rows=(res && res.data)||[];
@@ -757,12 +760,16 @@ function runCounter(el){
       var html = rows.slice(0,3).map(function(p,i){
         var isTool = p.category==="tool";
         var cv = p.cover_url ? safeUrl(p.cover_url) : "";
+        var ut = p.updated_at ? Date.parse(p.updated_at) : NaN;
+        var fresh = (p.version||1) > 1 && !isNaN(ut) && (Date.now()-ut) < 14*86400000;
         var artOpen = cv
           ? '<div class="slot-art has-cover" style="--cv:url(\''+cv+'\');"><span class="cv"></span>'
           : '<div class="slot-art" style="background:linear-gradient(135deg,'+GRADS[i%GRADS.length]+');">';
         var price=(p.price>0)?("$"+p.price):d.free;
         return '<a class="slot" href="/store?p=c'+p.id+'">'
-          + artOpen + '<span class="slot-tag">'+(isTool?d.cat_tool:d.cat_game)+'</span>'+(cv?'':(isTool?'🛠️':'🎮'))+'</div>'
+          + artOpen + '<span class="slot-tag">'+(isTool?d.cat_tool:d.cat_game)+'</span>'
+          + (fresh?'<span class="slot-upd">✨ '+(d.updated_badge||"güncellendi")+' · v'+(p.version||1)+'</span>':'')
+          + (cv?'':(isTool?'🛠️':'🎮'))+'</div>'
           + '<div class="slot-info"><h4>'+esc(p.title)+'</h4><div class="m"><span>▶ '+(p.plays||0)+'</span><span class="pr">'+price+'</span></div></div>'
           + '<div class="slot-coin">▶</div></a>';
       }).join("");

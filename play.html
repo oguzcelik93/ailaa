@@ -70,7 +70,7 @@
   if(!url || String(url).indexOf("BURAYA")>=0 || typeof supabase==="undefined"){ fail("Yapılandırma eksik."); return; }
   var db=supabase.createClient(url,key);
 
-  db.from("projects").select("id,title,file_url,status,preview_token").eq("id", id).maybeSingle().then(function(r){
+  db.from("projects").select("id,title,file_url,status,preview_token,bundle").eq("id", id).maybeSingle().then(function(r){
     var p=r && r.data;
     if(!p){ fail("Proje bulunamadı."); return; }
     var allowed = p.status==="approved" || (previewToken && p.preview_token && previewToken===p.preview_token);
@@ -78,6 +78,17 @@
     document.title="Ailaa — "+(p.title||"Oynat");
     document.getElementById("mark").href="https://ailaa.io/store?p="+p.id;
     if(p.status==="approved"){ try{ db.rpc("increment_plays",{ pid: p.id }).then(function(){},function(){}); }catch(e){} }
+    if(p.bundle){
+      // çok dosyalı paket: göreli yollar çalışsın diye doğrudan src
+      var bf=document.createElement("iframe");
+      bf.setAttribute("sandbox","allow-scripts allow-pointer-lock");
+      bf.setAttribute("allow","autoplay; fullscreen");
+      bf.setAttribute("allowfullscreen","");
+      bf.setAttribute("title", p.title||"oyun");
+      bf.src=p.file_url;
+      stage.innerHTML=""; stage.appendChild(bf);
+      return;
+    }
     fetch(p.file_url).then(function(res){ return res.text(); }).then(function(html){
       var f=document.createElement("iframe");
       f.setAttribute("sandbox","allow-scripts");

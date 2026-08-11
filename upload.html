@@ -247,12 +247,12 @@
       <div class="field">
         <label data-i18n="f_file">Dosya</label>
         <label class="file-drop" id="fileDrop">
-          <div class="fd-icon">📄</div>
-          <div class="fd-text" id="fdText" data-i18n="fd_text">Dokun ve HTML dosyanı seç</div>
+          <div class="fd-icon">📦</div>
+          <div class="fd-text" id="fdText" data-i18n="fd_text">Dokun ve .html ya da .zip dosyanı seç</div>
           <div class="fd-name" id="fdName"></div>
-          <input type="file" id="pFile" accept=".html,text/html">
+          <input type="file" id="pFile" accept=".html,.htm,.zip,text/html,application/zip">
         </label>
-        <div class="hint" data-i18n="file_hint">Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 50 MB.</div>
+        <div class="hint" data-i18n="file_hint">Tek dosya: .html · Çok dosyalı proje: .zip (içinde index.html olmalı). En fazla 50 MB.</div>
       </div>
 
       <div class="field">
@@ -312,6 +312,7 @@
 
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 const SUPABASE_URL = window.AILAA_SUPABASE_URL || "BURAYA_PROJE_URL";
 const SUPABASE_KEY = window.AILAA_SUPABASE_KEY || "BURAYA_PUBLISHABLE_KEY";
@@ -324,11 +325,11 @@ const I18N = {
     f_title:"Proje adı", ph_title:"Örn: Neon Kaçış",
     f_cat:"Kategori", cat_game:"Oyun", cat_tool:"Araç",
     f_price:"Fiyat (0 = ücretsiz)", f_desc:"Açıklama", ph_desc:"Projeni birkaç cümleyle anlat...",
-    f_file:"Dosya", fd_text:"Dokun ve HTML dosyanı seç",
-    file_hint:"Tek bir .html dosyası olmalı (tüm kod içinde). En fazla 50 MB.",
+    f_file:"Dosya", fd_text:"Dokun ve .html ya da .zip dosyanı seç",
+    file_hint:"Tek dosya: .html · Çok dosyalı proje: .zip (içinde index.html olmalı). En fazla 50 MB.",
     btn_publish:"Yayınla", footer:"ailaa © 2026",
     m_need_title:"Proje adı gerekli.", m_need_file:"Bir HTML dosyası seç.",
-    m_bad_type:"Sadece .html dosyası yükleyebilirsin.", m_too_big:"Dosyan {size} MB — şu anki sınır {max} MB. Bize hello@ailaa.io'dan yaz, birlikte çözelim.",
+    m_bad_type:"Sadece .html ya da .zip dosyası yükleyebilirsin.", m_too_big:"Dosyan {size} MB — şu anki sınır {max} MB. Bize hello@ailaa.io'dan yaz, birlikte çözelim.",
     m_uploading:"Yükleniyor...", m_saving:"Kaydediliyor...",
     m_success:"✅ Gönderildi! Moderasyon onayından sonra mağazada görünecek. ", m_view:"Mağazaya git",
     f_buyurl:"Satış linki (Shopier / Gumroad / Lemon Squeezy)", pwyw_text:"İstediğini öde: bu fiyat bir minimum, alıcı isterse daha fazla verebilsin.", buyurl_hint:"Ücretli projelerde ödeme, senin satış sayfanda tamamlanır. Ailaa alıcıyı bu linke yönlendirir.", m_need_buyurl:"Ücretli proje için geçerli bir satış linki (https://...) gerekli.",
@@ -338,7 +339,7 @@ const I18N = {
     mp_confirm:"Bu projeyi silmek istediğine emin misin?", mp_deleting:"Siliniyor...", mp_saving:"Kaydediliyor...",
     mp_updated:"Güncellendi ✓", mp_err:"İşlem başarısız, tekrar dene.",
     mp_e_title:"Başlık", mp_e_price:"Fiyat", mp_e_desc:"Açıklama",
-    rules_title:"Yükleme kuralları", agree_text:"Kuralları okudum ve kabul ediyorum.", m_softcap:"Hesap başına şu an en fazla {n} proje yükleyebilirsin. Daha fazlası için hello@ailaa.io'dan yaz.", m_need_agree:"Devam etmek için kuralları kabul et.",
+    rules_title:"Yükleme kuralları", agree_text:"Kuralları okudum ve kabul ediyorum.", m_zip_prog:"Paket yükleniyor… {d}/{n} dosya", m_zip_lib:"Paket açıcı yüklenemedi. Sayfayı yenileyip tekrar dene.", m_zip_bad:"Bu .zip dosyası okunamadı. Bozuk ya da şifreli olabilir.", m_zip_empty:"Zip boş görünüyor.", m_zip_many:"Zip içinde en fazla {n} dosya olabilir.", m_zip_noindex:"Zip içinde index.html bulunamadı. Ana dosyanın adı index.html olmalı.", m_zip_upfail:"Yüklenemedi: {f}", m_softcap:"Hesap başına şu an en fazla {n} proje yükleyebilirsin. Daha fazlası için hello@ailaa.io'dan yaz.", m_need_agree:"Devam etmek için kuralları kabul et.",
     f_cover:"Kapak görseli (isteğe bağlı)", cd_text:"Dokun ve bir kapak resmi seç", cover_hint:"PNG/JPG/WEBP. En fazla 2 MB. Boş bırakırsan renkli bir kart kullanılır.",
     rule1:"Zararlı, kötü amaçlı veya virüs içeren kod yükleme.", rule2:"Başkasının telifli içeriğini (karakter, marka, kod) izinsiz kullanma.", rule3:"Cinsel, şiddet içeren veya nefret söylemi barındıran içerik yasak.", rule4:"Yüklediğin içerikten sen sorumlusun.",
     m_err_upload:"Dosya yüklenemedi, tekrar dene.", m_err_save:"Kaydedilemedi, tekrar dene.",
@@ -351,8 +352,8 @@ const I18N = {
     f_title:"Project name", ph_title:"e.g. Neon Run",
     f_cat:"Category", cat_game:"Game", cat_tool:"Tool",
     f_price:"Price (0 = free)", f_desc:"Description", ph_desc:"Describe your project in a few sentences...",
-    f_file:"File", fd_text:"Tap to choose your HTML file",
-    file_hint:"Must be a single .html file (all code inside). Max 50 MB.",
+    f_file:"File", fd_text:"Tap to choose your .html or .zip file",
+    file_hint:"Single file: .html · Multi-file project: .zip (must contain index.html). Max 50 MB.",
     btn_publish:"Publish", footer:"ailaa © 2026",
     m_need_title:"Project name required.", m_need_file:"Choose an HTML file.",
     m_bad_type:"You can only upload a .html file.", m_too_big:"Your file is {size} MB — the current limit is {max} MB. Write to hello@ailaa.io and we will sort it out.",
@@ -365,7 +366,7 @@ const I18N = {
     mp_confirm:"Are you sure you want to delete this project?", mp_deleting:"Deleting...", mp_saving:"Saving...",
     mp_updated:"Updated ✓", mp_err:"Action failed, try again.",
     mp_e_title:"Title", mp_e_price:"Price", mp_e_desc:"Description",
-    rules_title:"Upload rules", agree_text:"I have read and accept the rules.", m_softcap:"You can upload up to {n} projects per account right now. Need more? Write to hello@ailaa.io.", m_need_agree:"Accept the rules to continue.",
+    rules_title:"Upload rules", agree_text:"I have read and accept the rules.", m_zip_prog:"Uploading package… {d}/{n} files", m_zip_lib:"Could not load the unzipper. Refresh and try again.", m_zip_bad:"This .zip could not be read. It may be corrupt or password protected.", m_zip_empty:"The zip looks empty.", m_zip_many:"A zip can contain at most {n} files.", m_zip_noindex:"No index.html found in the zip. Your main file must be named index.html.", m_zip_upfail:"Upload failed: {f}", m_softcap:"You can upload up to {n} projects per account right now. Need more? Write to hello@ailaa.io.", m_need_agree:"Accept the rules to continue.",
     f_cover:"Cover image (optional)", cd_text:"Tap to choose a cover image", cover_hint:"PNG/JPG/WEBP. Max 2 MB. If empty, a colored card is used.",
     rule1:"Do not upload harmful, malicious or virus code.", rule2:"Do not use others' copyrighted content (characters, brands, code) without permission.", rule3:"No sexual, violent or hateful content.", rule4:"You are responsible for what you upload.",
     m_err_upload:"Upload failed, try again.", m_err_save:"Could not save, try again.",
@@ -378,8 +379,8 @@ const I18N = {
     f_title:"Projektname", ph_title:"z.B. Neon Run",
     f_cat:"Kategorie", cat_game:"Spiel", cat_tool:"Tool",
     f_price:"Preis (0 = kostenlos)", f_desc:"Beschreibung", ph_desc:"Beschreibe dein Projekt in ein paar Sätzen...",
-    f_file:"Datei", fd_text:"Tippe, um deine HTML-Datei zu wählen",
-    file_hint:"Muss eine einzelne .html-Datei sein (gesamter Code enthalten). Max 50 MB.",
+    f_file:"Datei", fd_text:"Tippe, um deine .html- oder .zip-Datei zu wählen",
+    file_hint:"Einzeldatei: .html · Mehrdateiprojekt: .zip (muss index.html enthalten). Max 50 MB.",
     btn_publish:"Veröffentlichen", footer:"ailaa © 2026",
     m_need_title:"Projektname erforderlich.", m_need_file:"Wähle eine HTML-Datei.",
     m_bad_type:"Du kannst nur eine .html-Datei hochladen.", m_too_big:"Deine Datei ist {size} MB — das aktuelle Limit ist {max} MB. Schreib an hello@ailaa.io, wir finden eine Lösung.",
@@ -392,7 +393,7 @@ const I18N = {
     mp_confirm:"Möchtest du dieses Projekt wirklich löschen?", mp_deleting:"Wird gelöscht...", mp_saving:"Wird gespeichert...",
     mp_updated:"Aktualisiert ✓", mp_err:"Aktion fehlgeschlagen, versuche es erneut.",
     mp_e_title:"Titel", mp_e_price:"Preis", mp_e_desc:"Beschreibung",
-    rules_title:"Upload-Regeln", agree_text:"Ich habe die Regeln gelesen und akzeptiere sie.", m_softcap:"Du kannst aktuell bis zu {n} Projekte pro Konto hochladen. Mehr nötig? Schreib an hello@ailaa.io.", m_need_agree:"Akzeptiere die Regeln, um fortzufahren.",
+    rules_title:"Upload-Regeln", agree_text:"Ich habe die Regeln gelesen und akzeptiere sie.", m_zip_prog:"Paket wird hochgeladen… {d}/{n} Dateien", m_zip_lib:"Entpacker konnte nicht geladen werden. Seite neu laden.", m_zip_bad:"Diese .zip konnte nicht gelesen werden. Evtl. beschädigt oder passwortgeschützt.", m_zip_empty:"Die Zip scheint leer zu sein.", m_zip_many:"Eine Zip darf höchstens {n} Dateien enthalten.", m_zip_noindex:"Keine index.html in der Zip gefunden. Die Hauptdatei muss index.html heißen.", m_zip_upfail:"Fehlgeschlagen: {f}", m_softcap:"Du kannst aktuell bis zu {n} Projekte pro Konto hochladen. Mehr nötig? Schreib an hello@ailaa.io.", m_need_agree:"Akzeptiere die Regeln, um fortzufahren.",
     f_cover:"Titelbild (optional)", cd_text:"Tippe, um ein Titelbild zu wählen", cover_hint:"PNG/JPG/WEBP. Max 2 MB. Wenn leer, wird eine farbige Karte verwendet.",
     rule1:"Lade keinen schädlichen, bösartigen oder Virus-Code hoch.", rule2:"Verwende keine urheberrechtlich geschützten Inhalte anderer ohne Erlaubnis.", rule3:"Keine sexuellen, gewalttätigen oder hasserfüllten Inhalte.", rule4:"Du bist für deine Uploads verantwortlich.",
     m_err_upload:"Upload fehlgeschlagen, versuche es erneut.", m_err_save:"Speichern fehlgeschlagen, versuche es erneut.",
@@ -438,7 +439,7 @@ fileInput.addEventListener("change",()=>{
   selectedFile = fileInput.files[0] || null;
   const drop=document.getElementById("fileDrop");
   const name=document.getElementById("fdName");
-  if(selectedFile){ drop.classList.add("has-file"); name.textContent="✓ "+selectedFile.name; }
+  if(selectedFile){ drop.classList.add("has-file"); name.textContent=(isZip(selectedFile)?"📦 ":"✓ ")+selectedFile.name; }
   else { drop.classList.remove("has-file"); name.textContent=""; }
 });
 
@@ -523,7 +524,7 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
   if(price>0 && !/^https:\/\/.+\..+/.test(buyUrl)){ setMsg(t("m_need_buyurl"),"error"); return; }
   if(!selectedFile){ setMsg(t("m_need_file"),"error"); return; }
   if(!document.getElementById("agree").checked){ setMsg(t("m_need_agree"),"error"); return; }
-  if(!/\.html?$/i.test(selectedFile.name)){ setMsg(t("m_bad_type"),"error"); return; }
+  if(!/\.(html?|zip)$/i.test(selectedFile.name)){ setMsg(t("m_bad_type"),"error"); return; }
   var SOFTCAP = 8;   // yeni hesaplar için yumuşak sınır (spam/kötüye kullanım freni)
   try{
     const cc = await db.from("projects").select("id",{count:"exact",head:true}).eq("user_id", currentUser.id);
@@ -541,12 +542,19 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
   const btn=document.getElementById("submitBtn");
   btn.disabled=true; setMsg(t("m_uploading"),"info");
   try{
-    const path = currentUser.id + "/" + Date.now() + "_" + slugify(title) + ".html";
-    const up = await db.storage.from("games").upload(path, selectedFile, { contentType:"text/html", upsert:false });
-    if(up.error){ setMsg(t("m_err_upload"),"error"); btn.disabled=false; return; }
-
-    const pub = db.storage.from("games").getPublicUrl(path);
-    const fileUrl = pub.data.publicUrl;
+    let fileUrl, isBundle=false;
+    if(isZip(selectedFile)){
+      const res = await uploadBundle(selectedFile, title, function(d,n){
+        setMsg(t("m_zip_prog").replace("{d}",d).replace("{n}",n), "info");
+      });
+      if(res.error){ setMsg(res.error,"error"); btn.disabled=false; return; }
+      fileUrl = res.url; isBundle = true;
+    } else {
+      const path = currentUser.id + "/" + Date.now() + "_" + slugify(title) + ".html";
+      const up = await db.storage.from("games").upload(path, selectedFile, { contentType:"text/html", upsert:false });
+      if(up.error){ setMsg(t("m_err_upload"),"error"); btn.disabled=false; return; }
+      fileUrl = db.storage.from("games").getPublicUrl(path).data.publicUrl;
+    }
 
     // kapak görseli (varsa) yükle
     let coverUrl = null;
@@ -571,7 +579,7 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
     setMsg(t("m_saving"),"info");
     const ins = await db.from("projects").insert({
       user_id: currentUser.id, title, description: desc, category, price,
-      file_url: fileUrl, cover_url: coverUrl, buy_url: (price>0 ? buyUrl : null), pwyw: (price>0 && document.getElementById("pPwyw").checked), status: "pending"
+      file_url: fileUrl, bundle: isBundle, cover_url: coverUrl, buy_url: (price>0 ? buyUrl : null), pwyw: (price>0 && document.getElementById("pPwyw").checked), status: "pending"
     });
     if(ins.error){ setMsg(t("m_err_save"),"error"); btn.disabled=false; return; }
 
@@ -598,6 +606,83 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
 
 
 
+
+
+/* ═══════════ ZIP PAKET DESTEĞİ ═══════════
+   Tek .html yerine, birden çok dosyadan oluşan projeler (index.html + css/js/görsel)
+   .zip olarak yüklenebilir. Paket açılır, dosyalar klasör yapısı korunarak depoya
+   yüklenir; oyun index.html adresinden çalıştırılır, göreli yollar bozulmaz. */
+var BUNDLE_MAX_FILES = 300;
+
+function isZip(f){ return !!f && /\.zip$/i.test(f.name); }
+
+var MIME = {
+  html:"text/html", htm:"text/html", css:"text/css", js:"text/javascript", mjs:"text/javascript",
+  json:"application/json", svg:"image/svg+xml", png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg",
+  gif:"image/gif", webp:"image/webp", ico:"image/x-icon", bmp:"image/bmp",
+  mp3:"audio/mpeg", ogg:"audio/ogg", wav:"audio/wav", m4a:"audio/mp4",
+  mp4:"video/mp4", webm:"video/webm",
+  woff:"font/woff", woff2:"font/woff2", ttf:"font/ttf", otf:"font/otf",
+  txt:"text/plain", xml:"application/xml", wasm:"application/wasm", map:"application/json",
+  glb:"model/gltf-binary", gltf:"model/gltf+json", csv:"text/csv", webmanifest:"application/manifest+json"
+};
+function mimeOf(name){ return MIME[(name.split(".").pop()||"").toLowerCase()] || "application/octet-stream"; }
+
+/* zip içinde güvenli olmayan / gereksiz yolları ele */
+function skipPath(p){
+  return !p || p.indexOf("..") >= 0 || p.charAt(0) === "/" ||
+         p.indexOf("__MACOSX/") === 0 || /(^|\/)\.DS_Store$/.test(p) ||
+         /(^|\/)Thumbs\.db$/i.test(p) || /(^|\/)\._/.test(p);
+}
+
+/* index.html'i bul; tek bir üst klasöre sarılmışsa o klasörü kök kabul et */
+function findRoot(paths){
+  var idx = paths.filter(function(p){ return /(^|\/)index\.html?$/i.test(p); })
+                 .sort(function(a,b){ return a.split("/").length - b.split("/").length; });
+  if(idx.length) { var d=idx[0].lastIndexOf("/"); return d<0 ? "" : idx[0].slice(0,d+1); }
+  /* index yoksa: tek bir html varsa onu giriş kabul et */
+  var htmls = paths.filter(function(p){ return /\.html?$/i.test(p); });
+  if(htmls.length === 1){ var d2=htmls[0].lastIndexOf("/"); return d2<0 ? "" : htmls[0].slice(0,d2+1); }
+  return null;
+}
+
+/* paketi aç, depoya yükle, index.html'in herkese açık adresini döndür */
+async function uploadBundle(zipFile, title, onProgress){
+  if(typeof JSZip === "undefined") return { error: t("m_zip_lib") };
+  var zip;
+  try{ zip = await JSZip.loadAsync(zipFile); }catch(e){ return { error: t("m_zip_bad") }; }
+
+  var all = [];
+  zip.forEach(function(rel, entry){ if(!entry.dir && !skipPath(rel)) all.push(rel); });
+  if(!all.length) return { error: t("m_zip_empty") };
+  if(all.length > BUNDLE_MAX_FILES) return { error: t("m_zip_many").replace("{n}", BUNDLE_MAX_FILES) };
+
+  var root = findRoot(all);
+  if(root === null) return { error: t("m_zip_noindex") };
+
+  var files = all.filter(function(p){ return p.indexOf(root) === 0 && p.length > root.length; });
+  if(!files.length) return { error: t("m_zip_noindex") };
+
+  var base = currentUser.id + "/b" + Date.now() + "_" + slugify(title) + "/";
+  var entryUrl = null, done = 0;
+
+  for(var i=0; i<files.length; i++){
+    var full = files[i];
+    var rel  = full.slice(root.length);
+    var blob = await zip.file(full).async("blob");
+    var up = await db.storage.from("games").upload(base + rel, blob, {
+      contentType: mimeOf(rel), upsert: false
+    });
+    if(up.error) return { error: t("m_zip_upfail").replace("{f}", rel) };
+    if(/^index\.html?$/i.test(rel) || (!entryUrl && files.length===1 && /\.html?$/i.test(rel))){
+      entryUrl = db.storage.from("games").getPublicUrl(base + rel).data.publicUrl;
+    }
+    done++;
+    if(onProgress) onProgress(done, files.length);
+  }
+  if(!entryUrl) return { error: t("m_zip_noindex") };
+  return { url: entryUrl, count: files.length };
+}
 
 /* ===== KAPAK: düzenlerken değiştir / kaldır ===== */
 function pickCover(p, row){
@@ -675,24 +760,33 @@ function copyPreviewLink(p, row){
 /* ===== YENİ SÜRÜM: eski dosya arşivlenir, yenisi yayına alınır ===== */
 function newVersion(p, row){
   const inp=document.createElement("input");
-  inp.type="file"; inp.accept=".html,text/html"; inp.style.display="none";
+  inp.type="file"; inp.accept=".html,.htm,.zip,text/html,application/zip"; inp.style.display="none";
   document.body.appendChild(inp);
   inp.addEventListener("change", async ()=>{
     const f=inp.files[0]; inp.remove();
     if(!f) return;
     const rowmsg=row.querySelector("[data-rowmsg]");
     const sizeMB=+(f.size/1024/1024).toFixed(1);
-    if(!/\.html?$/i.test(f.name)){ showRowMsg(rowmsg, t("m_bad_type"), "error"); return; }
+    if(!/\.(html?|zip)$/i.test(f.name)){ showRowMsg(rowmsg, t("m_bad_type"), "error"); return; }
     if(sizeMB>50){ showRowMsg(rowmsg, t("m_too_big").replace("{size}",sizeMB).replace("{max}",50), "error"); return; }
     showRowMsg(rowmsg, t("mp_uploading_ver"), "info");
     try{
-      const path = currentUser.id + "/" + Date.now() + "_" + slugify(p.title) + ".html";
-      const up = await db.storage.from("games").upload(path, f, { contentType:"text/html", upsert:false });
-      if(up.error){ showRowMsg(rowmsg, t("mp_err"), "error"); return; }
-      const newUrl = db.storage.from("games").getPublicUrl(path).data.publicUrl;
+      let newUrl, nowBundle=false;
+      if(isZip(f)){
+        const res = await uploadBundle(f, p.title, function(d,n){
+          showRowMsg(rowmsg, t("m_zip_prog").replace("{d}",d).replace("{n}",n), "info");
+        });
+        if(res.error){ showRowMsg(rowmsg, res.error, "error"); return; }
+        newUrl = res.url; nowBundle = true;
+      } else {
+        const path = currentUser.id + "/" + Date.now() + "_" + slugify(p.title) + ".html";
+        const up = await db.storage.from("games").upload(path, f, { contentType:"text/html", upsert:false });
+        if(up.error){ showRowMsg(rowmsg, t("mp_err"), "error"); return; }
+        newUrl = db.storage.from("games").getPublicUrl(path).data.publicUrl;
+      }
       // eski sürümü arşive al
       try{ await db.from("project_versions").insert({ project_id:p.id, file_url:p.file_url, version:(p.version||1) }); }catch(e){}
-      const upd = await db.from("projects").update({ file_url:newUrl, version:(p.version||1)+1, updated_at:new Date().toISOString() }).eq("id", p.id);
+      const upd = await db.from("projects").update({ file_url:newUrl, bundle:nowBundle, version:(p.version||1)+1, updated_at:new Date().toISOString() }).eq("id", p.id);
       if(upd.error){ showRowMsg(rowmsg, t("mp_err"), "error"); return; }
       if(sizeMB>25){ try{ await db.from("upload_attempts").insert({ user_id:currentUser.id, title:p.title+" (v"+((p.version||1)+1)+")", size_mb:sizeMB, reason:"big_file" }); }catch(e){} }
       showRowMsg(rowmsg, "✓ "+t("mp_ver_ok").replace("{v}", (p.version||1)+1), "success");

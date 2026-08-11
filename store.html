@@ -113,6 +113,10 @@
   .first-badge{position:absolute; top:9px; right:9px; font-family:'JetBrains Mono',monospace; font-size:0.62rem; background:var(--amber); color:#1a1508; padding:3px 8px; border-radius:100px; font-weight:700;}
   .cart.featured{border-color:rgba(245,169,59,0.5); box-shadow:0 0 0 1px rgba(245,169,59,0.25), 0 0 24px -6px rgba(245,169,59,0.4);}
   .cart.featured:hover{border-color:var(--amber);}
+  .cart-art .upd-badge{position:absolute; left:9px; bottom:9px; z-index:3; font-family:'JetBrains Mono',monospace;
+    font-size:0.6rem; letter-spacing:.06em; text-transform:uppercase; font-weight:700;
+    color:#04170D; background:linear-gradient(180deg,#7EE3AC,#43BF7F); padding:4px 9px; border-radius:100px;
+    box-shadow:0 0 14px rgba(76,217,123,.5), inset 0 1px 0 rgba(255,255,255,.4);}
   .cart-info{padding:14px;}
   .cart-info h4{font-family:'Space Grotesk',sans-serif; font-size:1rem; margin-bottom:4px;}
   .cart-info .meta{font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;}
@@ -421,7 +425,7 @@ const I18N = {
     add:"Kütüphaneme ekle", get:"Ücretsiz al", owned:"✓ Kütüphanende", owned_badge:"sahipsin",
     by:"geliştirici:",
     play:"▶ Oyna", first_badge:"★ İLK OYUN", playable_tag:"oynanabilir",
-    report:"Şikayet et", embed:"Gömme kodu", embed_copied:"Gömme kodu kopyalandı ✓ Blogona/siteye yapıştır.", embed_copy_manual:"Kodu kopyala:", bug_prompt:"Bir sorun mu var? Kısaca yaz — geliştiriciye iletelim:", bug_thanks:"Teşekkürler! Geliştiriciye iletildi 🐛", report_q:"Sebep nedir?", report_r1:"Uygunsuz içerik", report_r2:"Telif ihlali", report_r3:"Çalışmıyor", report_thanks:"Teşekkürler, bildirildi ✓", nav_admin:"🛡 Admin", admin_del:"Sil (admin)", admin_confirm:"Bu projeyi kalıcı silmek istediğine emin misin?", share:"📤 Paylaş", link_copied:"Bağlantı kopyalandı ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Yeni", random_btn:"🎲 Ne oynasam?", notif_empty:"Henüz bildirim yok.", continue_t:"↩ Kaldığın yerden devam et", votes:"oy", plays:"oynanma", vote_btn:"▲ Oyla", voted_btn:"▲ Oyladın", vote_login:"Oy vermek için giriş yap", comments_t:"Yorumlar", c_ph:"Bir yorum yaz...", c_send:"Gönder", c_login:"Yorum yazmak için giriş yap →", c_empty:"İlk yorumu sen yaz!", buy:"Satın Al", buy_note:"Ödeme, geliştiricinin güvenli satış sayfasında tamamlanır.", buy_soon:"Yakında satışta",
+    report:"Şikayet et", embed:"Gömme kodu", updated_badge:"güncellendi", embed_copied:"Gömme kodu kopyalandı ✓ Blogona/siteye yapıştır.", embed_copy_manual:"Kodu kopyala:", bug_prompt:"Bir sorun mu var? Kısaca yaz — geliştiriciye iletelim:", bug_thanks:"Teşekkürler! Geliştiriciye iletildi 🐛", report_q:"Sebep nedir?", report_r1:"Uygunsuz içerik", report_r2:"Telif ihlali", report_r3:"Çalışmıyor", report_thanks:"Teşekkürler, bildirildi ✓", nav_admin:"🛡 Admin", admin_del:"Sil (admin)", admin_confirm:"Bu projeyi kalıcı silmek istediğine emin misin?", share:"📤 Paylaş", link_copied:"Bağlantı kopyalandı ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Yeni", random_btn:"🎲 Ne oynasam?", notif_empty:"Henüz bildirim yok.", continue_t:"↩ Kaldığın yerden devam et", votes:"oy", plays:"oynanma", vote_btn:"▲ Oyla", voted_btn:"▲ Oyladın", vote_login:"Oy vermek için giriş yap", comments_t:"Yorumlar", c_ph:"Bir yorum yaz...", c_send:"Gönder", c_login:"Yorum yazmak için giriş yap →", c_empty:"İlk yorumu sen yaz!", buy:"Satın Al", buy_note:"Ödeme, geliştiricinin güvenli satış sayfasında tamamlanır.", buy_soon:"Yakında satışta",
     empty_search:"Aramanla eşleşen bir şey bulunamadı.",
     empty_lib:"Kütüphanen henüz boş. Keşfet'ten bir şeyler ekle!",
     publish_t:"Sen de yayınla", publish_p:"Kendi projeni buraya ekle →",
@@ -448,7 +452,7 @@ const I18N = {
     add:"Add to library", get:"Get for free", owned:"✓ In your library", owned_badge:"owned",
     by:"by:",
     play:"▶ Play", first_badge:"★ FIRST GAME", playable_tag:"playable",
-    report:"Report", embed:"Embed code", embed_copied:"Embed code copied ✓ Paste it on your blog or site.", embed_copy_manual:"Copy the code:", bug_prompt:"Something wrong? Describe it briefly — we will pass it to the developer:", bug_thanks:"Thanks! Sent to the developer 🐛", report_q:"What's the reason?", report_r1:"Inappropriate", report_r2:"Copyright", report_r3:"Doesn't work", report_thanks:"Thanks, reported ✓", nav_admin:"🛡 Admin", admin_del:"Delete (admin)", admin_confirm:"Permanently delete this project?", share:"📤 Share", link_copied:"Link copied ✓", sort_trend:"🔥 Trending", sort_new:"🆕 New", random_btn:"🎲 Surprise me", notif_empty:"No notifications yet.", continue_t:"↩ Continue where you left off", votes:"votes", plays:"plays", vote_btn:"▲ Upvote", voted_btn:"▲ Upvoted", vote_login:"Log in to vote", comments_t:"Comments", c_ph:"Write a comment...", c_send:"Send", c_login:"Log in to comment →", c_empty:"Be the first to comment!", buy:"Buy", buy_note:"Payment is completed on the creator's secure checkout page.", buy_soon:"Coming soon",
+    report:"Report", embed:"Embed code", updated_badge:"updated", embed_copied:"Embed code copied ✓ Paste it on your blog or site.", embed_copy_manual:"Copy the code:", bug_prompt:"Something wrong? Describe it briefly — we will pass it to the developer:", bug_thanks:"Thanks! Sent to the developer 🐛", report_q:"What's the reason?", report_r1:"Inappropriate", report_r2:"Copyright", report_r3:"Doesn't work", report_thanks:"Thanks, reported ✓", nav_admin:"🛡 Admin", admin_del:"Delete (admin)", admin_confirm:"Permanently delete this project?", share:"📤 Share", link_copied:"Link copied ✓", sort_trend:"🔥 Trending", sort_new:"🆕 New", random_btn:"🎲 Surprise me", notif_empty:"No notifications yet.", continue_t:"↩ Continue where you left off", votes:"votes", plays:"plays", vote_btn:"▲ Upvote", voted_btn:"▲ Upvoted", vote_login:"Log in to vote", comments_t:"Comments", c_ph:"Write a comment...", c_send:"Send", c_login:"Log in to comment →", c_empty:"Be the first to comment!", buy:"Buy", buy_note:"Payment is completed on the creator's secure checkout page.", buy_soon:"Coming soon",
     empty_search:"Nothing matches your search.",
     empty_lib:"Your library is empty. Add something from Discover!",
     publish_t:"Publish yours too", publish_p:"Add your own project here →",
@@ -475,7 +479,7 @@ const I18N = {
     add:"Zur Bibliothek", get:"Kostenlos holen", owned:"✓ In deiner Bibliothek", owned_badge:"im Besitz",
     by:"von:",
     play:"▶ Spielen", first_badge:"★ ERSTES SPIEL", playable_tag:"spielbar",
-    report:"Melden", embed:"Einbetten", embed_copied:"Embed-Code kopiert ✓ Füge ihn auf deiner Seite ein.", embed_copy_manual:"Code kopieren:", bug_prompt:"Ein Problem? Beschreibe es kurz — wir leiten es weiter:", bug_thanks:"Danke! An den Entwickler gesendet 🐛", report_q:"Was ist der Grund?", report_r1:"Unangemessen", report_r2:"Urheberrecht", report_r3:"Funktioniert nicht", report_thanks:"Danke, gemeldet ✓", nav_admin:"🛡 Admin", admin_del:"Löschen (admin)", admin_confirm:"Dieses Projekt dauerhaft löschen?", share:"📤 Teilen", link_copied:"Link kopiert ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Neu", random_btn:"🎲 Überrasch mich", notif_empty:"Noch keine Benachrichtigungen.", continue_t:"↩ Weiterspielen", votes:"Stimmen", plays:"Spiele", vote_btn:"▲ Voten", voted_btn:"▲ Gevotet", vote_login:"Zum Voten einloggen", comments_t:"Kommentare", c_ph:"Kommentar schreiben...", c_send:"Senden", c_login:"Zum Kommentieren einloggen →", c_empty:"Schreib den ersten Kommentar!", buy:"Kaufen", buy_note:"Die Zahlung erfolgt auf der sicheren Verkaufsseite des Entwicklers.", buy_soon:"Bald erhältlich",
+    report:"Melden", embed:"Einbetten", updated_badge:"aktualisiert", embed_copied:"Embed-Code kopiert ✓ Füge ihn auf deiner Seite ein.", embed_copy_manual:"Code kopieren:", bug_prompt:"Ein Problem? Beschreibe es kurz — wir leiten es weiter:", bug_thanks:"Danke! An den Entwickler gesendet 🐛", report_q:"Was ist der Grund?", report_r1:"Unangemessen", report_r2:"Urheberrecht", report_r3:"Funktioniert nicht", report_thanks:"Danke, gemeldet ✓", nav_admin:"🛡 Admin", admin_del:"Löschen (admin)", admin_confirm:"Dieses Projekt dauerhaft löschen?", share:"📤 Teilen", link_copied:"Link kopiert ✓", sort_trend:"🔥 Trend", sort_new:"🆕 Neu", random_btn:"🎲 Überrasch mich", notif_empty:"Noch keine Benachrichtigungen.", continue_t:"↩ Weiterspielen", votes:"Stimmen", plays:"Spiele", vote_btn:"▲ Voten", voted_btn:"▲ Gevotet", vote_login:"Zum Voten einloggen", comments_t:"Kommentare", c_ph:"Kommentar schreiben...", c_send:"Senden", c_login:"Zum Kommentieren einloggen →", c_empty:"Schreib den ersten Kommentar!", buy:"Kaufen", buy_note:"Die Zahlung erfolgt auf der sicheren Verkaufsseite des Entwicklers.", buy_soon:"Bald erhältlich",
     empty_search:"Nichts passt zu deiner Suche.",
     empty_lib:"Deine Bibliothek ist leer. Füge etwas aus Entdecken hinzu!",
     publish_t:"Veröffentliche auch deins", publish_p:"Füge dein eigenes Projekt hinzu →",
@@ -570,7 +574,7 @@ async function fetchCommunity(){
   try{
     const db = dbClient || (roClient = roClient || supabase.createClient(url,key));
     const { data, error } = await db.from("projects")
-      .select("id,title,description,category,price,file_url,cover_url,created_at,plays,status,buy_url,user_id,featured,version")
+      .select("id,title,description,category,price,file_url,cover_url,created_at,updated_at,plays,status,buy_url,user_id,featured,version,bundle")
       .eq("status","approved")
       .order("created_at",{ascending:false}).limit(60);
     if(error||!data) return;
@@ -602,10 +606,25 @@ async function fetchCommunity(){
       icon:(p.category==="tool"?"🛠️":"🎮"),
       price:p.price||0, dev:namesMap[p.user_id]||"topluluk", devUser:namesMap[p.user_id]||null,
       playable:true, createdAt:p.created_at, buyUrl:p.buy_url||null,
-      fileUrl:p.file_url, cover:p.cover_url||null, featured:!!p.featured, version:p.version||1, title:p.title||"", desc:p.description||""
+      fileUrl:p.file_url, bundle:!!p.bundle, cover:p.cover_url||null, featured:!!p.featured, version:p.version||1, updatedAt:p.updated_at||null, title:p.title||"", desc:p.description||""
     }));
     render();
   }catch(e){}
+}
+
+
+/* ===== GÜNCELLENDİ ROZETİ =====
+   Sürümü 1'den büyük VE son 14 gün içinde güncellenmiş projeler taze sayılır. */
+var FRESH_DAYS = 14;
+function isFreshUpdate(a){
+  if(!a || !a.updatedAt || (a.version||1) <= 1) return false;
+  var t = Date.parse(a.updatedAt);
+  if(isNaN(t)) return false;
+  return (Date.now() - t) < FRESH_DAYS*86400000;
+}
+function updatedLabel(a){
+  var d=I18N[currentLang];
+  return (d.updated_badge||"güncellendi")+" · v"+(a.version||1);
 }
 
 function statFor(a){
@@ -676,6 +695,7 @@ function render(){
       <div class="cart-art" style="${artStyle}">
         <span class="cat-tag">${a.playable?'▶ '+catLabel:catLabel}</span>
         ${a.first?`<span class="first-badge">${dict.first_badge}</span>`:`<span class="owned-badge">${dict.owned_badge}</span>`}
+        ${isFreshUpdate(a)?`<span class="upd-badge">✨ ${escapeHtml(updatedLabel(a))}</span>`:''}
         ${a.cover ? '' : cardIconHtml(a)}
       </div>
       <div class="cart-info">
@@ -962,8 +982,13 @@ function launchGame(app){
   if(bugBtn) bugBtn.style.display = CURRENT_PLAY ? "flex" : "none";
   document.body.style.overflow="hidden";
 
-  if(app && app.fileUrl){
-    // KULLANICI İÇERİĞİ: dosyayı çekip srcdoc ile enjekte et.
+  if(app && app.fileUrl && app.bundle){
+    // ÇOK DOSYALI PAKET: doğrudan src ile aç ki göreli yollar (css/js/görsel) çözülsün.
+    // Depo farklı bir alan adı olduğu için içerik zaten yalıtılmış kalır.
+    if(bar) bar.textContent="▶ "+(app.title||"oyun");
+    inner.innerHTML=`<iframe src="${safeUrl(app.fileUrl)}" sandbox="allow-scripts allow-pointer-lock" title="${escapeHtml(app.title||'oyun')}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+  } else if(app && app.fileUrl){
+    // TEK DOSYA: içeriği çekip srcdoc ile enjekte et.
     // Böylece Supabase içeriği hangi content-type ile sunarsa sunsun oyun ÇALIŞIR (kod olarak görünmez).
     if(bar) bar.textContent="▶ "+(app.title||"oyun");
     inner.innerHTML=`<div style="color:#8E90A8;font-family:monospace;padding:48px;text-align:center;width:100%;">⏳</div>`;
@@ -1215,7 +1240,7 @@ detectLang();
   try{
     const url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
     if(url && !url.includes("BURAYA") && key && !key.includes("BURAYA") && typeof supabase!=="undefined"){
-      dbClient = supabase.createClient(url, key); try{window.__ailaaDb=dbClient}catch(e){}
+      dbClient = supabase.createClient(url, key);
       const { data } = await dbClient.auth.getSession();
       if(data.session && data.session.user){
         currentUser = data.session.user;
