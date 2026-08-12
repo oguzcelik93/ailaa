@@ -1,0 +1,4 @@
+# Ailaa — güzel oyun adresleri
+# ailaa.io/oyun/<slug>  →  oyun sayfası (slug'ı JS adresten okur)
+/oyun/*    /oyun.html    200
+/play/*    /oyun.html    200

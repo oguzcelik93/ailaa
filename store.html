@@ -574,7 +574,7 @@ async function fetchCommunity(){
   try{
     const db = dbClient || (roClient = roClient || supabase.createClient(url,key));
     const { data, error } = await db.from("projects")
-      .select("id,title,description,category,price,file_url,cover_url,created_at,updated_at,plays,status,buy_url,user_id,featured,version,bundle")
+      .select("id,title,description,category,price,file_url,cover_url,created_at,updated_at,plays,status,buy_url,user_id,featured,version,bundle,slug")
       .eq("status","approved")
       .order("created_at",{ascending:false}).limit(60);
     if(error||!data) return;
@@ -606,7 +606,7 @@ async function fetchCommunity(){
       icon:(p.category==="tool"?"🛠️":"🎮"),
       price:p.price||0, dev:namesMap[p.user_id]||"topluluk", devUser:namesMap[p.user_id]||null,
       playable:true, createdAt:p.created_at, buyUrl:p.buy_url||null,
-      fileUrl:p.file_url, bundle:!!p.bundle, cover:p.cover_url||null, featured:!!p.featured, version:p.version||1, updatedAt:p.updated_at||null, title:p.title||"", desc:p.description||""
+      fileUrl:p.file_url, bundle:!!p.bundle, slug:p.slug||null, cover:p.cover_url||null, featured:!!p.featured, version:p.version||1, updatedAt:p.updated_at||null, title:p.title||"", desc:p.description||""
     }));
     render();
   }catch(e){}
@@ -708,7 +708,6 @@ function render(){
       <div class="cart-art" style="${artStyle}">
         <span class="cat-tag">${a.playable?'▶ '+catLabel:catLabel}</span>
         ${a.first?`<span class="first-badge">${dict.first_badge}</span>`:`<span class="owned-badge">${dict.owned_badge}</span>`}
-        ${isFreshUpdate(a)?`<span class="upd-badge">✨ ${escapeHtml(updatedLabel(a))}</span>`:''}
         ${a.cover ? '' : cardIconHtml(a)}
       </div>
       <div class="cart-info">
@@ -797,7 +796,7 @@ function openModal(id){
 
   document.getElementById("modalClose").addEventListener("click",closeModal);
   document.getElementById("shareProjBtn").addEventListener("click",()=>shareProject(a, info));
-  if(a.playable){ document.getElementById("playBtn").addEventListener("click",()=>launchGame(a)); }
+  if(a.playable){ document.getElementById("playBtn").addEventListener("click",()=>openGamePage(a)); }
   if(a.community){
     const vb=document.getElementById("voteBtn");
     if(vb) vb.addEventListener("click",()=>toggleVote(a, vb));
@@ -970,6 +969,19 @@ async function adminDelete(app){
 }
 
 /* Oyunu güvenli çerçevede (sandbox) aç */
+
+/* Oyunu kendi tam sayfasında aç: /oyun?g=<slug>  (NEONDROME → /game) */
+function gameHref(a){
+  if(!a) return "/store";
+  if(!a.community) return "/game?lang="+currentLang;          // bizim oyun kendi sayfasında
+  return "/oyun?g=" + encodeURIComponent(a.slug || "") + (a.slug ? "" : "&p="+a.pid);
+}
+function openGamePage(a){
+  var href=gameHref(a);
+  if(a && a.community && !a.slug) href="/oyun?p="+a.pid;      // slug'ı olmayan eski projeler
+  location.href=href;
+}
+
 function launchGame(app){
   // oynanma sayacı (topluluk projeleri)
   if(app && app.pid){

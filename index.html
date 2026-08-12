@@ -745,7 +745,7 @@ function runCounter(el){
   var GRADS=["#2A0F45,#12071f","#0A2E2A,#051512","#3A1A0F,#170A05","#12103F,#080720"];
 
   db.from("projects")
-    .select("id,title,category,price,cover_url,plays,created_at,updated_at,version")
+    .select("id,title,category,price,cover_url,plays,created_at,version,slug")
     .eq("status","approved").order("created_at",{ascending:false}).limit(60)
     .then(function(res){
       var rows=(res && res.data)||[];
@@ -760,15 +760,13 @@ function runCounter(el){
       var html = rows.slice(0,3).map(function(p,i){
         var isTool = p.category==="tool";
         var cv = p.cover_url ? safeUrl(p.cover_url) : "";
-        var ut = p.updated_at ? Date.parse(p.updated_at) : NaN;
-        var fresh = (p.version||1) > 1 && !isNaN(ut) && (Date.now()-ut) < 14*86400000;
         var artOpen = cv
           ? '<div class="slot-art has-cover" style="--cv:url(\''+cv+'\');"><span class="cv"></span>'
           : '<div class="slot-art" style="background:linear-gradient(135deg,'+GRADS[i%GRADS.length]+');">';
         var price=(p.price>0)?("$"+p.price):d.free;
-        return '<a class="slot" href="/store?p=c'+p.id+'">'
+        var href = p.slug ? ('/oyun?g='+encodeURIComponent(p.slug)) : ('/oyun?p='+p.id);
+        return '<a class="slot" href="'+href+'">'
           + artOpen + '<span class="slot-tag">'+(isTool?d.cat_tool:d.cat_game)+'</span>'
-          + (fresh?'<span class="slot-upd">✨ '+(d.updated_badge||"güncellendi")+' · v'+(p.version||1)+'</span>':'')
           + (cv?'':(isTool?'🛠️':'🎮'))+'</div>'
           + '<div class="slot-info"><h4>'+esc(p.title)+'</h4><div class="m"><span>▶ '+(p.plays||0)+'</span><span class="pr">'+price+'</span></div></div>'
           + '<div class="slot-coin">▶</div></a>';

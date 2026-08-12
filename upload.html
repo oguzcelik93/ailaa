@@ -512,6 +512,26 @@ function makeAutoCover(title, cat){
   });
 }
 
+
+/* URL adresi için okunabilir slug (Türkçe harfler çevrilir) */
+function urlSlug(s){
+  var map={"ç":"c","ğ":"g","ı":"i","İ":"i","ö":"o","ş":"s","ü":"u","Ç":"c","Ğ":"g","Ö":"o","Ş":"s","Ü":"u","â":"a","î":"i","û":"u"};
+  return String(s||"proje").split("").map(function(c){ return map[c]!==undefined?map[c]:c; }).join("")
+    .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48) || "proje";
+}
+/* aynı slug varsa -2, -3 … ekle */
+async function uniqueSlug(base){
+  var slug=base;
+  for(var i=2;i<60;i++){
+    try{
+      var r=await db.from("projects").select("id",{count:"exact",head:true}).eq("slug",slug);
+      if(!r.count) return slug;
+    }catch(e){ return slug; }
+    slug = base+"-"+i;
+  }
+  return base+"-"+Date.now();
+}
+
 function slugify(s){ return (s||"file").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40) || "file"; }
 
 // fiyat > 0 ise satış linki alanını göster
@@ -584,8 +604,9 @@ document.getElementById("submitBtn").addEventListener("click", async ()=>{
     }
 
     setMsg(t("m_saving"),"info");
+    const projSlug = await uniqueSlug(urlSlug(title));
     const ins = await db.from("projects").insert({
-      user_id: currentUser.id, title, description: desc, category, price,
+      user_id: currentUser.id, title, description: desc, category, price, slug: projSlug,
       file_url: fileUrl, bundle: isBundle, cover_url: coverUrl, buy_url: (price>0 ? buyUrl : null), pwyw: (price>0 && document.getElementById("pPwyw").checked), status: "pending"
     });
     if(ins.error){ setMsg(t("m_err_save"),"error"); btn.disabled=false; return; }

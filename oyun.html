@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ailaa — Oyna</title>
+<meta name="theme-color" content="#050308">
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ailaa">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#050308; --panel:#0E0816; --panel-2:#150C22;
+    --line:#241338; --line-hi:#3A2158;
+    --txt:#F2EDFA; --dim:#9A8FB8; --dim-2:#5E5378;
+    --pink:#FF2E88; --cyan:#21F0D6; --violet:#B44CFF; --amber:#FFB347;
+    --fd:'Space Grotesk',sans-serif; --fm:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;background:var(--void);color:var(--txt);
+    font-family:var(--fd),system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+
+  /* ── üst çubuk ── */
+  #bar{position:fixed;top:0;left:0;right:0;height:52px;z-index:20;display:flex;align-items:center;gap:10px;
+    padding:0 10px 0 12px;background:rgba(10,6,16,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));}
+  #bar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+    background:linear-gradient(90deg,transparent,var(--pink),var(--violet),var(--cyan),transparent);opacity:.8;}
+  .bk{flex:none;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;
+    border:1px solid var(--line-hi);background:var(--panel-2);color:var(--dim);font-size:16px;cursor:pointer;
+    transition:.15s;font-family:var(--fm);}
+  .bk:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 16px rgba(33,240,214,.28);}
+  .bk:active{transform:translateY(2px);}
+  #meta{flex:1;min-width:0;}
+  #gTitle{font-family:var(--fd);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.02em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
+  #gSub{font-family:var(--fm);font-size:10px;color:var(--dim-2);letter-spacing:.08em;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+  #gSub .v{color:var(--cyan);}
+  .tools{flex:none;display:flex;gap:7px;}
+
+  /* ── sahne ── */
+  #stage{position:fixed;top:calc(52px + env(safe-area-inset-top));left:0;right:0;bottom:0;background:#000;}
+  #stage iframe{width:100%;height:100%;border:0;display:block;}
+  .state{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;padding:28px;text-align:center;}
+  .state .ic{font-size:34px;}
+  .state .msg{font-family:var(--fm);font-size:13px;color:var(--dim);max-width:34ch;line-height:1.7;}
+  .state .cta{margin-top:6px;font-family:var(--fm);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:#14020b;background:linear-gradient(180deg,#ff6aa9,var(--pink));padding:12px 20px;border-radius:5px;
+    border:none;cursor:pointer;font-weight:700;box-shadow:0 0 18px rgba(255,46,136,.5);}
+  .spin{width:30px;height:30px;border-radius:50%;border:3px solid var(--line-hi);border-top-color:var(--cyan);
+    animation:sp .8s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+
+  #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(12px);z-index:40;
+    font-family:var(--fm);font-size:12px;color:var(--cyan);background:var(--panel-2);
+    border:1px solid var(--cyan);border-radius:9px;padding:10px 16px;opacity:0;pointer-events:none;
+    transition:.25s;box-shadow:0 0 22px rgba(33,240,214,.25);max-width:88vw;text-align:center;}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:420px){ #gTitle{font-size:13.5px;} .bk{width:35px;height:35px;font-size:15px;} .tools{gap:5px;} }
+  @media (prefers-reduced-motion:reduce){ .spin{animation:none;} }
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <a class="bk" id="btnBack" href="/store" aria-label="Geri" title="Mağazaya dön">←</a>
+  <div id="meta">
+    <div id="gTitle">…</div>
+    <div id="gSub"></div>
+  </div>
+  <div class="tools">
+    <button class="bk" id="btnBug" aria-label="Hata bildir" title="Hata bildir" style="display:none;">🐛</button>
+    <button class="bk" id="btnShare" aria-label="Paylaş" title="Paylaş">🔗</button>
+    <button class="bk" id="btnFs" aria-label="Tam ekran" title="Tam ekran">⛶</button>
+  </div>
+</div>
+
+<div id="stage">
+  <div class="state"><div class="spin"></div><div class="msg">Yükleniyor…</div></div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  /* ---------- dil ---------- */
+  var L = {
+    tr:{ loading:"Yükleniyor…", notfound:"Bu proje bulunamadı.", notlive:"Bu proje şu an yayında değil.",
+         pending:"Bu proje henüz onay bekliyor. Sahibiysen erken erişim linkiyle açabilirsin.",
+         failed:"Proje yüklenemedi. Bağlantını kontrol edip tekrar dene.", retry:"Tekrar dene",
+         back:"Mağazaya dön", copied:"Bağlantı kopyalandı ✓", bugq:"Bir sorun mu var? Kısaca yaz — geliştiriciye iletelim:",
+         bugthx:"Teşekkürler! Geliştiriciye iletildi 🐛", fserr:"Tam ekran açılamadı." },
+    en:{ loading:"Loading…", notfound:"This project was not found.", notlive:"This project is not live right now.",
+         pending:"This project is awaiting approval. If it's yours, open it with the preview link.",
+         failed:"Could not load the project. Check your connection and try again.", retry:"Try again",
+         back:"Back to store", copied:"Link copied ✓", bugq:"Something wrong? Describe it briefly — we'll pass it on:",
+         bugthx:"Thanks! Sent to the developer 🐛", fserr:"Could not enter fullscreen." },
+    de:{ loading:"Wird geladen…", notfound:"Dieses Projekt wurde nicht gefunden.", notlive:"Dieses Projekt ist gerade nicht live.",
+         pending:"Dieses Projekt wartet auf Freigabe. Wenn es deins ist, öffne es mit dem Vorschau-Link.",
+         failed:"Projekt konnte nicht geladen werden. Verbindung prüfen und erneut versuchen.", retry:"Erneut versuchen",
+         back:"Zum Shop", copied:"Link kopiert ✓", bugq:"Ein Problem? Beschreibe es kurz:",
+         bugthx:"Danke! An den Entwickler gesendet 🐛", fserr:"Vollbild nicht möglich." }
+  };
+  var lang="tr";
+  try{ var sv=localStorage.getItem("ailaa_lang"); if(sv&&L[sv]) lang=sv; }catch(e){}
+  if(!L[lang]) lang="tr";
+  var d=L[lang];
+  document.documentElement.lang=lang;
+  document.getElementById("btnBack").setAttribute("title", d.back);
+
+  var stage=document.getElementById("stage");
+  var toastEl=document.getElementById("toast"), toastT=null;
+  function toast(t){
+    toastEl.textContent=t; toastEl.classList.add("on");
+    clearTimeout(toastT); toastT=setTimeout(function(){ toastEl.classList.remove("on"); }, 2600);
+  }
+  function showState(icon, msg, ctaLabel, ctaFn){
+    stage.innerHTML='<div class="state">'+(icon?'<div class="ic">'+icon+'</div>':'<div class="spin"></div>')+
+      '<div class="msg"></div></div>';
+    stage.querySelector(".msg").textContent=msg;
+    if(ctaLabel){
+      var b=document.createElement("button"); b.className="cta"; b.textContent=ctaLabel;
+      b.addEventListener("click", ctaFn); stage.querySelector(".state").appendChild(b);
+    }
+  }
+
+  /* ---------- adres çözümleme: /oyun?g=slug  ·  /oyun?p=id  ·  /<slug> ---------- */
+  var qs=new URLSearchParams(location.search);
+  var slug=qs.get("g");
+  var pid=qs.get("p");
+  var previewToken=qs.get("preview");
+  if(!slug && !pid){
+    /* güzel adres biçimi: /wrench-empire */
+    var seg=location.pathname.replace(/^\/+|\/+$/g,"").split("/").pop();
+    if(seg && seg!=="oyun" && seg!=="play") slug=decodeURIComponent(seg);
+  }
+  if(!slug && !pid){ showState("🎮", d.notfound, d.back, function(){ location.href="/store"; }); return; }
+
+  /* ---------- bağlantı ---------- */
+  var url=window.AILAA_SUPABASE_URL, key=window.AILAA_SUPABASE_KEY;
+  if(!url || String(url).indexOf("BURAYA")>=0 || typeof supabase==="undefined"){
+    showState("⚙️", "Yapılandırma eksik.", d.back, function(){ location.href="/store"; }); return;
+  }
+  var db=supabase.createClient(url,key);
+  var CUR=null, ME=null;
+
+  db.auth.getSession().then(function(r){ ME=(r&&r.data&&r.data.session)?r.data.session.user:null; }).catch(function(){});
+
+  /* göreli yollar paketin klasörüne çözülsün */
+  function withBase(html, entryUrl){
+    try{
+      var folder=String(entryUrl).replace(/[^/]*$/,"");
+      if(/<base\s/i.test(html)) return html;
+      var tag='<base href="'+folder.replace(/"/g,"&quot;")+'">';
+      if(/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function(m){ return m+tag; });
+      if(/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, function(m){ return m+"<head>"+tag+"</head>"; });
+      return tag+html;
+    }catch(e){ return html; }
+  }
+  function safeUrl(u){
+    try{ var x=new URL(String(u||""), location.origin);
+      if(x.protocol!=="http:"&&x.protocol!=="https:") return "";
+      return x.href.replace(/['"\\]/g,""); }catch(e){ return ""; }
+  }
+
+  function mount(p){
+    CUR=p;
+    document.getElementById("gTitle").textContent=p.title||"Oyun";
+    var sub=[];
+    if(p.dev) sub.push("@"+p.dev);
+    if((p.version||1)>1) sub.push("v"+p.version);
+    document.getElementById("gSub").innerHTML = sub.map(function(x,i){
+      return i===1 ? '<span class="v">'+x+'</span>' : x;
+    }).join(" · ");
+    document.title = (p.title||"Oyun") + " — Ailaa";
+    document.getElementById("btnBug").style.display="flex";
+
+    /* oynanma sayacı + geçmiş (yalnız yayındaysa) */
+    if(p.status==="approved"){
+      try{ db.rpc("increment_plays",{ pid:p.id }).then(function(){},function(){}); }catch(e){}
+      if(ME){ try{ db.from("play_history").insert({ user_id:ME.id, project_id:p.id }).then(function(){},function(){}); }catch(e){} }
+    }
+
+    showState(null, d.loading);
+    fetch(p.file_url).then(function(r){ return r.text(); }).then(function(html){
+      var f=document.createElement("iframe");
+      f.setAttribute("sandbox","allow-scripts allow-pointer-lock");
+      f.setAttribute("allow","autoplay; fullscreen; gamepad; accelerometer; gyroscope");
+      f.setAttribute("allowfullscreen","");
+      f.setAttribute("title", p.title||"oyun");
+      f.srcdoc = p.bundle ? withBase(html, p.file_url) : html;
+      stage.innerHTML=""; stage.appendChild(f);
+    }).catch(function(){
+      var u=safeUrl(p.file_url);
+      if(u){
+        stage.innerHTML='<iframe src="'+u+'" sandbox="allow-scripts allow-pointer-lock" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+      } else {
+        showState("⚠️", d.failed, d.retry, function(){ location.reload(); });
+      }
+    });
+  }
+
+  /* ---------- projeyi getir ---------- */
+  var q=db.from("projects").select("id,title,file_url,status,preview_token,bundle,version,user_id,slug");
+  q = pid ? q.eq("id", pid) : q.eq("slug", slug);
+  q.maybeSingle().then(function(r){
+    var p=r&&r.data;
+    if(!p){ showState("🎮", d.notfound, d.back, function(){ location.href="/store"; }); return; }
+    var allowed = p.status==="approved" || (previewToken && p.preview_token && previewToken===p.preview_token);
+    if(!allowed){
+      showState("⏳", p.status==="pending" ? d.pending : d.notlive, d.back, function(){ location.href="/store"; });
+      return;
+    }
+    /* geliştirici adını al (varsa) */
+    db.from("profiles").select("username").eq("id", p.user_id).maybeSingle().then(function(pr){
+      if(pr&&pr.data&&pr.data.username) p.dev=pr.data.username;
+      mount(p);
+    }).catch(function(){ mount(p); });
+  }).catch(function(){
+    showState("⚠️", d.failed, d.retry, function(){ location.reload(); });
+  });
+
+  /* ---------- araçlar ---------- */
+  document.getElementById("btnFs").addEventListener("click", function(){
+    var el=document.documentElement;
+    try{
+      if(document.fullscreenElement||document.webkitFullscreenElement){
+        (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+      } else {
+        var fn=el.requestFullscreen||el.webkitRequestFullscreen;
+        if(fn) fn.call(el); else toast(d.fserr);
+      }
+    }catch(e){ toast(d.fserr); }
+  });
+
+  document.getElementById("btnShare").addEventListener("click", function(){
+    var link=location.origin+"/oyun?g="+encodeURIComponent(CUR&&CUR.slug ? CUR.slug : (slug||pid||""));
+    if(navigator.share){
+      navigator.share({ title:(CUR&&CUR.title)||"Ailaa", url:link }).catch(function(){});
+      return;
+    }
+    try{
+      navigator.clipboard.writeText(link).then(function(){ toast(d.copied); }, function(){ window.prompt("", link); });
+    }catch(e){ window.prompt("", link); }
+  });
+
+  document.getElementById("btnBug").addEventListener("click", function(){
+    if(!CUR) return;
+    var m=window.prompt(d.bugq, ""); if(m===null) return;
+    m=(m||"").trim(); if(!m) return;
+    try{
+      db.from("feedback").insert({ project_id:CUR.id, message:m.slice(0,600), reporter: ME?ME.id:null })
+        .then(function(){ toast(d.bugthx); }, function(){ toast(d.bugthx); });
+    }catch(e){ toast(d.bugthx); }
+  });
+})();
+</script>
+</body>
+</html>
