@@ -1,0 +1,44 @@
+{
+  "name": "RustCheck — İkinci el araç kontrolü",
+  "short_name": "RustCheck",
+  "description": "İlanı yapıştır, aracı kontrol et, dolandırıcılığı önceden gör. Ustaya götürmeden önceki ilk süzgeç.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "./?src=pwa",
+  "scope": "./",
+  "id": "rustcheck",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "categories": ["utilities", "shopping", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "İlanı ara",
+      "short_name": "İlan ara",
+      "url": "./?screen=guard",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Yeni kontrol",
+      "short_name": "Kontrol",
+      "url": "./?screen=check",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
