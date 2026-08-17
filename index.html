@@ -764,8 +764,11 @@ function runCounter(el){
           ? '<div class="slot-art has-cover" style="--cv:url(\''+cv+'\');"><span class="cv"></span>'
           : '<div class="slot-art" style="background:linear-gradient(135deg,'+GRADS[i%GRADS.length]+');">';
         var price=(p.price>0)?("$"+p.price):d.free;
-        var href = p.slug ? ('/oyun?g='+encodeURIComponent(p.slug)) : ('/oyun?p='+p.id);
-        return '<a class="slot" href="'+href+'">'
+        var reg = window.AILAA_NATIVE_APPS || {};
+        var href = (p.slug && reg[p.slug]) ? reg[p.slug]
+                 : (p.slug ? ('/oyun?g='+encodeURIComponent(p.slug)) : ('/oyun?p='+p.id));
+        var newTab = !!(p.slug && reg[p.slug]);
+        return '<a class="slot" href="'+href+'"'+(newTab?' target="_blank" rel="noopener"':'')+'>'
           + artOpen + '<span class="slot-tag">'+(isTool?d.cat_tool:d.cat_game)+'</span>'
           + (cv?'':(isTool?'🛠️':'🎮'))+'</div>'
           + '<div class="slot-info"><h4>'+esc(p.title)+'</h4><div class="m"><span>▶ '+(p.plays||0)+'</span><span class="pr">'+price+'</span></div></div>'

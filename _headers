@@ -1,0 +1,18 @@
+# Ailaa — sunucu başlıkları
+
+# Sitede barındırılan uygulama: çerçeve engelleyen başlıklar KALDIRILIR
+/rustcheck/*
+  ! X-Frame-Options
+  ! Content-Security-Policy
+
+# Service worker klasör kapsamıyla sınırlı çalışsın
+/rustcheck/sw.js
+  Content-Type: text/javascript; charset=utf-8
+  Service-Worker-Allowed: /rustcheck/
+  Cache-Control: no-cache
+
+/rustcheck/manifest.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+
+/rustcheck/index.html
+  Cache-Control: no-cache

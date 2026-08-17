@@ -156,17 +156,6 @@
 
   db.auth.getSession().then(function(r){ ME=(r&&r.data&&r.data.session)?r.data.session.user:null; }).catch(function(){});
 
-  /* göreli yollar paketin klasörüne çözülsün */
-  function withBase(html, entryUrl){
-    try{
-      var folder=String(entryUrl).replace(/[^/]*$/,"");
-      if(/<base\s/i.test(html)) return html;
-      var tag='<base href="'+folder.replace(/"/g,"&quot;")+'">';
-      if(/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function(m){ return m+tag; });
-      if(/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, function(m){ return m+"<head>"+tag+"</head>"; });
-      return tag+html;
-    }catch(e){ return html; }
-  }
   function safeUrl(u){
     try{ var x=new URL(String(u||""), location.origin);
       if(x.protocol!=="http:"&&x.protocol!=="https:") return "";
@@ -192,22 +181,25 @@
     }
 
     showState(null, d.loading);
-    fetch(p.file_url).then(function(r){ return r.text(); }).then(function(html){
-      var f=document.createElement("iframe");
-      f.setAttribute("sandbox","allow-scripts allow-pointer-lock");
-      f.setAttribute("allow","autoplay; fullscreen; gamepad; accelerometer; gyroscope");
-      f.setAttribute("allowfullscreen","");
-      f.setAttribute("title", p.title||"oyun");
-      f.srcdoc = p.bundle ? withBase(html, p.file_url) : html;
-      stage.innerHTML=""; stage.appendChild(f);
-    }).catch(function(){
-      var u=safeUrl(p.file_url);
-      if(u){
-        stage.innerHTML='<iframe src="'+u+'" sandbox="allow-scripts allow-pointer-lock" allow="autoplay; fullscreen" allowfullscreen></iframe>';
-      } else {
-        showState("⚠️", d.failed, d.retry, function(){ location.reload(); });
-      }
-    });
+    var u=safeUrl(p.file_url);
+    if(!u){ showState("⚠️", d.failed, d.retry, function(){ location.reload(); }); return; }
+
+    /* ÖNEMLİ — neden srcdoc değil de src:
+       srcdoc ile yüklenen içerik ailaa.io'nun KENDİ kökeninde çalışır. Oraya
+       allow-same-origin verirsek, yüklenen herhangi bir proje sitenin oturum
+       bilgisini (senin admin anahtarın dahil) okuyabilir. Dosyayı depo adresinden
+       src ile yüklediğimizde ise proje AYRI bir kökende çalışır; kendi
+       localStorage'ı olur, ama Ailaa hesabına erişemez. Böylece hem kayıt/pano/
+       paylaşım/indirme çalışır hem de güvenlik korunur. */
+    var f=document.createElement("iframe");
+    f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-orientation-lock allow-presentation");
+    f.setAttribute("allow","autoplay; fullscreen; clipboard-write; web-share; gamepad; accelerometer; gyroscope; magnetometer; midi; picture-in-picture; screen-wake-lock; xr-spatial-tracking");
+    f.setAttribute("allowfullscreen","");
+    f.setAttribute("referrerpolicy","no-referrer");
+    f.setAttribute("title", p.title||"oyun");
+    f.addEventListener("load", function(){ /* yüklendi */ });
+    f.src=u;
+    stage.innerHTML=""; stage.appendChild(f);
   }
 
   /* ---------- projeyi getir ---------- */
@@ -221,6 +213,10 @@
       showState("⏳", p.status==="pending" ? d.pending : d.notlive, d.back, function(){ location.href="/store"; });
       return;
     }
+    /* sitede kendi klasörüyle barındırılıyorsa oraya gönder (çerçevesiz, tam yetkili) */
+    var reg=window.AILAA_NATIVE_APPS||{};
+    if(p.slug && reg[p.slug]){ location.replace(reg[p.slug]); return; }
+
     /* geliştirici adını al (varsa) */
     db.from("profiles").select("username").eq("id", p.user_id).maybeSingle().then(function(pr){
       if(pr&&pr.data&&pr.data.username) p.dev=pr.data.username;

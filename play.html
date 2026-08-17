@@ -59,16 +59,6 @@
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-function withBase(html, entryUrl){
-  try{
-    var folder = String(entryUrl).replace(/[^/]*$/, "");
-    if(/<base\s/i.test(html)) return html;
-    var tag = '<base href="' + folder.replace(/"/g,"&quot;") + '">';
-    if(/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function(m){ return m + tag; });
-    if(/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, function(m){ return m + "<head>" + tag + "</head>"; });
-    return tag + html;
-  }catch(e){ return html; }
-}
 
 (function(){
   var stage=document.getElementById("stage"), msg=document.getElementById("msg");
@@ -89,16 +79,19 @@ function withBase(html, entryUrl){
     document.title="Ailaa — "+(p.title||"Oynat");
     document.getElementById("mark").href="https://ailaa.io/store?p="+p.id;
     if(p.status==="approved"){ try{ db.rpc("increment_plays",{ pid: p.id }).then(function(){},function(){}); }catch(e){} }
-    fetch(p.file_url).then(function(res){ return res.text(); }).then(function(html){
-      if(p.bundle) html = withBase(html, p.file_url);
-      var f=document.createElement("iframe");
-      f.setAttribute("sandbox","allow-scripts allow-pointer-lock");
-      f.setAttribute("allow","autoplay; fullscreen");
-      f.setAttribute("allowfullscreen","");
-      f.setAttribute("title", p.title||"oyun");
-      f.srcdoc=html;
-      stage.innerHTML=""; stage.appendChild(f);
-    }).catch(function(){ fail("Proje yüklenemedi."); });
+    var u=(function(){ try{ var x=new URL(String(p.file_url||""), location.origin);
+      return (x.protocol==="http:"||x.protocol==="https:") ? x.href.replace(/['"\\]/g,"") : ""; }catch(e){ return ""; } })();
+    if(!u){ fail("Proje yüklenemedi."); return; }
+    var f=document.createElement("iframe");
+    /* depo ayrı bir köken olduğu için allow-same-origin güvenli: uygulamanın kendi
+       localStorage'ı olur, ama ailaa.io oturumuna erişemez */
+    f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock");
+    f.setAttribute("allow","autoplay; fullscreen; clipboard-write; web-share; gamepad; accelerometer; gyroscope; picture-in-picture; screen-wake-lock");
+    f.setAttribute("allowfullscreen","");
+    f.setAttribute("referrerpolicy","no-referrer");
+    f.setAttribute("title", p.title||"oyun");
+    f.src=u;
+    stage.innerHTML=""; stage.appendChild(f);
   }).catch(function(){ fail("Proje bulunamadı."); });
 })();
 </script>
