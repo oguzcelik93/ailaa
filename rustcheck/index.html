@@ -11,15 +11,15 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RustCheck">
 <style>
-  html,body{height:100%;margin:0;background:#0f1115;color:#e8ecf2;
+  html,body{height:100%;margin:0;background:#FFFFFF;color:#1f2937;
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
   #boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center;}
-  .ring{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:#5ac8fa;animation:sp .8s linear infinite;}
+  .ring{width:34px;height:34px;border-radius:50%;border:3px solid rgba(31,41,55,.14);border-top-color:#2b6cb0;animation:sp .8s linear infinite;}
   @keyframes sp{to{transform:rotate(360deg)}}
-  .t{font-size:14px;color:#9aa4b2;line-height:1.7;max-width:34ch;}
+  .t{font-size:14px;color:#6b7280;line-height:1.7;max-width:34ch;}
   .b{margin-top:6px;font:600 13px/1 system-ui;background:#2b6cb0;color:#fff;border:none;
      border-radius:9px;padding:12px 20px;cursor:pointer;}
-  .b.alt{background:transparent;color:#9aa4b2;border:1px solid rgba(255,255,255,.18);}
+  .b.alt{background:transparent;color:#6b7280;border:1px solid rgba(31,41,55,.18);}
   .row{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;}
   @media (prefers-reduced-motion:reduce){ .ring{animation:none} }
 </style>
@@ -66,8 +66,26 @@
     a.onclick=function(){ location.href="/store"; }; acts.appendChild(a);
   }
 
+  var CK = "rustcheck_last_html_v1";
+  function cachePut(html, v){
+    try{ localStorage.setItem(CK, JSON.stringify({ v:v, t:Date.now(), h:html })); }catch(e){}
+  }
+  function cacheGet(){
+    try{ var o=JSON.parse(localStorage.getItem(CK)||"null"); return (o&&o.h)?o.h:null; }catch(e){ return null; }
+  }
+  /* Uygulamayı bu sayfaya yerleştir. Adres ailaa.io/rustcheck/ olarak kalır;
+     göreli dosyalar (icon-192.png, sw.js, manifest.webmanifest) bu klasörden
+     çözülür — bu yüzden <base> EKLEMİYORUZ. */
+  function run(html){
+    document.open();
+    document.write(html);
+    document.close();
+  }
+
   var url = window.AILAA_SUPABASE_URL, key = window.AILAA_SUPABASE_KEY;
   if(!url || String(url).indexOf("BURAYA") >= 0 || typeof supabase === "undefined"){
+    var last0 = cacheGet();
+    if(last0){ run(last0); return; }
     fail("Bağlantı ayarları okunamadı.", true); return;
   }
   var db = supabase.createClient(url, key);
@@ -108,17 +126,19 @@
           if(!/<html[\s>]/i.test(html) && !/<!DOCTYPE/i.test(html)){
             throw new Error("beklenmeyen içerik");
           }
-          /* aynı klasörden çözülsün diye <base> EKLEMİYORUZ — böylece
-             sw.js ve manifest ailaa.io/rustcheck/ altında kalır. */
-          document.open();
-          document.write(html);
-          document.close();
+          cachePut(html, hit.version || 1);
+          run(html);
         })
         .catch(function(){
+          /* ağ yoksa en son çalışan sürümü aç — uygulama çevrimdışı da açılsın */
+          var last = cacheGet();
+          if(last){ run(last); return; }
           fail("Uygulama dosyası yüklenemedi. Bağlantını kontrol edip tekrar dene.", true);
         });
     })
     .catch(function(){
+      var last = cacheGet();
+      if(last){ run(last); return; }
       fail("Mağazaya bağlanılamadı. Tekrar dene.", true);
     });
 })();
