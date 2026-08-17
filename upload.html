@@ -346,7 +346,7 @@ const I18N = {
     mp_confirm:"Bu projeyi silmek istediğine emin misin?", mp_deleting:"Siliniyor...", mp_saving:"Kaydediliyor...",
     mp_updated:"Güncellendi ✓", mp_err:"İşlem başarısız, tekrar dene.",
     mp_e_title:"Başlık", mp_e_price:"Fiyat", mp_e_desc:"Açıklama",
-    rules_title:"Yükleme kuralları", agree_text:"Kuralları okudum ve kabul ediyorum.", m_zip_prog:"Paket yükleniyor… {d}/{n} dosya", m_zip_lib:"Paket açıcı yüklenemedi. Sayfayı yenileyip tekrar dene.", m_zip_bad:"Bu .zip dosyası okunamadı. Bozuk ya da şifreli olabilir.", m_zip_empty:"Zip boş görünüyor.", m_zip_many:"Zip içinde en fazla {n} dosya olabilir.", m_zip_noindex:"Zip içinde index.html bulunamadı. Ana dosyanın adı index.html olmalı.", m_zip_upfail:"Yüklenemedi: {f}", m_softcap:"Hesap başına şu an en fazla {n} proje yükleyebilirsin. Daha fazlası için hello@ailaa.io'dan yaz.", m_need_agree:"Devam etmek için kuralları kabul et.",
+    rules_title:"Yükleme kuralları", agree_text:"Kuralları okudum ve kabul ediyorum.", m_zip_source:"Bu zip derlenmemiş kaynak kod içeriyor (React/Vue projesi). Tarayıcı bunu doğrudan çalıştıramaz. Projeni derle (npm run build), sonra oluşan dist klasörünün İÇİNİ zip'le: index.html en üstte olmalı.", m_zip_prog:"Paket yükleniyor… {d}/{n} dosya", m_zip_lib:"Paket açıcı yüklenemedi. Sayfayı yenileyip tekrar dene.", m_zip_bad:"Bu .zip dosyası okunamadı. Bozuk ya da şifreli olabilir.", m_zip_empty:"Zip boş görünüyor.", m_zip_many:"Zip içinde en fazla {n} dosya olabilir.", m_zip_noindex:"Zip içinde index.html bulunamadı. Ana dosyanın adı index.html olmalı.", m_zip_upfail:"Yüklenemedi: {f}", m_softcap:"Hesap başına şu an en fazla {n} proje yükleyebilirsin. Daha fazlası için hello@ailaa.io'dan yaz.", m_need_agree:"Devam etmek için kuralları kabul et.",
     f_cover:"Kapak görseli (isteğe bağlı)", cd_text:"Dokun ve bir kapak resmi seç", cover_hint:"PNG/JPG/WEBP. En fazla 2 MB. Boş bırakırsan renkli bir kart kullanılır.",
     rule1:"Zararlı, kötü amaçlı veya virüs içeren kod yükleme.", rule2:"Başkasının telifli içeriğini (karakter, marka, kod) izinsiz kullanma.", rule3:"Cinsel, şiddet içeren veya nefret söylemi barındıran içerik yasak.", rule4:"Yüklediğin içerikten sen sorumlusun.",
     m_err_upload:"Dosya yüklenemedi, tekrar dene.", m_err_save:"Kaydedilemedi, tekrar dene.",
@@ -373,7 +373,7 @@ const I18N = {
     mp_confirm:"Are you sure you want to delete this project?", mp_deleting:"Deleting...", mp_saving:"Saving...",
     mp_updated:"Updated ✓", mp_err:"Action failed, try again.",
     mp_e_title:"Title", mp_e_price:"Price", mp_e_desc:"Description",
-    rules_title:"Upload rules", agree_text:"I have read and accept the rules.", m_zip_prog:"Uploading package… {d}/{n} files", m_zip_lib:"Could not load the unzipper. Refresh and try again.", m_zip_bad:"This .zip could not be read. It may be corrupt or password protected.", m_zip_empty:"The zip looks empty.", m_zip_many:"A zip can contain at most {n} files.", m_zip_noindex:"No index.html found in the zip. Your main file must be named index.html.", m_zip_upfail:"Upload failed: {f}", m_softcap:"You can upload up to {n} projects per account right now. Need more? Write to hello@ailaa.io.", m_need_agree:"Accept the rules to continue.",
+    rules_title:"Upload rules", agree_text:"I have read and accept the rules.", m_zip_source:"This zip contains unbuilt source code (a React/Vue project). Browsers cannot run it directly. Build your project (npm run build), then zip the CONTENTS of the dist folder: index.html must be at the top.", m_zip_prog:"Uploading package… {d}/{n} files", m_zip_lib:"Could not load the unzipper. Refresh and try again.", m_zip_bad:"This .zip could not be read. It may be corrupt or password protected.", m_zip_empty:"The zip looks empty.", m_zip_many:"A zip can contain at most {n} files.", m_zip_noindex:"No index.html found in the zip. Your main file must be named index.html.", m_zip_upfail:"Upload failed: {f}", m_softcap:"You can upload up to {n} projects per account right now. Need more? Write to hello@ailaa.io.", m_need_agree:"Accept the rules to continue.",
     f_cover:"Cover image (optional)", cd_text:"Tap to choose a cover image", cover_hint:"PNG/JPG/WEBP. Max 2 MB. If empty, a colored card is used.",
     rule1:"Do not upload harmful, malicious or virus code.", rule2:"Do not use others' copyrighted content (characters, brands, code) without permission.", rule3:"No sexual, violent or hateful content.", rule4:"You are responsible for what you upload.",
     m_err_upload:"Upload failed, try again.", m_err_save:"Could not save, try again.",
@@ -400,7 +400,7 @@ const I18N = {
     mp_confirm:"Möchtest du dieses Projekt wirklich löschen?", mp_deleting:"Wird gelöscht...", mp_saving:"Wird gespeichert...",
     mp_updated:"Aktualisiert ✓", mp_err:"Aktion fehlgeschlagen, versuche es erneut.",
     mp_e_title:"Titel", mp_e_price:"Preis", mp_e_desc:"Beschreibung",
-    rules_title:"Upload-Regeln", agree_text:"Ich habe die Regeln gelesen und akzeptiere sie.", m_zip_prog:"Paket wird hochgeladen… {d}/{n} Dateien", m_zip_lib:"Entpacker konnte nicht geladen werden. Seite neu laden.", m_zip_bad:"Diese .zip konnte nicht gelesen werden. Evtl. beschädigt oder passwortgeschützt.", m_zip_empty:"Die Zip scheint leer zu sein.", m_zip_many:"Eine Zip darf höchstens {n} Dateien enthalten.", m_zip_noindex:"Keine index.html in der Zip gefunden. Die Hauptdatei muss index.html heißen.", m_zip_upfail:"Fehlgeschlagen: {f}", m_softcap:"Du kannst aktuell bis zu {n} Projekte pro Konto hochladen. Mehr nötig? Schreib an hello@ailaa.io.", m_need_agree:"Akzeptiere die Regeln, um fortzufahren.",
+    rules_title:"Upload-Regeln", agree_text:"Ich habe die Regeln gelesen und akzeptiere sie.", m_zip_source:"Diese Zip enthält nicht kompilierten Quellcode (React/Vue-Projekt). Browser können ihn nicht direkt ausführen. Baue dein Projekt (npm run build) und zippe den INHALT des dist-Ordners: index.html muss oben liegen.", m_zip_prog:"Paket wird hochgeladen… {d}/{n} Dateien", m_zip_lib:"Entpacker konnte nicht geladen werden. Seite neu laden.", m_zip_bad:"Diese .zip konnte nicht gelesen werden. Evtl. beschädigt oder passwortgeschützt.", m_zip_empty:"Die Zip scheint leer zu sein.", m_zip_many:"Eine Zip darf höchstens {n} Dateien enthalten.", m_zip_noindex:"Keine index.html in der Zip gefunden. Die Hauptdatei muss index.html heißen.", m_zip_upfail:"Fehlgeschlagen: {f}", m_softcap:"Du kannst aktuell bis zu {n} Projekte pro Konto hochladen. Mehr nötig? Schreib an hello@ailaa.io.", m_need_agree:"Akzeptiere die Regeln, um fortzufahren.",
     f_cover:"Titelbild (optional)", cd_text:"Tippe, um ein Titelbild zu wählen", cover_hint:"PNG/JPG/WEBP. Max 2 MB. Wenn leer, wird eine farbige Karte verwendet.",
     rule1:"Lade keinen schädlichen, bösartigen oder Virus-Code hoch.", rule2:"Verwende keine urheberrechtlich geschützten Inhalte anderer ohne Erlaubnis.", rule3:"Keine sexuellen, gewalttätigen oder hasserfüllten Inhalte.", rule4:"Du bist für deine Uploads verantwortlich.",
     m_err_upload:"Upload fehlgeschlagen, versuche es erneut.", m_err_save:"Speichern fehlgeschlagen, versuche es erneut.",
@@ -670,15 +670,29 @@ function skipPath(p){
          /(^|\/)Thumbs\.db$/i.test(p) || /(^|\/)\._/.test(p);
 }
 
-/* index.html'i bul; tek bir üst klasöre sarılmışsa o klasörü kök kabul et */
+/* index.html'i bul. Derlenmis cikti (dist/build/out) varsa ONU tercih et. */
 function findRoot(paths){
-  var idx = paths.filter(function(p){ return /(^|\/)index\.html?$/i.test(p); })
-                 .sort(function(a,b){ return a.split("/").length - b.split("/").length; });
-  if(idx.length) { var d=idx[0].lastIndexOf("/"); return d<0 ? "" : idx[0].slice(0,d+1); }
-  /* index yoksa: tek bir html varsa onu giriş kabul et */
+  var idx = paths.filter(function(p){ return /(^|\/)index\.html?$/i.test(p); });
+  if(idx.length){
+    var built = idx.filter(function(p){ return /(^|\/)(dist|build|out|_site)\//i.test(p); });
+    var pick = (built.length ? built : idx)
+      .sort(function(a,b){ return a.split("/").length - b.split("/").length; })[0];
+    var d = pick.lastIndexOf("/");
+    return d < 0 ? "" : pick.slice(0, d+1);
+  }
   var htmls = paths.filter(function(p){ return /\.html?$/i.test(p); });
   if(htmls.length === 1){ var d2=htmls[0].lastIndexOf("/"); return d2<0 ? "" : htmls[0].slice(0,d2+1); }
   return null;
+}
+
+/* Derlenmemis kaynak projesi mi? (React/Vue kaynagi tarayicida calismaz) */
+function looksLikeSource(entryHtml, paths){
+  if(entryHtml && /<script[^>]+src=["'][^"']*\.(tsx|jsx|ts)["']/i.test(entryHtml)) return true;
+  if(entryHtml && /<script[^>]+src=["']\/src\//i.test(entryHtml)) return true;
+  var hasPkg   = paths.some(function(p){ return /(^|\/)package\.json$/i.test(p); });
+  var hasSrc   = paths.some(function(p){ return /(^|\/)src\/.*\.(tsx|jsx|ts|vue|svelte)$/i.test(p); });
+  var hasBuilt = paths.some(function(p){ return /(^|\/)(dist|build|out)\/.*\.js$/i.test(p); });
+  return hasPkg && hasSrc && !hasBuilt;
 }
 
 /* paketi aç, depoya yükle, index.html'in herkese açık adresini döndür */
@@ -697,6 +711,13 @@ async function uploadBundle(zipFile, title, onProgress){
 
   var files = all.filter(function(p){ return p.indexOf(root) === 0 && p.length > root.length; });
   if(!files.length) return { error: t("m_zip_noindex") };
+
+  /* derlenmemis kaynak projesi ise yuklemeden once net uyari ver */
+  try{
+    var entryRel = files.filter(function(p){ return /(^|\/)index\.html?$/i.test(p.slice(root.length)); })[0];
+    var entryTxt = entryRel ? await zip.file(entryRel).async("string") : "";
+    if(looksLikeSource(entryTxt, all)) return { error: t("m_zip_source") };
+  }catch(e){}
 
   var base = currentUser.id + "/b" + Date.now() + "_" + slugify(title) + "/";
   var entryUrl = null, done = 0;
