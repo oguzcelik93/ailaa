@@ -30,3 +30,5 @@ window.AILAA_ADMIN_UID = "f8f1eaa0-b720-44f4-a993-2d919b6d57cc";
 window.AILAA_NATIVE_APPS = {
   "rustcheck": "/rustcheck/"
 };
+/* Not: eşleştirme esnektir — "rustcheck", "rust-check", "Rust Check" ve
+   sonuna id eklenmiş "rust-check-12" hepsi bu kayda denk gelir. */

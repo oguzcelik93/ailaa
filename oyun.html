@@ -45,7 +45,16 @@
   .tools{flex:none;display:flex;gap:7px;}
 
   /* ── sahne ── */
-  #stage{position:fixed;top:calc(52px + env(safe-area-inset-top));left:0;right:0;bottom:0;background:#000;}
+  #bar{transition:transform .3s ease;}
+  #bar.hid{transform:translateY(-100%);}
+  #peek{position:fixed;top:calc(6px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) translateY(-40px);
+    z-index:25;width:52px;height:22px;border-radius:0 0 12px 12px;border:1px solid var(--line-hi);border-top:none;
+    background:rgba(10,6,16,.92);color:var(--dim);font-size:11px;line-height:20px;text-align:center;cursor:pointer;
+    transition:transform .3s ease;opacity:.9;}
+  #peek.on{transform:translateX(-50%) translateY(0);}
+  #stage{position:fixed;top:calc(52px + env(safe-area-inset-top));left:0;right:0;bottom:0;background:#000;
+    transition:top .3s ease;}
+  body.nobar #stage{top:0;}
   #stage iframe{width:100%;height:100%;border:0;display:block;}
   .state{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:14px;padding:28px;text-align:center;}
@@ -83,6 +92,8 @@
   </div>
 </div>
 
+<div id="peek" title="Menü">▾</div>
+
 <div id="stage">
   <div class="state"><div class="spin"></div><div class="msg">Yükleniyor…</div></div>
 </div>
@@ -99,17 +110,17 @@
          pending:"Bu proje henüz onay bekliyor. Sahibiysen erken erişim linkiyle açabilirsin.",
          failed:"Proje yüklenemedi. Bağlantını kontrol edip tekrar dene.", retry:"Tekrar dene",
          back:"Mağazaya dön", copied:"Bağlantı kopyalandı ✓", bugq:"Bir sorun mu var? Kısaca yaz — geliştiriciye iletelim:",
-         bugthx:"Teşekkürler! Geliştiriciye iletildi 🐛", fserr:"Tam ekran açılamadı." },
+         bugthx:"Teşekkürler! Geliştiriciye iletildi 🐛", fserr:"Tam ekran açılamadı.", legacy:"Bu paket eski biçimde yüklenmiş. Bir kez \u201cYeni sürüm\u201d yükle, tam hızda ve kayıt destekli çalışsın." },
     en:{ loading:"Loading…", notfound:"This project was not found.", notlive:"This project is not live right now.",
          pending:"This project is awaiting approval. If it's yours, open it with the preview link.",
          failed:"Could not load the project. Check your connection and try again.", retry:"Try again",
          back:"Back to store", copied:"Link copied ✓", bugq:"Something wrong? Describe it briefly — we'll pass it on:",
-         bugthx:"Thanks! Sent to the developer 🐛", fserr:"Could not enter fullscreen." },
+         bugthx:"Thanks! Sent to the developer 🐛", fserr:"Could not enter fullscreen.", legacy:"This bundle was uploaded in the old format. Upload it once as a \u201cNew version\u201d for full speed and storage support." },
     de:{ loading:"Wird geladen…", notfound:"Dieses Projekt wurde nicht gefunden.", notlive:"Dieses Projekt ist gerade nicht live.",
          pending:"Dieses Projekt wartet auf Freigabe. Wenn es deins ist, öffne es mit dem Vorschau-Link.",
          failed:"Projekt konnte nicht geladen werden. Verbindung prüfen und erneut versuchen.", retry:"Erneut versuchen",
          back:"Zum Shop", copied:"Link kopiert ✓", bugq:"Ein Problem? Beschreibe es kurz:",
-         bugthx:"Danke! An den Entwickler gesendet 🐛", fserr:"Vollbild nicht möglich." }
+         bugthx:"Danke! An den Entwickler gesendet 🐛", fserr:"Vollbild nicht möglich.", legacy:"Dieses Paket wurde im alten Format hochgeladen. Lade es einmal als \u201eNeue Version\u201c hoch." }
   };
   var lang="tr";
   try{ var sv=localStorage.getItem("ailaa_lang"); if(sv&&L[sv]) lang=sv; }catch(e){}
@@ -156,10 +167,31 @@
 
   db.auth.getSession().then(function(r){ ME=(r&&r.data&&r.data.session)?r.data.session.user:null; }).catch(function(){});
 
+  /* Kayıttaki uygulama adıyla esnek eşleştirme:
+     "rustcheck" kaydı; "rust-check", "Rust Check", "rust-check-12" hepsini yakalar. */
+  function normKey(x){ return String(x||"").toLowerCase().replace(/[^a-z0-9]/g,""); }
+  function nativeFor(x){
+    var reg=window.AILAA_NATIVE_APPS||{}, n=normKey(x);
+    if(!n) return null;
+    var n2=n.replace(/\d+$/,"");                 // sondaki id'yi yok say
+    for(var k in reg){
+      var nk=normKey(k);
+      if(n===nk || n2===nk) return reg[k];
+    }
+    return null;
+  }
+
   function safeUrl(u){
     try{ var x=new URL(String(u||""), location.origin);
       if(x.protocol!=="http:"&&x.protocol!=="https:") return "";
       return x.href.replace(/['"\\]/g,""); }catch(e){ return ""; }
+  }
+
+
+  /* Eski MIME hatasıyla yüklenmiş paketler için sahibine kısa not */
+  function legacyNote(){
+    if(!CUR || !ME || CUR.user_id!==ME.id) return;
+    toast(d.legacy);
   }
 
   function mount(p){
@@ -191,15 +223,48 @@
        src ile yüklediğimizde ise proje AYRI bir kökende çalışır; kendi
        localStorage'ı olur, ama Ailaa hesabına erişemez. Böylece hem kayıt/pano/
        paylaşım/indirme çalışır hem de güvenlik korunur. */
-    var f=document.createElement("iframe");
-    f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-orientation-lock allow-presentation");
-    f.setAttribute("allow","autoplay; fullscreen; clipboard-write; web-share; gamepad; accelerometer; gyroscope; magnetometer; midi; picture-in-picture; screen-wake-lock; xr-spatial-tracking");
-    f.setAttribute("allowfullscreen","");
-    f.setAttribute("referrerpolicy","no-referrer");
-    f.setAttribute("title", p.title||"oyun");
-    f.addEventListener("load", function(){ /* yüklendi */ });
-    f.src=u;
-    stage.innerHTML=""; stage.appendChild(f);
+    function newFrame(sameOrigin){
+      var f=document.createElement("iframe");
+      f.setAttribute("sandbox", sameOrigin
+        ? "allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-orientation-lock allow-presentation"
+        : "allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock");
+      f.setAttribute("allow","autoplay; fullscreen; clipboard-write; web-share; gamepad; accelerometer; gyroscope; magnetometer; midi; picture-in-picture; screen-wake-lock; xr-spatial-tracking");
+      f.setAttribute("allowfullscreen","");
+      f.setAttribute("referrerpolicy","no-referrer");
+      f.setAttribute("title", p.title||"oyun");
+      return f;
+    }
+    function withBase(html, entryUrl){
+      try{
+        var folder=String(entryUrl).replace(/[^/]*$/,"");
+        if(/<base\s/i.test(html)) return html;
+        var tag='<base href="'+folder.replace(/"/g,"&quot;")+'">';
+        if(/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function(m){ return m+tag; });
+        if(/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, function(m){ return m+"<head>"+tag+"</head>"; });
+        return tag+html;
+      }catch(e){ return html; }
+    }
+
+    /* Depodaki dosyanın türü doğruysa src ile açarız (kendi localStorage'ı olur).
+       Tür bozuksa tarayıcı onu düz metin sanıp KOD olarak gösterirdi — o durumda
+       içeriği çekip gömerek yine de düzgün çalıştırırız. */
+    fetch(u).then(function(r){
+      var ct=(r.headers.get("content-type")||"").toLowerCase();
+      if(ct.indexOf("html")>=0){
+        var f=newFrame(true); f.src=u;
+        stage.innerHTML=""; stage.appendChild(f);
+        return;
+      }
+      return r.text().then(function(html){
+        var f=newFrame(false);
+        f.srcdoc = withBase(html, u);
+        stage.innerHTML=""; stage.appendChild(f);
+        legacyNote();
+      });
+    }).catch(function(){
+      var f=newFrame(true); f.src=u;
+      stage.innerHTML=""; stage.appendChild(f);
+    });
   }
 
   /* ---------- projeyi getir ---------- */
@@ -214,8 +279,8 @@
       return;
     }
     /* sitede kendi klasörüyle barındırılıyorsa oraya gönder (çerçevesiz, tam yetkili) */
-    var reg=window.AILAA_NATIVE_APPS||{};
-    if(p.slug && reg[p.slug]){ location.replace(reg[p.slug]); return; }
+    var nat = nativeFor(p.slug) || nativeFor(p.title);
+    if(nat){ location.replace(nat); return; }
 
     /* geliştirici adını al (varsa) */
     db.from("profiles").select("username").eq("id", p.user_id).maybeSingle().then(function(pr){
@@ -225,6 +290,19 @@
   }).catch(function(){
     showState("⚠️", d.failed, d.retry, function(){ location.reload(); });
   });
+
+
+  /* ---------- çubuk otomatik gizlenir: oyun tüm ekranı kaplasın ---------- */
+  (function(){
+    var bar=document.getElementById("bar"), peek=document.getElementById("peek"), tmr=null;
+    function hide(){ bar.classList.add("hid"); peek.classList.add("on"); document.body.classList.add("nobar"); }
+    function show(){ bar.classList.remove("hid"); peek.classList.remove("on"); document.body.classList.remove("nobar");
+      clearTimeout(tmr); tmr=setTimeout(hide, 4000); }
+    peek.addEventListener("click", show);
+    bar.addEventListener("click", function(){ clearTimeout(tmr); tmr=setTimeout(hide, 4000); });
+    document.addEventListener("keydown", function(e){ if(e.key==="Escape") show(); });
+    tmr=setTimeout(hide, 4000);
+  })();
 
   /* ---------- araçlar ---------- */
   document.getElementById("btnFs").addEventListener("click", function(){

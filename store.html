@@ -971,10 +971,17 @@ async function adminDelete(app){
 /* Oyunu güvenli çerçevede (sandbox) aç */
 
 /* Sitede kendi klasörüyle barındırılan uygulama mı? (config.js > AILAA_NATIVE_APPS) */
+function normKey(x){ return String(x||"").toLowerCase().replace(/[^a-z0-9]/g,""); }
 function nativePath(a){
   var reg = window.AILAA_NATIVE_APPS || {};
-  if(!a || !a.slug) return null;
-  return reg[a.slug] || null;
+  if(!a) return null;
+  var cands=[a.slug, a.title].filter(Boolean);
+  for(var c=0;c<cands.length;c++){
+    var n=normKey(cands[c]); if(!n) continue;
+    var n2=n.replace(/\d+$/,"");
+    for(var k in reg){ var nk=normKey(k); if(n===nk||n2===nk) return reg[k]; }
+  }
+  return null;
 }
 /* Uygulamayı kendi tam sayfasında aç */
 function gameHref(a){

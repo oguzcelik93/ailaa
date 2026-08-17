@@ -764,10 +764,19 @@ function runCounter(el){
           ? '<div class="slot-art has-cover" style="--cv:url(\''+cv+'\');"><span class="cv"></span>'
           : '<div class="slot-art" style="background:linear-gradient(135deg,'+GRADS[i%GRADS.length]+');">';
         var price=(p.price>0)?("$"+p.price):d.free;
-        var reg = window.AILAA_NATIVE_APPS || {};
-        var href = (p.slug && reg[p.slug]) ? reg[p.slug]
-                 : (p.slug ? ('/oyun?g='+encodeURIComponent(p.slug)) : ('/oyun?p='+p.id));
-        var newTab = !!(p.slug && reg[p.slug]);
+        var nat = (function(){
+          var reg=window.AILAA_NATIVE_APPS||{};
+          var nk=function(x){ return String(x||"").toLowerCase().replace(/[^a-z0-9]/g,""); };
+          var cands=[p.slug,p.title];
+          for(var c=0;c<cands.length;c++){
+            var n=nk(cands[c]); if(!n) continue;
+            var n2=n.replace(/\d+$/,"");
+            for(var k in reg){ var kk=nk(k); if(n===kk||n2===kk) return reg[k]; }
+          }
+          return null;
+        })();
+        var href = nat ? nat : (p.slug ? ('/oyun?g='+encodeURIComponent(p.slug)) : ('/oyun?p='+p.id));
+        var newTab = !!nat;
         return '<a class="slot" href="'+href+'"'+(newTab?' target="_blank" rel="noopener"':'')+'>'
           + artOpen + '<span class="slot-tag">'+(isTool?d.cat_tool:d.cat_game)+'</span>'
           + (cv?'':(isTool?'🛠️':'🎮'))+'</div>'
