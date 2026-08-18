@@ -1,11 +1,47 @@
 # Ailaa — sunucu başlıkları
+# NOT: Bu dosyada genel bir "her yolu index.html'e ver" (SPA fallback) kuralı YOKTUR.
+# _redirects yalnızca /oyun/* ve /play/* yollarını yönlendirir. /relia/ ve /rustcheck/
+# altındaki gerçek dosyalar olduğu gibi sunulur.
 
-# Sitede barındırılan uygulama: çerçeve engelleyen başlıklar KALDIRILIR
+# ── Sitede barındırılan uygulamalar: çerçeve engelleyen başlıklar KALDIRILIR ──
 /rustcheck/*
   ! X-Frame-Options
   ! Content-Security-Policy
 
+/relia/*
+  ! X-Frame-Options
+  ! Content-Security-Policy
+
+# ── Doğru içerik türleri ──
+/relia/*.html
+  Content-Type: text/html; charset=utf-8
+
+/relia/manifest.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+
+/relia/logo.svg
+  Content-Type: image/svg+xml; charset=utf-8
+
 # Service worker klasör kapsamıyla sınırlı çalışsın
+/relia/sw.js
+  Content-Type: text/javascript; charset=utf-8
+  Service-Worker-Allowed: /relia/
+  Cache-Control: no-cache
+
+/relia/index.html
+  Cache-Control: no-cache
+
+# Yasal sayfalar: Google Play başvurusunda bağlantı olarak kullanılıyor, taze kalsın
+/relia/privacy.html
+  Cache-Control: public, max-age=300
+/relia/terms.html
+  Cache-Control: public, max-age=300
+/relia/privacy-en.html
+  Cache-Control: public, max-age=300
+/relia/terms-en.html
+  Cache-Control: public, max-age=300
+
+# ── RustCheck ──
 /rustcheck/sw.js
   Content-Type: text/javascript; charset=utf-8
   Service-Worker-Allowed: /rustcheck/

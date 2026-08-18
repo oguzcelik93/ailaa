@@ -28,7 +28,9 @@ window.AILAA_ADMIN_UID = "f8f1eaa0-b720-44f4-a993-2d919b6d57cc";
    çerçeveli oynatıcıda kalmalı.
    ===================================================================== */
 window.AILAA_NATIVE_APPS = {
-  "rustcheck": "/rustcheck/"
+  "rustcheck": "/rustcheck/",
+  "relia": "/relia/",
+  "relia-app": "/relia/"
 };
 /* Not: eşleştirme esnektir — "rustcheck", "rust-check", "Rust Check" ve
    sonuna id eklenmiş "rust-check-12" hepsi bu kayda denk gelir. */
