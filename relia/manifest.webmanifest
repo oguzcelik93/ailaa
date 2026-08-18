@@ -1,0 +1,74 @@
+{
+  "name": "Relia — İkinci el araç kontrolü",
+  "short_name": "Relia",
+  "description": "İkinci el araç almadan önce kendi kontrolünü yap: 35 soruluk kontrol listesi, kronik arıza veritabanı, pas haritası ve ustaya verilecek liste.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "./?src=pwa",
+  "scope": "./",
+  "id": "relia",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "categories": [
+    "utilities",
+    "shopping",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "İlanı ara",
+      "short_name": "İlan ara",
+      "url": "./?screen=guard",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Yeni kontrol",
+      "short_name": "Kontrol",
+      "url": "./?screen=check",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "version": "1.0.0"
+}
