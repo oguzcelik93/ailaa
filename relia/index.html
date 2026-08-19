@@ -257,6 +257,17 @@ const CFG = {
   paywall: false,
   /* Ömür boyu lisans satış sayfası — Gumroad / Shopier / iyzico bağlantısı buraya */
   buyUrl: 'https://ailaa.io/relia/premium',
+  /* MAĞAZA SÜRÜMÜ: true iken uygulama içinden dışarıya satış bağlantısı verilmez.
+     Google Play, uygulama içinde kullanılan dijital içeriğin dışarıda satılmasını
+     yasaklar. Play/App Store için derlerken bunu true bırakın. */
+  store: true,
+  /* Ayarlarda görünen diller. Almanca içerik (sorular, yardım metinleri, motor
+     açıklamaları) henüz çevrilmedi; çeviri bitince buraya 2 eklenir. */
+  langs: [0, 1],
+  /* Topluluk özellikleri (ilan sorgulama + dolandırıcılık bildirimi) — şimdilik kapalı */
+  community: false,
+  /* Ödeme yolu: 'play' = mağaza içi satın alma köprüsü, 'code' = lisans kodu */
+  billing: 'play',
   /* İlan bağlantısından otomatik bilgi çekme — şimdilik kapalı, ileride açılacak */
   listingFetch: false
 };
@@ -277,12 +288,57 @@ function bumpUsage(){
   const u = usage();
   Store.set('usage', { d:u.today, dn:u.day+1, m:u.month_key, mn:u.month+1 });
 }
+function bonus(){ return Store.get('bonus') || 0; }
+function addBonus(n, why){
+  const b = Math.min(bonus() + n, 30);
+  Store.set('bonus', b);
+  toast(tf('bonusGot',{n:n}));
+}
 function canCheck(){
   if (isPro()) return true;
-  const u = usage();
-  if (u.day   >= LIMITS.daily)   return 'daily';
-  if (u.month >= LIMITS.monthly) return 'monthly';
+  const u = usage(), b = bonus();
+  if (u.day >= LIMITS.daily + b && u.month >= LIMITS.monthly) return 'monthly';
+  if (u.day >= LIMITS.daily + b) return 'daily';
+  if (u.month >= LIMITS.monthly + b) return 'monthly';
   return true;
+}
+/* Kart paylaşımı günde bir kez ek hak kazandırır */
+function rewardShare(){
+  if (isPro()) return;
+  const today = new Date().toISOString().slice(0,10);
+  if (Store.get('sharedOn') === today) return;
+  Store.set('sharedOn', today);
+  addBonus(1, 'share');
+}
+/* Davet bağlantısı: yeni cihaz açtığında iki tarafa da hak yazılır */
+function inviteLink(){
+  const base = location.origin + location.pathname;
+  return base + '?ref=' + encodeURIComponent(device());
+}
+async function claimReferral(){
+  const m = (location.search||'').match(/[?&]ref=([^&]+)/);
+  if (!m) return;
+  const ref = decodeURIComponent(m[1]);
+  try{ history.replaceState(null,'',location.pathname); }catch(e){}
+  if (!ref || ref === device() || Store.get('refUsed')) return;
+  Store.set('refUsed', true);
+  addBonus(3, 'invited');
+  try{
+    await fetch(CFG.url + '/rest/v1/rpc/rc_referral', { method:'POST',
+      headers:{ apikey:CFG.key, Authorization:'Bearer '+CFG.key, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_ref: ref, p_device: device() }) });
+  }catch(e){}
+}
+/* Açılışta bekleyen davet ödülleri toplanır */
+async function collectReferrals(){
+  if (isPro()) return;
+  try{
+    const res = await fetch(CFG.url + '/rest/v1/rpc/rc_referral_claim', { method:'POST',
+      headers:{ apikey:CFG.key, Authorization:'Bearer '+CFG.key, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_device: device() }) });
+    const n = await res.json();
+    if (typeof n === 'number' && n > 0) addBonus(n * 3, 'referral');
+  }catch(e){}
 }
 let DEV = false;
 let NETFAIL = false;
@@ -379,6 +435,20 @@ const S = {
   saved:['Garaja kaydedildi','Saved to your garage','In der Garage gespeichert'],
   savedUpd:['Garajdaki kayıt güncellendi','Garage entry updated'],
   savedAlready:['Garajda kayıtlı','Saved'],
+  askPrice:['İlan fiyatı (opsiyonel)','Asking price (optional)','Angebotspreis (optional)'],
+  askPriceP:['450.000','450,000','45.000'],
+  compareH:['Karşılaştır','Compare','Vergleichen'],
+  compareD:['Garajdan en fazla 3 araç seçin.','Pick up to 3 cars from your garage.','Wählen Sie bis zu 3 Fahrzeuge.'],
+  compareBtn:['Karşılaştır','Compare','Vergleichen'],
+  compareCard:['Karşılaştırma kartı','Comparison card','Vergleichskarte'],
+  compareBest:['Öne çıkan','Best of the three','Bester der drei'],
+  compareNone:['En az 2 araç seçin','Select at least 2 cars','Mindestens 2 Fahrzeuge wählen'],
+  compareScore:['Skor','Score','Wert'],
+  comparePrice:['Fiyat','Price','Preis'],
+  compareFlags:['Bulgu','Findings','Befunde'],
+  compareCrit:['Kritik','Critical','Kritisch'],
+  cmpSelect:['Karşılaştırmaya ekle','Add to compare','Zum Vergleich'],
+  cmpSelected:['Karşılaştırmada','In comparison','Im Vergleich'],
   noReport:['Önce kontrolü tamamlayın','Complete the check first','Zuerst die Prüfung abschließen'],
   resumeH:['Yarım kalan kontrole devam et','Resume unfinished check','Unterbrochene Prüfung fortsetzen'],
   resumeN:['soru yanıtlandı','answers'],
@@ -419,12 +489,21 @@ const S = {
   proF3:['Sınırsız garaj ve karşılaştırma','Unlimited garage and comparison','Unbegrenzte Garage und Vergleich'],
   proF4:['Tek seferlik ödeme, ömür boyu erişim','One-time payment, lifetime access','Einmalzahlung, lebenslanger Zugang'],
   proBuy:['Satın al','Buy','Kaufen'],
-  proHaveCode:['Kodum var','I have a code','Ich habe einen Code'],
+  proHaveCode:['Lisans kodu gir','Enter licence code','Lizenzcode eingeben'],
+  proStoreNote:['Premium erişim bir lisans kodu ile açılır. Kodunuz varsa aşağıdan girin.','Premium access is unlocked with a licence code. If you have one, enter it below.','Der Premium-Zugang wird mit einem Lizenzcode freigeschaltet. Geben Sie ihn unten ein.'],
   licH:['Lisans kodu','Licence code','Lizenzcode'],
   licD:['Satın alma sonrası e-posta ile gönderilen kodu girin. Kod tek cihazda kullanılır.','Enter the code sent to you by email after purchase. Each code activates one device.','Geben Sie den nach dem Kauf per E-Mail erhaltenen Code ein. Ein Code gilt für ein Gerät.'],
   licActivate:['Etkinleştir','Activate','Aktivieren'],
   licOk:['Premium etkinleştirildi','Premium activated','Premium aktiviert'],
   licBad:['Kod geçersiz veya daha önce kullanılmış.','The code is invalid or already used.','Der Code ist ungültig oder bereits verwendet.'],
+  billingNA:['Satın alma bu sürümde kullanılamıyor. Lisans kodunuz varsa girebilirsiniz.','Purchases are unavailable in this build. You can enter a licence code instead.','Käufe sind in dieser Version nicht verfügbar. Sie können einen Lizenzcode eingeben.'],
+  bonusGot:['+{n} kontrol hakkı kazandınız','You earned +{n} checks','+{n} Prüfungen erhalten'],
+  inviteBtn:['Arkadaşını davet et, hak kazan','Invite a friend, earn checks','Freunde einladen, Prüfungen erhalten'],
+  inviteH:['Arkadaşını davet et','Invite a friend','Freunde einladen'],
+  inviteD:['Bağlantınla gelen her kişi için ikinize de 3 kontrol hakkı eklenir.','You and your friend each get 3 extra checks for every person who joins through your link.','Für jede Person, die über Ihren Link kommt, erhalten Sie und Ihr Freund je 3 zusätzliche Prüfungen.'],
+  inviteShare:['Bağlantıyı paylaş','Share the link','Link teilen'],
+  inviteText:['İkinci el araç alacaksan önce bununla kontrol et:','Checking a used car? Run this first:','Gebrauchtwagen im Blick? Prüfe ihn zuerst hiermit:'],
+  planBonus:['+{n} ek hak','+{n} bonus checks','+{n} Bonusprüfungen'],
   legalH:['Gizlilik ve koşullar','Privacy and terms','Datenschutz und Bedingungen'],
   legalPrivacy:['Gizlilik politikası','Privacy policy'],
   legalTerms:['Kullanım koşulları','Terms of use'],
@@ -1129,7 +1208,7 @@ function saveSession(){
   try{
     Store.set('session', {
       v:1, at:Date.now(), screen:SCREEN, mode:state.mode,
-      brand:state.brand, model:state.model, pt:state.pt, dist:state.dist, year:state.year,
+      brand:state.brand, model:state.model, pt:state.pt, dist:state.dist, year:state.year, price:state.price,
       answers:state.answers, notes:state.notes, warned:state.warned, idx:state.idx,
       tab:state.tab, listing:{ site:state.listing.site, no:state.listing.no, url:state.listing.url||'' },
       region:REGION, lang:L, hasResult:!!state.result
@@ -1143,7 +1222,7 @@ function restoreSession(){
   REGION = d.region || REGION; L = [0,1,2].indexOf(d.lang)>-1 ? d.lang : L;
   state.mode = d.mode || 'full';
   state.brand = d.brand||''; state.model = d.model||''; state.pt = d.pt||'';
-  state.dist = d.dist||0; state.year = d.year||'';
+  state.dist = d.dist||0; state.year = d.year||''; state.price = d.price||0;
   state.answers = d.answers||{}; state.notes = d.notes||{}; state.warned = d.warned||{};
   state.idx = d.idx||0; state.tab = d.tab||'sum';
   state.listing = Object.assign({ site:'', no:'', url:'', reports:[] }, d.listing||{});
@@ -1248,11 +1327,11 @@ function renderWelcome(){
     </div>
 
     <div class="mt-7" style="border-top:2px solid #000">
-      <button id="wGuard" class="opt w-full text-left py-4 flex items-center gap-3">
+      ${CFG.community?`<button id="wGuard" class="opt w-full text-left py-4 flex items-center gap-3">
         <span style="width:8px;height:8px;background:#FF3000;flex:none"></span>
         <span class="flex-1" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${t('guardCta')}</span>
-        <i class="fa-solid fa-arrow-right text-[14px]"></i></button>
-      <button id="wGarage" class="opt w-full text-left py-4 flex items-center gap-3" style="border-top:2px solid #000">
+        <i class="fa-solid fa-arrow-right text-[14px]"></i></button>`:''}
+      <button id="wGarage" class="opt w-full text-left py-4 flex items-center gap-3" style="${CFG.community?'border-top:2px solid #000':''}">
         <span style="width:8px;height:8px;background:#000;flex:none"></span>
         <span class="flex-1" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${t('garageH')}</span>
         <span class="num text-[13px]" style="color:#767676">${state.garage.length||''}</span>
@@ -1302,7 +1381,7 @@ function renderWelcome(){
     try{ const w = window.open(u,'_blank'); if(!w) throw 0; }
     catch(e){ try{ window.top.location.href = u; }catch(e2){ location.href = u; } }
   };
-  $('wGuard').onclick=()=>goto('guard');
+  const wgu=$('wGuard'); if(wgu) wgu.onclick=()=>goto('guard');
 
   const wi=$('wInstall'); if(wi) wi.onclick=async()=>{
     if(!deferredInstall) return;
@@ -1374,10 +1453,14 @@ function renderVehicle(){
             <i class="fa-solid fa-chevron-down text-[13px]"></i></button>
         </div>
       </div>
+      <div>
+        <label class="block text-[10px] uppercase text-slate-500 mb-2">${t('askPrice')}</label>
+        <input id="inpPrice" type="tel" inputmode="numeric" value="${state.price?fmtN(state.price):''}" placeholder="${t('askPriceP')}" class="field num w-full rounded-xl px-4 py-3.5 text-[15px] font-semibold">
+      </div>
         </div>
       </div>
     </div>
-    <div class="glass rounded-2xl p-4 mt-4">
+${CFG.community?`    <div class="glass rounded-2xl p-4 mt-4">
       <label class="block text-[10px] uppercase text-slate-500 mb-2">${t('gListingField')}</label>
       <div class="flex gap-2">
         <input id="inpListing" value="${esc(state.listing.no||'')}" inputmode="text" placeholder="1148920377" class="field num w-full rounded-xl px-4 py-3 text-[14px]">
@@ -1386,7 +1469,7 @@ function renderVehicle(){
       <div id="inpChip" class="mt-2"></div>
 
     </div>
-    <div id="listingWarn"></div>
+    <div id="listingWarn"></div>`:''}
     <div id="ptWrap" class="mt-5 ${state.model?'':'hidden'}">
       <div class="flex items-baseline justify-between mb-2.5">
         <h3 class="text-[13px] font-bold tracking-wide text-slate-300 uppercase">${t('engine')}</h3>
@@ -1409,6 +1492,11 @@ function renderVehicle(){
     REGION = isMi() ? 'EU' : 'US';
     state.dist = km ? toDisp(km) : 0; renderVehicle();
   };
+  $('inpPrice').oninput = e => {
+    const raw = e.target.value.replace(/\D/g,'').slice(0,9);
+    state.price = raw ? parseInt(raw,10) : 0;
+    e.target.value = raw ? fmtN(state.price) : '';
+  };
   $('inpKm').oninput = e => {
     const raw = e.target.value.replace(/\D/g,'').slice(0,7);
     state.dist = raw?parseInt(raw,10):0;
@@ -1416,15 +1504,17 @@ function renderVehicle(){
     renderChronic(); vBar();
   };
   const feed = async (txt)=>{
+    if(!CFG.community) return;
     const p = parseLink(txt);
     state.listing.no = p ? p.id : listingFromUrl(txt);
     if (p && p.site) state.listing.site = p.site;
     $('inpChip').innerHTML = txt ? linkChip(txt) : '';
     lookupListing();
   };
-  $('inpListing').oninput = e => { clearTimeout(renderVehicle._d);
+  const il=$('inpListing');
+  if (il){ il.oninput = e => { clearTimeout(renderVehicle._d);
     renderVehicle._d = setTimeout(()=>feed(e.target.value), 450); };
-  $('inpPaste').onclick = ()=>pasteInto('inpListing', txt=>feed(txt));
+    $('inpPaste').onclick = ()=>pasteInto('inpListing', txt=>feed(txt)); }
   renderPtList(); renderChronic(); vBar();
   if (state.listing.no) lookupListing();
 }
@@ -1440,8 +1530,8 @@ function renderPtList(){
     b.innerHTML = `<div class="flex items-start gap-3">
       <span class="w-2 h-2 rounded-full mt-2 shrink-0" style="background:${col}"></span>
       <span class="flex-1 min-w-0">
-        <span class="block font-bold text-[15px] leading-snug">${esc(p.n[L]||p.n[0])}</span>
-        <span class="block text-[12px] text-slate-400 mt-1">${esc((p.f[L]||p.f[0])[0])}</span>
+        <span class="block font-bold text-[15px] leading-snug">${esc(pick(p.n))}</span>
+        <span class="block text-[12px] text-slate-400 mt-1">${esc(pick(p.f)[0])}</span>
       </span>
       <span class="w-6 h-6 rounded-lg grid place-items-center shrink-0" style="background:${col}22;color:${col}">
         <i class="fa-solid ${p.r==='bad'?'fa-triangle-exclamation':p.r==='warn'?'fa-circle-exclamation':'fa-circle-check'} text-[11px]"></i></span>
@@ -1464,10 +1554,10 @@ function renderChronic(){
       <i class="fa-solid fa-triangle-exclamation" style="color:${col}"></i>
       <h3 class="font-extrabold text-[15px] flex-1">${t('chronicH')}</h3>
     </div>
-    <ul class="space-y-2">${(p.f[L]||p.f[0]).map(x=>`<li class="flex gap-2.5 text-[13px] leading-relaxed text-slate-300">
+    <ul class="space-y-2">${pick(p.f).map(x=>`<li class="flex gap-2.5 text-[13px] leading-relaxed text-slate-300">
       <i class="fa-solid fa-angle-right text-[10px] mt-1.5 shrink-0" style="color:${col}"></i><span>${esc(x)}</span></li>`).join('')}</ul>
     <div class="mt-3.5 pt-3.5 border-t border-white/10">
-      <p class="text-[12.5px] text-slate-300 leading-relaxed"><span class="font-bold text-slate-100">${t('whatToDo')}: </span>${esc(p.tip[L]||p.tip[0])}</p>
+      <p class="text-[12.5px] text-slate-300 leading-relaxed"><span class="font-bold text-slate-100">${t('whatToDo')}: </span>${esc(pick(p.tip))}</p>
 
     </div>
     ${hot?`<div class="mt-3 rounded-xl bg-bad/10 border border-bad/25 px-3 py-2.5 text-[12.5px] text-red-200 leading-relaxed">
@@ -1508,7 +1598,7 @@ function renderQuestion(scroll){
       return `<button data-v="${o[0]}" class="opt w-full text-left rounded-2xl px-4 py-3.5 border font-bold text-[14.5px] glass ${sel?tone:'border-white/10'}">${esc(t(o[1]))}</button>`;
     }).join('');
   } else {
-    const labs = q.lab ? q.lab[L] || q.lab[0] : (q.type==='qual'?SEVL[L]:SEVL[L]);
+    const labs = q.lab ? pick(q.lab) : pick(SEVL);
     opts = labs.map((lb,i)=>{
       const v=i+1, sel=state.answers[q.id]===v, sc=scoreOf(q,v);
       const tone = sc>=75?'sel-ok':sc>=45?'sel-warn':'sel-bad';
@@ -1588,7 +1678,7 @@ function renderQuestion(scroll){
 /* Soru yardımı: nereye bakılır, kötü işaret nedir, neden önemli */
 function openHelp(q){
   const h = HELP[q.id]; if (!h) return;
-  const parts = h[L] || h[0];
+  const parts = pick(h);
   const rows = [
     [t('helpWhere'), parts[0]],
     [t('helpBad'),   parts[1]],
@@ -1846,8 +1936,8 @@ function buildFlags(){
      ex==='salt'?'On salted winter roads, rust travels under the paint and attacks the underbody.':'Salt air eats the underbody and seams from the inside.'],
     ['Bu araç lifte kaldırılmadan asla satın alınmaz.','This car is never bought without going on a lift.'],2);
   if (p.r==='bad' || (p.r==='warn' && km>=p.km)) F.push({lvl:p.r==='bad'?'warn':'info',
-    t:(L?'Engine-specific chronic risk: ':'Motora özel kronik risk: ')+(p.n[L]||p.n[0]),
-    d:(p.f[L]||p.f[0]).join(' · '), a:p.tip[L]||p.tip[0], band:p.band});
+    t:t(['Motora özel kronik risk: ','Engine-specific chronic risk: ','Motorspezifisches Dauerrisiko: '])+(pick(p.n)),
+    d:pick(p.f).join(' · '), a:pick(p.tip), band:p.band});
   if (km>=250000) add('info',
     ['Çok yüksek kilometre','Very high mileage'],
     ['Debriyaj, süspansiyon ve pompalar gibi kalemler ömrünü doldurmuş olabilir.','Clutch, suspension and pumps may all be at the end of their life.'],
@@ -1918,7 +2008,7 @@ function shopSheet(){
       <h3 class="font-extrabold text-[16px]">${t('shopH')}</h3>
       <p class="text-[12.5px] text-slate-400 mt-1.5 leading-relaxed">${t('shopP')}</p>
       <div class="mt-3 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-[12.5px] num">
-        ${esc(state.brand+' '+state.model)}${state.year?' · '+state.year:''} · ${esc(p.n[L]||p.n[0])} · ${fmtN(state.dist)} ${unit()}
+        ${esc(state.brand+' '+state.model)}${state.year?' · '+state.year:''} · ${esc(pick(p.n))} · ${fmtN(state.dist)} ${unit()}
       </div>
     </div>
     <div class="glass rounded-2xl p-4 mt-3">
@@ -1927,9 +2017,9 @@ function shopSheet(){
     </div>
     <div class="glass rounded-2xl p-4 mt-3">
       <h4 class="font-extrabold text-[14px] mb-2.5"><i class="fa-solid fa-screwdriver-wrench mr-2 text-warn"></i>${t('shopModel')}</h4>
-      <p class="text-[12.5px] text-slate-400 mb-2 num">${esc(p.n[L]||p.n[0])}</p>
-      <ul class="space-y-2">${(p.f[L]||p.f[0]).map(x=>`<li class="flex gap-2.5 text-[13px] text-slate-300 leading-relaxed"><i class="fa-regular fa-square-check text-slate-500 mt-0.5"></i><span>${esc(x)}</span></li>`).join('')}</ul>
-      <p class="text-[12.5px] text-slate-200 mt-2.5 leading-relaxed border-t border-white/10 pt-2.5">${esc(p.tip[L]||p.tip[0])}</p>
+      <p class="text-[12.5px] text-slate-400 mb-2 num">${esc(pick(p.n))}</p>
+      <ul class="space-y-2">${pick(p.f).map(x=>`<li class="flex gap-2.5 text-[13px] text-slate-300 leading-relaxed"><i class="fa-regular fa-square-check text-slate-500 mt-0.5"></i><span>${esc(x)}</span></li>`).join('')}</ul>
+      <p class="text-[12.5px] text-slate-200 mt-2.5 leading-relaxed border-t border-white/10 pt-2.5">${esc(pick(p.tip))}</p>
     </div>
     ${found.length?`<div class="glass rounded-2xl p-4 mt-3">
       <h4 class="font-extrabold text-[14px] mb-2.5"><i class="fa-solid fa-flag mr-2 text-bad"></i>${t('shopFound')}</h4>
@@ -2016,7 +2106,7 @@ function summaryTab(){
       <p class="text-[13.5px] mt-4 leading-relaxed px-1">${v.d}</p>`:''}
       <div class="mt-5 pt-4 flex items-center justify-center gap-2 text-[12px] text-slate-400 flex-wrap num" style="border-top:2px solid #000">
         <span class="font-bold text-slate-200">${esc(state.brand+' '+state.model)}</span><span class="text-slate-600">|</span>
-        <span>${esc(p.n[L]||p.n[0])}</span><span class="text-slate-600">|</span>
+        <span>${esc(pick(p.n))}</span><span class="text-slate-600">|</span>
         <span>${fmtN(state.dist)} ${unit()}</span>${state.year?`<span class="text-slate-600">|</span><span>${state.year}</span>`:''}
       </div>
     </div>
@@ -2048,15 +2138,15 @@ function summaryTab(){
 
 
 
-    ${pulseContribute()}
-    <div class="glass rounded-2xl p-4 mt-4 no-print border border-bad/25">
+    ${CFG.community?pulseContribute():''}
+    ${CFG.community?`<div class="glass rounded-2xl p-4 mt-4 no-print border border-bad/25">
       <div class="flex items-start gap-3">
         <i class="fa-solid fa-flag text-bad mt-1"></i>
         <div class="flex-1"><h3 class="font-extrabold text-[14.5px]">${t('gReportCta')}</h3>
           <p class="text-[12.5px] text-slate-400 mt-1.5 leading-relaxed">${t('gReportCtaD')}</p></div>
       </div>
       <button id="repFromResult" class="w-full mt-3 rounded-xl py-3 font-bold text-[14px] bg-bad/15 border border-bad/30 text-red-300">${t('gReportBtn')}</button>
-    </div>
+    </div>`:''}
     <p class="text-[11.5px] text-slate-500 leading-relaxed mt-5 px-1">${t('disclaimer')}</p>
     ${byAilaa('mt-7')}`;
 }
@@ -2287,10 +2377,10 @@ function reportText(){
   const r=state.result, v=verdict(), p=PT[state.pt], o=[];
   o.push('RELIA — '+t('tagline'));
   o.push('----------------------------------------');
-  o.push((L?'Car':'Araç')+': '+state.brand+' '+state.model+(state.year?' ('+state.year+')':''));
-  o.push((L?'Engine':'Motor')+': '+(p.n[L]||p.n[0]));
-  o.push((L?'Mileage':'Kilometre')+': '+fmtN(state.dist)+' '+unit());
-  o.push((L?'Date':'Tarih')+': '+new Date().toLocaleDateString(['tr-TR','en-US','de-DE'][L]));
+  o.push(t(['Araç','Car','Fahrzeug'])+': '+state.brand+' '+state.model+(state.year?' ('+state.year+')':''));
+  o.push(t(['Motor','Engine','Motor'])+': '+(pick(p.n)));
+  o.push(t(['Kilometre','Mileage','Kilometerstand'])+': '+fmtN(state.dist)+' '+unit());
+  o.push(t(['Tarih','Date','Datum'])+': '+new Date().toLocaleDateString(['tr-TR','en-US','de-DE'][L]));
   o.push('');
   o.push(t('score')+': '+r.score+'/100 — '+v.t);
   o.push(t('confidence')+': %'+r.conf);
@@ -2307,10 +2397,10 @@ function reportText(){
   });
 
   const nk=Object.keys(state.notes).filter(k=>state.notes[k]);
-  if(nk.length){ o.push(''); o.push((L?'NOTES':'NOTLAR')); nk.forEach(k=>o.push('- '+t(qById(k).note)+': '+state.notes[k])); }
+  if(nk.length){ o.push(''); o.push(t(['NOTLAR','NOTES','NOTIZEN'])); nk.forEach(k=>o.push('- '+t(qById(k).note)+': '+state.notes[k])); }
   o.push(''); o.push(t('shopH').toUpperCase());
   state.result.flags.filter(f=>f.lvl!=='info').forEach(f=>o.push('- '+f.t+' → '+f.a));
-  (PT[state.pt].f[L]||PT[state.pt].f[0]).forEach(f=>o.push('- '+f));
+  (pick(PT[state.pt].f)).forEach(f=>o.push('- '+f));
   o.push(''); o.push(t('disclaimer'));
   o.push(''); o.push('Relia — ' + t('byLine') + ' · ailaa.io');
   return o.join('\n');
@@ -2329,11 +2419,11 @@ function saveGarage(){
   const old = state.garage.findIndex(x => x.key === key);
   if (old > -1) state.garage.splice(old, 1);
   const snap = { mode:state.mode, brand:state.brand, model:state.model, pt:state.pt,
-                 dist:state.dist, year:state.year, answers:state.answers, notes:state.notes,
+                 dist:state.dist, year:state.year, price:state.price, answers:state.answers, notes:state.notes,
                  listing:{ site:state.listing.site, no:state.listing.no, url:state.listing.url||'' },
                  region:REGION };
   state.garage.unshift({ key:key, snap:snap, brand:state.brand, model:state.model, year:state.year, pt:state.pt,
-    ptName:p.n[L]||p.n[0], dist:state.dist, unit:unit(), score:r.score, conf:r.conf,
+    ptName:pick(p.n), dist:state.dist, unit:unit(), price:state.price, score:r.score, conf:r.conf,
     vk:v.k, vt:v.t, flags:r.flags.length, crit:r.flags.filter(f=>f.lvl==='crit').length,
     cmin:r.cmin, cmax:r.cmax, cur:REGION, date:new Date().toLocaleDateString(['tr-TR','en-US','de-DE'][L]) });
   const cap = isPro() ? 40 : LIMITS.garage;
@@ -2351,41 +2441,52 @@ function renderGarage(){
   label(t('garageH'));
   const g=state.garage;
   $('sc-garage').innerHTML = `
-    <div class="mb-4">
-      <h2 class="text-2xl font-extrabold tracking-tight">${t('garageH')}</h2>
-      <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">${t('garageP')}</p>
-    </div>
-    ${!g.length?`<div class="glass rounded-2xl p-6 text-center">
-      <i class="fa-solid fa-warehouse text-slate-600 text-3xl"></i>
-      <p class="text-[13px] text-slate-400 mt-3 leading-relaxed">${t('garageEmpty')}</p></div>`
-    : `<div class="space-y-3">${g.map((c,i)=>{
-        const col=c.vk==='ok'?'#000000':c.vk==='warn'?'#FF3000':c.vk==='stop'?'#FF3000':'#FF3000';
-        return `<div class="glass rounded-2xl p-4" style="border-color:${col}35">
-          <button data-open="${i}" class="w-full text-left ${c.snap?'':'pointer-events-none'}">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-xl grid place-items-center shrink-0 num font-extrabold text-[16px]" style="background:${col}1f;color:${col}">${c.score}</div>
-            <div class="flex-1 min-w-0">
-              <p class="font-extrabold text-[14.5px] truncate">${esc(c.brand+' '+c.model)}${c.year?' · '+c.year:''}</p>
-              <p class="text-[11.5px] text-slate-400 truncate num">${esc(c.ptName)} · ${fmtN(c.dist)} ${c.unit}</p>
-              <p class="text-[11px] mt-1 font-bold" style="color:${col}">${esc(c.vt)}</p>
-            </div>
-            ${c.snap?'<i class="fa-solid fa-chevron-right text-[13px] text-slate-500"></i>':''}
-          </div></button>
-          <div class="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/8 text-[11px] num">
-            <span class="bg-white/6 rounded-lg px-2 py-1">${t('confidence')} %${c.conf}</span>
-            ${c.crit?`<span class="bg-bad/12 text-red-300 rounded-lg px-2 py-1">${c.crit} ${t('lvlCrit')}</span>`:''}
-            <span class="bg-white/6 rounded-lg px-2 py-1">${c.flags} ${t('flags')}</span>
-            <span class="text-slate-500 px-1 py-1">${c.date}</span>
-            <button data-del="${i}" class="ml-auto text-[11px] uppercase" style="color:#FF3000">${t('del')}</button>
-          </div></div>`;}).join('')}</div>`}`;
+    <p class="uppercase" style="font-size:11px;color:#FF3000">${t('garageH')}</p>
+    <h2 class="mt-3">${t('garageH')}</h2>
+    <p class="text-[13px] mt-3 leading-relaxed">${t('garageP')}</p>
+    ${!g.length?`<div class="mt-6" style="border:2px solid #000;padding:22px;text-align:center">
+      <p class="text-[13px] leading-relaxed">${t('garageEmpty')}</p></div>`
+    : `<div class="mt-6 space-y-3">${g.map((c,i)=>{
+        const col = c.vk==='ok' ? '#000000' : '#FF3000';
+        const sel = state.cmp.indexOf(i) > -1;
+        return `<div style="border:2px solid #000">
+          <button data-open="${i}" class="opt w-full text-left p-4 ${c.snap?'':'pointer-events-none'}">
+            <div class="flex items-center gap-3.5">
+              <span class="num" style="font-size:26px;font-weight:900;letter-spacing:-.04em;color:${col};flex:none">${c.score}</span>
+              <span class="flex-1 min-w-0">
+                <span class="block truncate" style="font-size:14.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${esc(c.brand+' '+c.model)}${c.year?' · '+c.year:''}</span>
+                <span class="block text-[11.5px] num truncate mt-0.5" style="color:#767676">${esc(c.ptName)} · ${fmtN(c.dist)} ${c.unit}${c.price?' · '+fmtN(c.price):''}</span>
+                <span class="block text-[11px] mt-1" style="color:${col};font-weight:700">${esc(c.vt)}</span>
+              </span>
+              ${c.snap?'<i class="fa-solid fa-chevron-right text-[13px]" style="color:#767676"></i>':''}
+            </div></button>
+          <div class="flex flex-wrap items-center gap-1.5 px-4 pb-3 text-[11px] num" style="color:#767676">
+            <span>${t('confidence')} %${c.conf}</span>
+            ${c.crit?`<span style="color:#FF3000">${c.crit} ${t('lvlCrit')}</span>`:''}
+            <span>${c.flags} ${t('flags')}</span>
+            <span>${c.date}</span>
+            <button data-del="${i}" class="ml-auto uppercase" style="font-size:10px;color:#FF3000">${t('del')}</button>
+          </div>
+          <button data-cmp="${i}" class="opt w-full text-left px-4 py-3 flex items-center gap-2.5"
+            style="border-top:2px solid #000;${sel?'background:#000;color:#fff':''}">
+            <span style="width:13px;height:13px;flex:none;border:2px solid ${sel?'#fff':'#000'};background:${sel?'#FF3000':'transparent'}"></span>
+            <span class="uppercase" style="font-size:10px">${sel?t('cmpSelected'):t('cmpSelect')}</span></button>
+        </div>`;}).join('')}</div>`}`;
   $('sc-garage').querySelectorAll('[data-del]').forEach(b=>b.onclick=async(e)=>{
     e.stopPropagation();
     if(!(await askConfirm(t('delAsk')))) return;
-    state.garage.splice(parseInt(b.dataset.del,10),1); Store.set('garage',state.garage); updateGarageBadge(); renderGarage(); });
+    const k=parseInt(b.dataset.del,10);
+    state.garage.splice(k,1); state.cmp = [];
+    Store.set('garage',state.garage); updateGarageBadge(); renderGarage(); });
   $('sc-garage').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openGarage(parseInt(b.dataset.open,10)));
-  bar(`<button id="bNew" class="w-full rounded-2xl py-4 font-extrabold text-[15px] bg-ok text-ink active:scale-[.98] transition shadow-lg shadow-ok/20">
-    <i class="fa-solid fa-plus mr-2"></i>${t('newCheck')}</button>`);
-  $('bNew').onclick=newCheck;
+  $('sc-garage').querySelectorAll('[data-cmp]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); toggleCmp(parseInt(b.dataset.cmp,10)); });
+  bar(state.cmp.length >= 2
+    ? `<div class="grid grid-cols-2 gap-3">
+        <button id="bNew" class="rounded-2xl py-4 font-bold text-[14px] bg-white/8 border border-white/10">${t('newCheck')}</button>
+        <button id="bCmp" class="rounded-2xl py-4 font-extrabold text-[14px] bg-ok text-ink">${t('compareBtn')} (${state.cmp.length})</button></div>`
+    : `<button id="bNew" class="w-full rounded-2xl py-4 font-extrabold text-[15px] bg-ok text-ink">${t('newCheck')}</button>`);
+  $('bNew').onclick=()=>newCheck();
+  const bc=$('bCmp'); if(bc) bc.onclick=openCompare;
 }
 /* Garajdaki bir kaydı geri yükleyip rapor ekranını açar */
 function openGarage(i){
@@ -2394,7 +2495,7 @@ function openGarage(i){
   REGION = d.region || REGION;
   state.mode = d.mode || 'full';
   state.brand = d.brand; state.model = d.model; state.pt = d.pt;
-  state.dist = d.dist; state.year = d.year;
+  state.dist = d.dist; state.year = d.year; state.price = d.price || 0;
   state.answers = d.answers || {}; state.notes = d.notes || {};
   state.photos = {}; state.warned = {};
   state.listing = Object.assign({ site:'', no:'', url:'', reports:[] }, d.listing || {});
@@ -2403,9 +2504,91 @@ function openGarage(i){
   goto('result');
 }
 
+/* Garajdan 2-3 aracı yan yana karşılaştırır */
+state.cmp = [];
+function toggleCmp(i){
+  const k = state.cmp.indexOf(i);
+  if (k > -1) state.cmp.splice(k,1);
+  else { if (state.cmp.length >= 3) state.cmp.shift(); state.cmp.push(i); }
+  buzz(); renderGarage();
+}
+function openCompare(){
+  const cars = state.cmp.map(i=>state.garage[i]).filter(Boolean);
+  if (cars.length < 2){ toast(t('compareNone')); return; }
+  const best = cars.slice().sort((a,b)=>(b.score||0)-(a.score||0))[0];
+  const col = c => c.vk==='ok' ? '#000000' : '#FF3000';
+  openModal(`<h3 class="text-lg font-bold">${t('compareH')}</h3>
+    <div class="mt-4" style="border:2px solid #000">
+      ${cars.map((c,i)=>`<div class="p-4" style="${i?'border-top:2px solid #000':''};${c===best?'background:#000;color:#fff':''}">
+        <div class="flex items-start gap-3">
+          <span class="num" style="font-size:30px;font-weight:900;letter-spacing:-.04em;color:${c===best?'#fff':col(c)}">${c.score}</span>
+          <div class="flex-1 min-w-0">
+            <p style="font-size:14.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${esc(c.brand+' '+c.model)}${c.year?' · '+c.year:''}</p>
+            <p class="text-[11.5px] num mt-1" style="opacity:.65">${fmtN(c.dist)} ${c.unit} · ${c.flags} ${t('compareFlags')}${c.crit?' · '+c.crit+' '+t('compareCrit'):''}</p>
+            ${c.price?`<p class="num mt-1.5" style="font-size:15px;font-weight:900">${fmtN(c.price)}</p>`:''}
+          </div>
+          ${c===best?`<span class="uppercase" style="font-size:9px;padding:3px 6px;background:#FF3000;color:#fff;flex:none">${t('compareBest')}</span>`:''}
+        </div></div>`).join('')}
+    </div>
+    <button id="cmCard" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('compareCard')}</button>
+    <button id="cmNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+  $('cmNo').onclick = closeModal;
+  $('cmCard').onclick = ()=>{ closeModal(); makeCompareCard(cars); };
+}
+
+/* Karşılaştırma kartı — paylaşılabilir görsel */
+async function makeCompareCard(cars){
+  openModal(`<p class="text-[14px] py-8 text-center"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>${t('cardMaking')}</p>`);
+  try{
+    const W=1080, H=1350, M=84, RED='#FF3000', BLACK='#000000', WHITE='#FFFFFF', GRAY='#767676';
+    const c=document.createElement('canvas'); c.width=W; c.height=H;
+    const x=c.getContext('2d');
+    try{ if (document.fonts && document.fonts.ready) await document.fonts.ready; }catch(e){}
+    const F=(sz,w)=>w+' '+sz+'px Inter, Helvetica, Arial, sans-serif';
+    x.fillStyle=WHITE; x.fillRect(0,0,W,H); x.textBaseline='top';
+    drawMark(x, M, M, 46, RED);
+    x.fillStyle=BLACK; x.font=F(38,900); x.fillText('RELIA', M+64, M+4);
+    x.fillStyle=BLACK; x.fillRect(M, M+72, W-2*M, 6);
+
+    let y = M+128;
+    x.fillStyle=RED; x.font=F(24,700); LSx(x,'4px');
+    x.fillText(t('compareH').toUpperCase(), M, y); LSx(x,'0px');
+    y += 56;
+
+    const best = cars.slice().sort((a,b)=>(b.score||0)-(a.score||0))[0];
+    const rowH = Math.min(230, Math.floor((H - y - 160) / cars.length));
+    cars.forEach(car=>{
+      const isBest = car===best;
+      if (isBest){ x.fillStyle=BLACK; x.fillRect(M, y, W-2*M, rowH-14); }
+      const fg = isBest ? WHITE : BLACK;
+      x.fillStyle = isBest ? WHITE : (car.vk==='ok'?BLACK:RED);
+      x.font=F(76,900); x.fillText(String(car.score), M+22, y+22);
+      x.fillStyle=fg; x.font=F(30,900);
+      const name=(car.brand+' '+car.model+(car.year?' · '+car.year:'')).toUpperCase();
+      x.fillText(wrapText(x,name,W-2*M-190,1)[0], M+170, y+26);
+      x.fillStyle = isBest ? WHITE : GRAY; x.font=F(24,500);
+      x.fillText(fmtN(car.dist)+' '+car.unit+' · '+car.flags+' '+t('compareFlags'), M+170, y+70);
+      if (car.price){ x.fillStyle=fg; x.font=F(34,900); x.fillText(fmtN(car.price), M+170, y+110); }
+      if (isBest){ x.fillStyle=RED; x.fillRect(W-M-150, y+22, 128, 34);
+        x.fillStyle=WHITE; x.font=F(18,900); LSx(x,'2px');
+        x.fillText(t('compareBest').toUpperCase().slice(0,12), W-M-140, y+30); LSx(x,'0px'); }
+      y += rowH;
+    });
+
+    x.fillStyle=BLACK; x.fillRect(M, H-M-92, W-2*M, 3);
+    x.fillStyle=GRAY; x.font=F(24,500); x.fillText(t('cardFooter'), M, H-M-64);
+    x.fillStyle=RED; x.font=F(26,900);
+    const by='ailaa.io'; x.fillText(by, W-M-x.measureText(by).width, H-M-64);
+
+    const blob = await new Promise(r=>c.toBlob(r,'image/png',0.92));
+    showCardBlob(blob, t('compareCard'));
+  }catch(e){ closeModal(); toast(t('cardFail')); }
+}
+function LSx(x,v){ try{ x.letterSpacing = v; }catch(e){} }
+
 function newCheck(listing){
   state.answers={}; state.notes={}; state.photos={}; state.warned={}; state.idx=0; state.result=null; state.tab='sum';
-  state.brand=''; state.model=''; state.pt=''; state.dist=0; state.year='';
+  state.brand=''; state.model=''; state.pt=''; state.dist=0; state.year=''; state.price=0;
   state.menu=false;
   state.listing = listing || { site:'', no:'', url:'', reports:[] };
   state.pulseSent = false; state.garageSaved = false;
@@ -3383,8 +3566,8 @@ function renderDoc(){
   const doc = LEGAL[state.doc] || LEGAL.privacy;
   label(t(doc.t));
   const body = doc.s.map((sec,i)=>{
-    const head = L===0 ? sec[0] : sec[1];
-    const raw  = L===0 ? sec[2] : sec[3];
+    const head = pick([sec[0], sec[1], sec[4] || sec[1]]);
+    const raw  = pick([sec[2], sec[3], sec[5] || sec[3]]);
     const blocks = raw.split('\n\n').map(part=>{
       const lines = part.split('\n');
       if (lines[0].indexOf('- ') === 0){
@@ -3420,9 +3603,9 @@ function openSettings(){
   openModal(`<h3 class="text-lg font-bold">${t('setH')}</h3>
 
     <p class="uppercase mt-5 mb-2" style="font-size:10px;color:#767676">${t('setLang')}</p>
-    <div class="grid grid-cols-3" style="border:2px solid #000">
-      ${LANGS.map((c,i)=>`<button data-lang="${i}" class="opt py-3.5 text-[12px]"
-        style="font-weight:700;${i?'border-left:2px solid #000;':''}${L===i?'background:#000;color:#fff':''}">
+    <div class="grid" style="border:2px solid #000;grid-template-columns:repeat(${CFG.langs.length},1fr)">
+      ${CFG.langs.map((i,k)=>`<button data-lang="${i}" class="opt py-3.5 text-[12px]"
+        style="font-weight:700;${k?'border-left:2px solid #000;':''}${L===i?'background:#000;color:#fff':''}">
         ${LANG_NAMES[i]}</button>`).join('')}
     </div>
 
@@ -3435,14 +3618,13 @@ function openSettings(){
       ${pro
         ? `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:#767676">${t('planProD')}</p>`
         : `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:#767676">${tf('planFreeD',{g:LIMITS.garage,d:LIMITS.daily,m:LIMITS.monthly})}</p>
-           <p class="text-[12px] mt-2 num" style="color:#000">${tf('planUsed',{d:usage().day,dm:LIMITS.daily,m:usage().month,mm:LIMITS.monthly})}</p>
+           <p class="text-[12px] mt-2 num" style="color:#000">${tf('planUsed',{d:usage().day,dm:LIMITS.daily+bonus(),m:usage().month,mm:LIMITS.monthly+bonus()})}${bonus()?' · '+tf('planBonus',{n:bonus()}):''}</p>
            <button id="stPro" class="w-full mt-3 rounded-xl py-3 font-extrabold text-[14px] bg-ok text-ink">${t('planUpgrade')}</button>`}
     </div>
 
     <p class="uppercase mt-6 mb-2" style="font-size:10px;color:#767676">${t('setOther')}</p>
     <div style="border:2px solid #000">
       <button id="stLegal" class="opt w-full text-left p-4" style="font-size:14px;font-weight:700">${t('legalH')} →</button>
-      <button id="stDiag" class="opt w-full text-left p-4" style="border-top:2px solid #000;font-size:14px;font-weight:700">${t('diagH')} →</button>
     </div>
     <p class="text-[11.5px] mt-3 num" style="color:#767676">Relia ${APP_VERSION}</p>
     <button id="stNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
@@ -3450,7 +3632,7 @@ function openSettings(){
   $('modalBody').querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{
     buzz(); closeModal(); setLang(+b.dataset.lang); });
   $('stLegal').onclick = ()=>{ closeModal(); openLegal(); };
-  $('stDiag').onclick  = ()=>{ closeModal(); DEV = true; openDiag(); };
+
   $('stNo').onclick    = closeModal;
   const sp=$('stPro'); if(sp) sp.onclick = ()=>{ closeModal(); openPaywall(); };
 }
@@ -3490,16 +3672,54 @@ function openPaywall(reason){
         <span style="width:8px;height:8px;background:#FF3000;flex:none;margin-top:6px"></span>
         <span class="text-[13.5px]">${f}</span></div>`).join('')}
     </div>
-    <button id="pwBuy" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('proBuy')}</button>
+    ${CFG.store
+      ? (CFG.billing==='play'
+          ? `<button id="pwPlay" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('proBuy')}</button>`
+          : `<p class="text-[12.5px] mt-4 leading-relaxed" style="color:#767676">${t('proStoreNote')}</p>`)
+      : `<button id="pwBuy" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('proBuy')}</button>`}
     <button id="pwCode" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('proHaveCode')}</button>
+    ${!isPro()?`<button id="pwInv" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('inviteBtn')}</button>`:''}
     <button id="pwNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
-  $('pwBuy').onclick = ()=>{ const u = CFG.buyUrl;
+  const pbuy = $('pwPlay');
+  if (pbuy) pbuy.onclick = ()=>{
+    /* APK sarmalayıcısı bir satın alma köprüsü sağlıyorsa kullanılır.
+       Köprü yoksa lisans kodu yolu devreye girer. */
+    try{
+      if (window.Android && typeof window.Android.purchase === 'function'){ window.Android.purchase('relia_lifetime'); return; }
+      if (window.ReliaBilling && typeof window.ReliaBilling.buy === 'function'){ window.ReliaBilling.buy('relia_lifetime'); return; }
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.purchase){
+        window.webkit.messageHandlers.purchase.postMessage('relia_lifetime'); return; }
+    }catch(e){}
+    toast(t('billingNA')); openLicense();
+  };
+  const pb = $('pwBuy');
+  if (pb) pb.onclick = ()=>{ const u = CFG.buyUrl;
     const w = window.open(u,'_blank'); if(!w){ try{ window.top.location.href=u; }catch(e){ location.href=u; } } };
   $('pwCode').onclick = openLicense;
+  const pi=$('pwInv'); if(pi) pi.onclick = openInvite;
   $('pwNo').onclick = closeModal;
 }
 
 /* Lisans kodu ile ömür boyu erişim */
+/* Arkadaş daveti */
+function openInvite(){
+  const link = inviteLink();
+  openModal(`<h3 class="text-lg font-bold">${t('inviteH')}</h3>
+    <p class="text-[13px] mt-3 leading-relaxed">${t('inviteD')}</p>
+    <p class="text-[11.5px] mt-3 num" style="color:#767676;word-break:break-all">${esc(link)}</p>
+    <button id="ivShare" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('inviteShare')}</button>
+    <button id="ivCopy" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('pdfCopyLink')}</button>
+    <button id="ivNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+  $('ivNo').onclick = closeModal;
+  $('ivCopy').onclick = ()=>copy(link);
+  $('ivShare').onclick = async ()=>{
+    const text = t('inviteText') + ' ' + link;
+    try{ if (navigator.share){ await navigator.share({ title:'Relia', text:text }); return; } }
+    catch(e){ if (e && e.name==='AbortError') return; }
+    shareSheet(t('inviteText'), link);
+  };
+}
+
 function openLicense(){
   openModal(`<h3 class="text-lg font-bold">${t('licH')}</h3>
     <p class="text-[12.5px] mt-2 leading-relaxed">${t('licD')}</p>
@@ -3766,13 +3986,11 @@ function openDiag(){
   openModal(`<h3 class="text-lg font-bold">${t('diagH')}</h3>
     <div id="diagBody" class="mt-3"></div>
 
-    <button id="dgMod" class="w-full mt-4 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">
-      <i class="fa-solid fa-gavel mr-2 text-bad"></i>${t('mdOpen')}</button>
     <div class="grid grid-cols-2 gap-3 mt-3">
       <button id="dgCopy" class="rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('diagCopy')}</button>
       <button id="dgClose" class="rounded-2xl py-3.5 font-bold text-[14px] bg-ok text-ink">${t('diagClose')}</button>
     </div>`);
-  $('dgMod').onclick = ()=>{ closeModal(); goto('mod'); };
+
   $('dgClose').onclick = ()=>{ closeModal(); if(SCREEN==='guard') renderGuard(); };
   $('dgCopy').onclick  = ()=>copy(diagText || '—');
   runDiag();
@@ -3858,6 +4076,7 @@ Object.assign(S, {
   pdfFailD:['Rapor sunucuya yüklenemedi. Bunun yerine paylaşılabilir kart görselini kullanabilirsiniz.','The report could not be uploaded. You can use the shareable card image instead.']
 });
 
+state.price = 0;
 state.doc = 'privacy';
 state.mod = { token:null, email:'', recovery:false, view:'login', rows:[], stats:null, team:[], boot:false, filter:'flagged', isMod:false, code:'', term:'' };
 const MD_KIND = { odo:['Kilometre düşürülmüş','Odometer rollback'], damage:['Gizlenen ağır hasar','Hidden structural damage'],
@@ -4353,7 +4572,7 @@ async function makeCard(){
     .forEach(l=>{ x.fillText(l, M, y); });
   y += 52;
   x.fillStyle = GRAY; x.font = F(26, 500);
-  wrapText(x, (p.n[L]||p.n[0]) + '  ·  ' + fmtN(state.dist) + ' ' + unit(), W-2*M, 2)
+  wrapText(x, (pick(p.n)) + '  ·  ' + fmtN(state.dist) + ' ' + unit(), W-2*M, 2)
     .forEach((l,i)=>{ x.fillText(l, M, y + i*34); });
 
   /* --- bulgular --- */
@@ -4435,7 +4654,7 @@ function shareSheet(text, link){
     const w = window.open(url, '_blank');
     if (!w){ try{ window.top.location.href = url; }catch(e){ location.href = url; } }
   });
-  $('shCopy').onclick = ()=>copy(full);
+  $('shCopy').onclick = ()=>{ copy(full); rewardShare(); };
   $('shNo').onclick = closeModal;
 }
 
@@ -4446,7 +4665,13 @@ async function openCard(){
   try{ blob = await makeCard(); }catch(e){ closeModal(); toast(t('cardFail')); return; }
   try{ url = URL.createObjectURL(blob); }catch(e){}
 
-  openModal(`<h3 class="text-lg font-bold">${t('cardH')}</h3>
+  showCardBlob(blob, t('cardH'), url);
+}
+
+/* Kart önizleme + paylaşım penceresi */
+function showCardBlob(blob, title, existingUrl){
+  const url = existingUrl || URL.createObjectURL(blob);
+  openModal(`<h3 class="text-lg font-bold">${esc(title)}</h3>
     <img src="${url}" alt="" style="width:100%;border:2px solid #000;margin-top:12px;display:block">
     <p class="text-[12px] mt-3 leading-relaxed" style="border-left:4px solid #FF3000;padding-left:10px">${t('cardHold')}</p>
     <button id="cdShare" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('cardShare')}</button>
@@ -4467,7 +4692,7 @@ async function openCard(){
     try{
       if (navigator.canShare && navigator.canShare({ files:[file] })){
         await navigator.share({ files:[file], title:title, text:line });
-        return;
+        rewardShare(); return;
       }
     }catch(e){ if (e && e.name === 'AbortError') return; }
 
@@ -4479,7 +4704,7 @@ async function openCard(){
     try{
       if (navigator.share){
         await navigator.share(link ? { title:title, text:line, url:link } : { title:title, text:line });
-        return;
+        rewardShare(); return;
       }
     }catch(e){ if (e && e.name === 'AbortError') return; }
 
@@ -4578,8 +4803,12 @@ const LEGAL_DATE = '18.08.2026';
 function detect(){
   const nav=(navigator.language||'en').toLowerCase();
   const saved = Store.get('lang');
-  if (saved === 0 || saved === 1 || saved === 2) L = saved;
-  else L = nav.startsWith('tr') ? 0 : nav.startsWith('de') ? 2 : 1;
+  const ok = CFG.langs;
+  if (ok.indexOf(saved) > -1) L = saved;
+  else {
+    const guess = nav.startsWith('tr') ? 0 : nav.startsWith('de') ? 2 : 1;
+    L = ok.indexOf(guess) > -1 ? guess : (ok.indexOf(1) > -1 ? 1 : ok[0]);
+  }
   let tz=''; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){}
   if (nav.startsWith('tr') || tz.indexOf('Istanbul')>-1) REGION='TR';
   else if (tz.indexOf('America')>-1) REGION='US';
@@ -4596,14 +4825,7 @@ function setLang(i){
 }
 $('langBtn').onclick = openSettings;
 $('garageBtn').onclick=()=>goto('garage');
-let _tapN = 0, _tapT = 0;
-$('homeBtn').onclick=()=>{
-  const now = Date.now();
-  _tapN = (now - _tapT < 800) ? _tapN + 1 : 1;
-  _tapT = now;
-  if (_tapN >= 5){ _tapN = 0; DEV = true; openDiag(); return; }
-  goto('welcome');
-};
+$('homeBtn').onclick = ()=>goto('welcome');
 $('modal').onclick=e=>{ if(e.target===$('modal').firstElementChild) closeModal(); };
 /* Metinden hazır oturum anahtarını (JWT) çıkarır */
 function tokenFromLink(txt){
@@ -4649,7 +4871,13 @@ async function recoveryToken(raw, email){
   setTimeout(()=>goto('mod'), 60);
 })();
 
-if (/[?&]diag=1/.test(location.search)) DEV = true;
+/* Yönetim ve geliştirici araçları yalnızca gizli adresle açılır:
+   ailaa.io/relia/?panel=1   → moderasyon paneli
+   ailaa.io/relia/?diag=1    → bağlantı testi
+   Arayüzde hiçbir giriş noktası yoktur. Asıl koruma sunucudaki yetki denetimidir. */
+const _q = (location.search || '') + (location.hash || '');
+if (/[?&#]diag=1/.test(_q)) DEV = true;
+if (/[?&#]panel=1/.test(_q)){ DEV = true; setTimeout(()=>goto('mod'), 60); }
 try{ const g = Store.get('garage');
   if (Array.isArray(g)) state.garage = g.filter((x,i,a)=>{
     if(!x.key) x.key = (x.brand||'')+'|'+(x.model||'')+'|'+(x.pt||'')+'|'+(x.dist||0);
@@ -4669,6 +4897,8 @@ window.addEventListener('pagehide', saveSession);
 
 detect();
 updateGarageBadge();
+claimReferral();
+collectReferrals();
 if (!restoreSession()) goto('welcome');
 swapIcons();
 setTimeout(()=>{ const sp=$('splash'); if(sp) sp.classList.add('gone'); }, 900);
