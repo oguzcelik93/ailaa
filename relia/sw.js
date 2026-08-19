@@ -1,32 +1,47 @@
-/* Relia service worker — kurulabilirlik + çevrimdışı açılış */
-const CACHE = 'relia-v1-0-1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './privacy.html', './terms.html', './privacy-en.html', './terms-en.html'];
+/* Relia service worker — her açılışta güncel sürümü getirir */
+const CACHE = 'relia-1.0.0-b2';
+const SHELL = ['./manifest.webmanifest','./icon-192.png','./icon-512.png','./logo.svg'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL).catch(() => {})).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL).catch(()=>{})).then(()=>self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
+self.addEventListener('message', e => { if (e.data === 'skipWaiting') self.skipWaiting(); });
+
 self.addEventListener('fetch', e => {
   const req = e.request;
-  if (req.method !== 'GET') return;                                  // API çağrıları dokunulmaz
+  if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;                   // Supabase, CDN: her zaman ağdan
-  if (req.mode === 'navigate') {                                     // paylaşımdan açılış dahil
-    e.respondWith(fetch(req).catch(() => caches.match('./index.html').then(r => r || caches.match('./'))));
+  if (url.origin !== self.location.origin) return;
+
+  const isHTML = req.mode === 'navigate' ||
+                 (req.headers.get('accept') || '').includes('text/html') ||
+                 url.pathname.endsWith('.html') || url.pathname.endsWith('/');
+
+  if (isHTML) {
+    /* HTML her zaman ağdan: eski sürüm asla yapışıp kalmaz */
+    e.respondWith(
+      fetch(req, { cache: 'no-store' })
+        .then(res => { const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{}); return res; })
+        .catch(() => caches.match(req).then(r => r || caches.match('./')))
+    );
     return;
   }
+
   e.respondWith(
     caches.match(req).then(hit => hit || fetch(req).then(res => {
       const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+      caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
       return res;
-    }).catch(() => hit))
+    }))
   );
 });

@@ -275,6 +275,7 @@ const CFG = {
 /* Geliştirici modu: kullanıcı teknik ekranları görmez.
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
+const BUILD = 'b2 · 2026-08-19';   // her yeni paket için artar
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 function isPro(){ return Store.get('pro') === true; }
@@ -3626,7 +3627,7 @@ function openSettings(){
     <div style="border:2px solid #000">
       <button id="stLegal" class="opt w-full text-left p-4" style="font-size:14px;font-weight:700">${t('legalH')} →</button>
     </div>
-    <p class="text-[11.5px] mt-3 num" style="color:#767676">Relia ${APP_VERSION}</p>
+    <p class="text-[11.5px] mt-3 num" style="color:#767676">Relia ${APP_VERSION} · ${BUILD}</p>
     <button id="stNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
 
   $('modalBody').querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{
@@ -3779,7 +3780,21 @@ async function handleShared(){
 function registerSW(){
   if (!('serviceWorker' in navigator)) return;
   if (location.protocol === 'file:') return;              // APK içi dosya modunda gerekmez
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    reg.update();
+    reg.addEventListener('updatefound', ()=>{
+      const w = reg.installing; if(!w) return;
+      w.addEventListener('statechange', ()=>{
+        if (w.state === 'installed' && navigator.serviceWorker.controller){
+          w.postMessage('skipWaiting');                   // yeni sürüm hazır
+        }
+      });
+    });
+  }).catch(()=>{});
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if (reloaded) return; reloaded = true; location.reload();
+  });
 }
 
 
