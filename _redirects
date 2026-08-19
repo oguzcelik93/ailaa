@@ -1,4 +1,11 @@
-# Ailaa — güzel oyun adresleri
-# ailaa.io/oyun/<slug>  →  oyun sayfası (slug'ı JS adresten okur)
+# Ailaa — yönlendirme kuralları
+# ÖNEMLİ: Burada genel bir SPA fallback YOKTUR. /relia/ altındaki gerçek dosyalar
+# (privacy.html, sw.js, ikonlar) olduğu gibi sunulur; hiçbiri index.html'e çevrilmez.
+# /relia/ için sorgu dizesini kırpan bir kural da yoktur.
+
+# Eski ad → yeni ad. Alt yol ve sorgu dizesi korunur.
+/rustcheck/*   /relia/:splat   301
+
+# Oyun sayfası için güzel adresler
 /oyun/*    /oyun.html    200
 /play/*    /oyun.html    200
