@@ -275,7 +275,8 @@ const CFG = {
 /* Geliştirici modu: kullanıcı teknik ekranları görmez.
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
-const BUILD = 'b2 · 2026-08-19';   // her yeni paket için artar
+let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
+const BUILD = 'b3 · 2026-08-19';   // her yeni paket için artar
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 function isPro(){ return Store.get('pro') === true; }
@@ -320,7 +321,7 @@ async function claimReferral(){
   const m = (location.search||'').match(/[?&]ref=([^&]+)/);
   if (!m) return;
   const ref = decodeURIComponent(m[1]);
-  try{ history.replaceState(null,'',location.pathname); }catch(e){}
+  cleanUrl();
   if (!ref || ref === device() || Store.get('refUsed')) return;
   Store.set('refUsed', true);
   addBonus(3, 'invited');
@@ -1259,6 +1260,12 @@ function goto(name){
   if (name==='detail') renderDetail();
   if (name==='mod') renderMod();
   if (name==='doc') renderDoc();
+  if (PANEL_MODE){
+    try{
+      const want = location.pathname + (name==='mod' ? '?panel=1' : '');
+      if (location.pathname + location.search !== want) history.replaceState(null,'',want);
+    }catch(e){}
+  }
   if (['vehicle','wizard','result'].indexOf(name)>-1) saveSession();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -3759,12 +3766,25 @@ function installCard(){
     </div></button>`;
 }
 
+/* Adresi temizler ama yönetim parametrelerini korur */
+function cleanUrl(){
+  try{
+    const keep = [];
+    const q = new URLSearchParams(location.search);
+    ['panel','diag'].forEach(k=>{ if (q.get(k)) keep.push(k+'='+q.get(k)); });
+    const url = location.pathname + (keep.length ? '?'+keep.join('&') : '');
+    history.replaceState(null, '', url);
+  }catch(e){}
+}
+
 /* Paylaş menüsünden gelen başlık/metin/bağlantıyı işler */
 async function handleShared(){
   const q = new URLSearchParams(location.search);
   const screen = q.get('screen');
   const raw = [q.get('url'), q.get('text'), q.get('title')].filter(Boolean).join(' ').trim();
-  try { history.replaceState(null, '', location.pathname); } catch(e){}
+  /* Adres yalnızca paylaşımdan gelen veri tüketildiğinde temizlenir.
+     ?panel=1 ve ?diag=1 korunur; yer imine eklenebilsin diye. */
+  if (raw || screen) cleanUrl();
   if (!raw){
     if (screen === 'guard'){ goto('guard'); return true; }
     if (screen === 'check'){ newCheck(); return true; }
@@ -4892,7 +4912,10 @@ async function recoveryToken(raw, email){
    Arayüzde hiçbir giriş noktası yoktur. Asıl koruma sunucudaki yetki denetimidir. */
 const _q = (location.search || '') + (location.hash || '');
 if (/[?&#]diag=1/.test(_q)) DEV = true;
-if (/[?&#]panel=1/.test(_q)){ DEV = true; setTimeout(()=>goto('mod'), 60); }
+if (/[?&#]panel=1/.test(_q)){
+  DEV = true; PANEL_MODE = true;
+  setTimeout(()=>goto('mod'), 60);
+}
 try{ const g = Store.get('garage');
   if (Array.isArray(g)) state.garage = g.filter((x,i,a)=>{
     if(!x.key) x.key = (x.brand||'')+'|'+(x.model||'')+'|'+(x.pt||'')+'|'+(x.dist||0);
