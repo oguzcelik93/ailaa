@@ -160,6 +160,14 @@ tailwind.config = {
   @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
   #printArea{display:none}
+  /* yazdırma sırasında yalnızca rapor görünür */
+  body.printing header,
+  body.printing #actionBar,
+  body.printing #modal,
+  body.printing #toast,
+  body.printing main > section{display:none!important}
+  body.printing #printArea{display:block!important;padding:16px 14px}
+  body.printing{overflow:visible}
   @media print{
     .no-print{display:none!important}
     #printArea{display:block!important}
@@ -187,6 +195,9 @@ tailwind.config = {
 <header class="sticky top-0 z-30 no-print">
   <div class="max-w-lg mx-auto px-4 pb-2" style="padding-top:calc(env(safe-area-inset-top) + 12px)">
     <div class="flex items-center gap-3">
+      <button id="backBtn" class="shrink-0 hidden" aria-label="Geri"
+        style="width:34px;height:34px;border:2px solid #000;display:grid;place-items:center">
+        <i class="fa-solid fa-arrow-left text-[15px]"></i></button>
       <button id="homeBtn" class="shrink-0" aria-label="Relia" style="line-height:0">
         <svg viewBox="0 0 100 100" width="30" height="30" fill="none">
           <path fill="#FF3000" fill-rule="evenodd" d="M5.84 0.64 L58.94 0.64 L63.72 1.11 L68.14 2.20 L74.88 5.54 L78.95 8.69 L83.24 13.72 L86.58 20.07 L88.59 29.47 L87.51 39.41 L83.81 47.69 L77.62 54.81 L70.48 59.26 L63.12 61.41 L51.60 62.19 L74.39 99.19 L55.11 99.19 L38.78 74.06 L38.24 99.13 L21.54 99.13 L21.54 66.97 L22.24 66.27 L33.30 66.27 L31.72 62.76 L30.42 61.79 L17.87 61.79 L16.97 62.41 L16.49 99.13 L0.11 99.13 L0.11 45.30 L0.95 44.55 L21.24 44.55 L21.73 22.30 L38.28 22.30 L38.28 43.73 L39.00 44.42 L62.06 44.42 L65.94 42.18 L68.31 39.98 L70.61 35.82 L71.48 31.94 L70.97 27.51 L68.98 23.22 L66.19 20.32 L62.25 18.17 L58.94 17.40 L20.53 17.40 L5.73 0.79Z M0.41 2.23 L16.55 19.77 L16.55 39.86 L0.23 39.86 L0.23 2.25Z M75.88 61.73 L98.83 96.80 L99.62 99.17 L80.17 99.17 L59.83 66.97 L68.71 64.91 L75.77 61.76Z"/>
@@ -276,7 +287,7 @@ const CFG = {
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
 let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
-const BUILD = 'b4 · 2026-08-20';   // her yeni paket için artar
+const BUILD = 'b5 · 2026-08-20';   // her yeni paket için artar
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 function isPro(){ return Store.get('pro') === true; }
@@ -438,7 +449,7 @@ const S = {
   savedUpd:['Garajdaki kayıt güncellendi','Garage entry updated'],
   savedAlready:['Garajda kayıtlı','Saved'],
   askPrice:['İlan fiyatı (opsiyonel)','Asking price (optional)','Angebotspreis (optional)'],
-  askPriceP:['450.000','450,000','45.000'],
+  askPriceP:['450.000','12,000','12.000'],
   compareH:['Karşılaştır','Compare','Vergleichen'],
   compareD:['Garajdan en fazla 3 araç seçin.','Pick up to 3 cars from your garage.','Wählen Sie bis zu 3 Fahrzeuge.'],
   compareBtn:['Karşılaştır','Compare','Vergleichen'],
@@ -472,6 +483,22 @@ const S = {
   helpWhy:['Neden önemli','Why it matters','Warum wichtig'],
   helpGot:['Anladım','Got it','Verstanden'],
   setH:['Ayarlar','Settings','Einstellungen'],
+  setAcc:['Hesap','Account','Konto'],
+  accH:['Hesabınız','Your account','Ihr Konto'],
+  accIn:['Giriş yap','Sign in','Anmelden'],
+  accUp:['Kayıt ol','Create account','Konto erstellen'],
+  accToUp:['Hesabım yok, kayıt olayım','No account? Create one','Kein Konto? Registrieren'],
+  accToIn:['Hesabım var, giriş yapayım','Already have an account? Sign in','Konto vorhanden? Anmelden'],
+  accD:['Hesap isteğe bağlıdır. Garajınızı ve Premium erişiminizi cihaz değiştirdiğinizde korumak için kullanılır.','An account is optional. It keeps your garage and Premium access when you change devices.','Ein Konto ist optional. Es bewahrt Garage und Premium-Zugang beim Gerätewechsel.'],
+  accInD:['Garajınız ve Premium erişiminiz bu hesaba bağlı.','Your garage and Premium access are tied to this account.','Garage und Premium-Zugang sind mit diesem Konto verknüpft.'],
+  accOut:['Çıkış yap','Sign out','Abmelden'],
+  accOutOk:['Çıkış yapıldı','Signed out','Abgemeldet'],
+  accOkIn:['Giriş yapıldı','Signed in','Angemeldet'],
+  accMail:['Hesap oluşturuldu. E-postanıza gelen onay bağlantısına tıklayıp giriş yapın.','Account created. Click the confirmation link in your email, then sign in.','Konto erstellt. Klicken Sie auf den Bestätigungslink in Ihrer E-Mail und melden Sie sich an.'],
+  accBad:['E-posta ve en az 6 karakterli parola gerekli.','Enter an email and a password of at least 6 characters.','E-Mail und mindestens 6 Zeichen Passwort erforderlich.'],
+  accNeedH:['Bunun için hesap gerekli','An account is needed','Dafür wird ein Konto benötigt'],
+  accNeedD:['Garaja araç kaydetmek için giriş yapın veya hesap oluşturun. Kontrolleri hesapsız da yapabilirsiniz.','Sign in or create an account to save cars to your garage. Checks work without an account.','Melden Sie sich an, um Fahrzeuge in der Garage zu speichern. Prüfungen funktionieren auch ohne Konto.'],
+  accGuest:['Hesapsız kullanılıyor','Using without an account','Ohne Konto'],
   setLang:['Dil','Language','Sprache'],
   setPlan:['Üyelik','Plan','Mitgliedschaft'],
   setOther:['Diğer','Other','Sonstiges'],
@@ -1244,11 +1271,38 @@ function restoreSession(){
 
 const inFrame = (()=>{ try{ return window.self !== window.top; }catch(e){ return true; } })();
 
+/* Ekran geçmişi: telefonun geri tuşu uygulamayı kapatmasın, bir önceki ekrana dönsün */
+let navStack = ['welcome'];
+let navBack = false;
+function goBack(){
+  if (SCREEN === 'wizard' && state.idx > 0){ prevQ(); return true; }
+  if (navStack.length > 1){
+    navStack.pop();
+    navBack = true;
+    goto(navStack[navStack.length - 1]);
+    navBack = false;
+    return true;
+  }
+  if (SCREEN !== 'welcome'){ goto('welcome'); return true; }
+  return false;
+}
+window.addEventListener('popstate', ()=>{
+  if (goBack()) { try{ history.pushState({rc:1}, ''); }catch(e){} }
+});
+
 let SCREEN = 'welcome';
 function goto(name){
   SCREEN = name;
   ['welcome','vehicle','wizard','result','garage','guard','report','detail','mod','doc'].forEach(s=>$('sc-'+s).classList.toggle('active', s===name));
   const prog = {welcome:4, vehicle:12, wizard:0, result:100, garage:100, guard:4, report:4, detail:4, mod:4, doc:4}[name];
+  if (!navBack){
+    const top = navStack[navStack.length-1];
+    if (top !== name){
+      if (name === 'welcome') navStack = ['welcome'];
+      else navStack.push(name);
+      try{ history.pushState({rc:1}, ''); }catch(e){}
+    }
+  }
   if (name!=='wizard') $('progressBar').style.width = prog+'%';
   if (name==='welcome') renderWelcome();
   if (name==='vehicle') renderVehicle();
@@ -1260,6 +1314,12 @@ function goto(name){
   if (name==='detail') renderDetail();
   if (name==='mod') renderMod();
   if (name==='doc') renderDoc();
+  const bb = $('backBtn');
+  if (bb){
+    const show = name !== 'welcome';
+    bb.classList.toggle('hidden', !show);
+    bb.style.display = show ? 'grid' : 'none';
+  }
   if (PANEL_MODE){
     try{
       const useHash = (location.hash || '').indexOf('panel=1') > -1 || !location.search;
@@ -2297,13 +2357,30 @@ function reportDoc(){
     + reportHtml()
     + '\n</div>\n</body>\n</html>';
 }
+/* Yazdırma: bazı uygulama sarmalayıcıları @media print kurallarını uygulamıyor
+   ve boş sayfa basıyor. Bu yüzden rapor ekranda gerçekten görünür hale getirilip
+   yazdırılıyor, sonra eski görünüme dönülüyor. */
 function doPrint(){
   const pa = $('printArea');
+  const r = state.result;
   pa.innerHTML = reportHtml();
+  document.body.classList.add('printing');
+  pa.style.display = 'block';
+  /* animasyonlu öğeleri son değerlerine sabitle, yoksa boş görünür */
+  try{
+    const g = pa.querySelector('#gaugeFill') || pa.querySelector('path[pathLength]');
+    if (g && r){ g.style.transition='none'; g.style.strokeDashoffset = (100 - r.score); }
+    pa.querySelectorAll('.barfill').forEach(b=>{ b.style.transition='none';
+      if (b.dataset && b.dataset.w) b.style.width = b.dataset.w + '%'; });
+  }catch(e){}
+  window.scrollTo({top:0});
   setTimeout(()=>{
     try{ window.print(); }catch(e){ toast(t('pdfFail')); }
-    setTimeout(()=>{ pa.innerHTML=''; }, 1500);
-  }, 120);
+    setTimeout(()=>{
+      document.body.classList.remove('printing');
+      pa.style.display = ''; pa.innerHTML = '';
+    }, 1200);
+  }, 400);
 }
 function doDownload(){
   try{
@@ -2424,6 +2501,7 @@ async function shareReport(){
 }
 function saveGarage(){
   if (!state.result || state.result.score === null || !PT[state.pt]){ toast(t('noReport')); return; }
+  if (!isSignedIn()){ requireAccount(saveGarage); return; }
   const r=state.result, v=verdict(), p=PT[state.pt];
   // aynı araç / aynı ilan tekrar eklenmez, kaydı güncellenir
   const key = (state.listing.no || '') + '|' + state.brand + '|' + state.model + '|' + state.pt + '|' + state.dist;
@@ -3609,6 +3687,89 @@ function renderDoc(){
   $('dcHome').onclick = ()=>goto('welcome');
 }
 
+/* ---------- Kullanıcı hesabı (isteğe bağlı) ---------- */
+state.user = null;                       // { token, email, id }
+function isSignedIn(){ return !!(state.user && state.user.token); }
+function loadUser(){
+  const u = Store.get('user');
+  if (u && u.token && u.at && Date.now() - u.at < 1000*60*60*24*25) state.user = u;
+}
+function saveUser(u){ state.user = u; Store.set('user', u ? Object.assign({at:Date.now()}, u) : null); }
+
+async function authCall(kind, email, pass){
+  const path = kind==='in' ? '/auth/v1/token?grant_type=password' : '/auth/v1/signup';
+  const res = await fetch(CFG.url + path, { method:'POST',
+    headers:{ apikey:CFG.key, 'Content-Type':'application/json' },
+    body: JSON.stringify({ email:email, password:pass }) });
+  const j = await res.json();
+  if (!res.ok) throw new Error(j.msg || j.error_description || j.error || 'auth');
+  return j;
+}
+
+function openAccount(){
+  if (isSignedIn()){
+    openModal(`<h3 class="text-lg font-bold">${t('accH')}</h3>
+      <p class="text-[13px] mt-3 num" style="word-break:break-all">${esc(state.user.email)}</p>
+      <p class="text-[12.5px] mt-2 leading-relaxed" style="color:#767676">${t('accInD')}</p>
+      <button id="acOut" class="w-full mt-4 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('accOut')}</button>
+      <button id="acNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+    $('acNo').onclick = closeModal;
+    $('acOut').onclick = ()=>{ saveUser(null); closeModal(); toast(t('accOutOk')); renderWelcome(); };
+    return;
+  }
+  let mode = 'in';
+  const draw = ()=>{
+    openModal(`<h3 class="text-lg font-bold">${t(mode==='in'?'accIn':'accUp')}</h3>
+      <p class="text-[12.5px] mt-2 leading-relaxed">${t('accD')}</p>
+      <div class="mt-4 space-y-3">
+        <input id="acE" type="email" inputmode="email" placeholder="${t('mdEmail')}" class="field w-full rounded-xl px-4 py-3.5 text-[15px]">
+        <div class="flex gap-2">
+          <input id="acP" type="password" placeholder="${t('mdPass')}" class="field flex-1 rounded-xl px-4 py-3.5 text-[15px]">
+          <button id="acEye" class="shrink-0 px-4 border border-white/10 text-[11px] uppercase">${t('mdShowPw')}</button>
+        </div>
+        <button id="acGo" class="w-full rounded-xl py-3.5 font-extrabold text-[15px] bg-ok text-ink">${t(mode==='in'?'accIn':'accUp')}</button>
+        <button id="acSwap" class="w-full rounded-xl py-3 font-bold text-[13.5px] bg-white/8 border border-white/10">${t(mode==='in'?'accToUp':'accToIn')}</button>
+        <p id="acErr" class="text-[12.5px] text-bad leading-relaxed hidden"></p>
+        <p id="acOk" class="text-[12.5px] leading-relaxed hidden" style="color:#000">${t('accMail')}</p>
+      </div>
+      <button id="acNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+    $('acNo').onclick = closeModal;
+    $('acEye').onclick = ()=>{ const f=$('acP'); const sh=f.type==='password';
+      f.type = sh?'text':'password'; $('acEye').textContent = sh?t('mdHidePw'):t('mdShowPw'); };
+    $('acSwap').onclick = ()=>{ mode = mode==='in' ? 'up' : 'in'; draw(); };
+    $('acGo').onclick = async ()=>{
+      const email = $('acE').value.trim(), pass = $('acP').value;
+      $('acErr').classList.add('hidden'); $('acOk').classList.add('hidden');
+      if (!email || pass.length < 6){ $('acErr').textContent = t('accBad'); $('acErr').classList.remove('hidden'); return; }
+      $('acGo').textContent = '...';
+      try{
+        const j = await authCall(mode, email, pass);
+        if (j.access_token){
+          saveUser({ token:j.access_token, email:email, id:(j.user&&j.user.id)||'' });
+          closeModal(); toast(t('accOkIn')); renderWelcome();
+          if (state.afterAuth){ const f = state.afterAuth; state.afterAuth = null; f(); }
+          return;
+        }
+        $('acOk').classList.remove('hidden');
+      }catch(e){ $('acErr').textContent = String(e.message).slice(0,120); $('acErr').classList.remove('hidden'); }
+      $('acGo').textContent = t(mode==='in'?'accIn':'accUp');
+    };
+  };
+  draw();
+}
+/* Hesap gerektiren işlemler için kapı */
+function requireAccount(next){
+  if (isSignedIn()){ next(); return true; }
+  state.afterAuth = next;
+  openModal(`<h3 class="text-lg font-bold">${t('accNeedH')}</h3>
+    <p class="text-[13px] mt-3 leading-relaxed">${t('accNeedD')}</p>
+    <button id="anGo" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('accIn')} / ${t('accUp')}</button>
+    <button id="anNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+  $('anNo').onclick = ()=>{ state.afterAuth = null; closeModal(); };
+  $('anGo').onclick = ()=>{ closeModal(); openAccount(); };
+  return false;
+}
+
 function openSettings(){
   const pro = isPro();
   openModal(`<h3 class="text-lg font-bold">${t('setH')}</h3>
@@ -3619,6 +3780,11 @@ function openSettings(){
         style="font-weight:700;${k?'border-left:2px solid #000;':''}${L===i?'background:#000;color:#fff':''}">
         ${LANG_NAMES[i]}</button>`).join('')}
     </div>
+
+    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:#767676">${t('setAcc')}</p>
+    <button id="stAcc" class="opt w-full text-left" style="border:2px solid #000;padding:14px">
+      <span class="block" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${isSignedIn()?esc(state.user.email):t('accGuest')}</span>
+      <span class="block text-[12px] mt-1" style="color:#767676">${isSignedIn()?t('accOut'):t('accIn')+' / '+t('accUp')} →</span></button>
 
     <p class="uppercase mt-6 mb-2" style="font-size:10px;color:#767676">${t('setPlan')}</p>
     <div style="border:2px solid ${pro?'#000':'#FF3000'};padding:14px">
@@ -3642,6 +3808,7 @@ function openSettings(){
 
   $('modalBody').querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{
     buzz(); closeModal(); setLang(+b.dataset.lang); });
+  $('stAcc').onclick   = ()=>{ closeModal(); openAccount(); };
   $('stLegal').onclick = ()=>{ closeModal(); openLegal(); };
 
   $('stNo').onclick    = closeModal;
@@ -3750,6 +3917,7 @@ function openLicense(){
       const out = await res.json();
       if (!res.ok || out === false || (out && out.ok === false)) throw new Error('bad');
       Store.set('pro', true); Store.set('license', code);
+      if (isSignedIn()) Store.set('proEmail', state.user.email);
       closeModal(); toast(t('licOk')); renderWelcome();
     }catch(e){
       $('lcErr').textContent = t('licBad'); $('lcErr').classList.remove('hidden');
@@ -4864,6 +5032,8 @@ function setLang(i){
 $('langBtn').onclick = openSettings;
 $('garageBtn').onclick=()=>goto('garage');
 $('homeBtn').onclick = ()=>goto('welcome');
+$('backBtn').onclick = ()=>{ buzz(); goBack(); };
+try{ history.pushState({rc:1}, ''); }catch(e){}
 $('modal').onclick=e=>{ if(e.target===$('modal').firstElementChild) closeModal(); };
 /* Metinden hazır oturum anahtarını (JWT) çıkarır */
 function tokenFromLink(txt){
@@ -4945,6 +5115,7 @@ window.addEventListener('unhandledrejection', e=>{
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveSession(); });
 window.addEventListener('pagehide', saveSession);
 
+loadUser();
 detect();
 updateGarageBadge();
 claimReferral();
