@@ -294,7 +294,7 @@ const CFG = {
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
 let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
-const BUILD = 'b8 · 2026-08-22';   // her yeni paket için artar
+const BUILD = 'b9 · 2026-08-22';   // her yeni paket için artar
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 function isPro(){ return Store.get('pro') === true; }
@@ -542,6 +542,7 @@ const S = {
   accInD:['Garajınız ve Premium erişiminiz bu hesaba bağlı.','Your garage and Premium access are tied to this account.','Garage und Premium-Zugang sind mit diesem Konto verknüpft.'],
   accOut:['Çıkış yap','Sign out','Abmelden'],
   accOutOk:['Çıkış yapıldı','Signed out','Abgemeldet'],
+  accOutAsk:['Çıkış yapılsın mı? Bu cihazdaki garaj, yarım kalan kontrol ve Premium erişimi silinir. Tekrar giriş yaptığınızda Premium erişiminiz geri gelir.','Sign out? The garage, unfinished check and Premium access on this device will be cleared. Premium returns when you sign in again.','Abmelden? Garage, unterbrochene Prüfung und Premium-Zugang auf diesem Gerät werden gelöscht. Premium kehrt bei erneuter Anmeldung zurück.'],
   accOkIn:['Giriş yapıldı','Signed in','Angemeldet'],
   accMail:['Hesap oluşturuldu. E-postanıza gelen onay bağlantısına tıklayıp giriş yapın.','Account created. Click the confirmation link in your email, then sign in.','Konto erstellt. Klicken Sie auf den Bestätigungslink in Ihrer E-Mail und melden Sie sich an.'],
   accBad:['E-posta ve en az 6 karakterli parola gerekli.','Enter an email and a password of at least 6 characters.','E-Mail und mindestens 6 Zeichen Passwort erforderlich.'],
@@ -578,6 +579,7 @@ const S = {
   licActivate:['Etkinleştir','Activate','Aktivieren'],
   licOk:['Premium etkinleştirildi','Premium activated','Premium aktiviert'],
   licBad:['Kod geçersiz veya daha önce kullanılmış.','The code is invalid or already used.','Der Code ist ungültig oder bereits verwendet.'],
+  foundErr:['Kurucu üyelik açılamadı','Could not activate founding membership','Gründungsmitgliedschaft nicht möglich'],
   foundH:['Kurucu üyelik','Founding member','Gründungsmitglied'],
   proNeedAccH:['Premium hesabınıza bağlanır','Premium is tied to your account','Premium ist an Ihr Konto gebunden'],
   proNeedAccD:['Önce giriş yapın veya hesap oluşturun. Böylece Premium erişiminiz cihaz değiştirdiğinizde de kalır.','Sign in or create an account first, so your Premium access survives a change of device.','Melden Sie sich zuerst an, damit Ihr Premium-Zugang beim Gerätewechsel erhalten bleibt.'],
@@ -3863,6 +3865,17 @@ function loadUser(){
   const u = Store.get('user');
   if (u && u.token && u.at && Date.now() - u.at < 1000*60*60*24*25) state.user = u;
 }
+/* Çıkışta cihazdaki kişisel veriler temizlenir: garaj, yarım kalan kontrol,
+   Premium durumu ve kurucu koltuğu. Dil ve tema tercihi korunur. */
+function signOutAll(){
+  saveUser(null);
+  ['garage','session','pro','proEmail','license','founderSeat','usage','bonus','sharedOn','refUsed']
+    .forEach(k=>{ try{ Store.set(k, null); }catch(e){} });
+  try{ delete Store.data.pro; }catch(e){}
+  state.garage = []; state.cmp = []; state.user = null;
+  newCheck(); updateGarageBadge();
+}
+
 function saveUser(u){ state.user = u; Store.set('user', u ? Object.assign({at:Date.now()}, u) : null); }
 
 async function authCall(kind, email, pass){
@@ -3883,7 +3896,10 @@ function openAccount(){
       <button id="acOut" class="w-full mt-4 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('accOut')}</button>
       <button id="acNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
     $('acNo').onclick = closeModal;
-    $('acOut').onclick = ()=>{ saveUser(null); closeModal(); toast(t('accOutOk')); renderWelcome(); };
+    $('acOut').onclick = async ()=>{
+      if(!(await askConfirm(t('accOutAsk')))) return;
+      signOutAll(); closeModal(); toast(t('accOutOk')); goto('welcome');
+    };
     return;
   }
   let mode = 'in';
@@ -3931,22 +3947,37 @@ function openAccount(){
   draw();
 }
 /* Kurucu üyelik: ilk 1000 kayıtlı kullanıcı ömür boyu Premium alır */
+let founderErr = '';
 async function claimFounder(){
-  if (!isSignedIn()) return null;
-  try{
-    /* Bu çağrı sunucuda auth.uid() okur; anahtar değil kullanıcı jetonu gerekir */
-    if (!isSignedIn()) return null;
-    const res = await fetch(CFG.url + '/rest/v1/rpc/rc_claim_founder', { method:'POST',
-      headers:{ apikey:CFG.key, Authorization:'Bearer '+state.user.token, 'Content-Type':'application/json' },
-      body:'{}' });
-    const out = await res.json();
-    const row = Array.isArray(out) ? out[0] : out;
-    if (row && row.ok){
-      Store.set('pro', true);
-      Store.set('founderSeat', row.seat);
-      return row;
-    }
-  }catch(e){}
+  founderErr = '';
+  if (!isSignedIn()){ founderErr = 'no_session'; return null; }
+  /* Sunucu kimliği oturum jetonundan okur; uygulama anahtarı yetmez.
+     Eski kurulumlarda işlevin e-posta alan bir sürümü kalmış olabilir,
+     o yüzden iki imza da denenir. */
+  const attempts = [
+    { body:'{}' },
+    { body: JSON.stringify({ p_email: state.user.email }) }
+  ];
+  for (const a of attempts){
+    try{
+      const res = await fetch(CFG.url + '/rest/v1/rpc/rc_claim_founder', { method:'POST',
+        headers:{ apikey:CFG.key, Authorization:'Bearer '+state.user.token, 'Content-Type':'application/json' },
+        body: a.body });
+      const txt = await res.text();
+      let out; try{ out = JSON.parse(txt); }catch(e){ out = txt; }
+      if (!res.ok){ founderErr = res.status + ' ' + String(txt).slice(0,120); continue; }
+      const row = Array.isArray(out) ? out[0] : out;
+      if (row === true || (row && row.ok)){
+        Store.set('pro', true);
+        if (row && row.seat) Store.set('founderSeat', row.seat);
+        if (isSignedIn()) Store.set('proEmail', state.user.email);
+        founderErr = '';
+        return (row === true) ? { ok:true, seat:0 } : row;
+      }
+      founderErr = 'full';            // işlev çalıştı ama kontenjan yok
+      return null;
+    }catch(e){ founderErr = String(e.message).slice(0,120); }
+  }
   return null;
 }
 async function founderLeft(){
@@ -4118,7 +4149,10 @@ function openPaywallInner(reason){
     pf.textContent = '...';
     const f = await claimFounder();
     closeModal();
-    if (f && f.seat) showFounder(f); else toast(t('foundFull'));
+    if (f && f.ok) showFounder(f);
+    else toast(founderErr && founderErr !== 'full'
+      ? t('foundErr') + ' · ' + founderErr
+      : t('foundFull'));
   };
   $('pwNo').onclick = closeModal;
 }
@@ -4357,6 +4391,7 @@ Object.assign(S, {
   diagAuth:['Anahtar veya erişim kuralı reddetti','Key or access policy rejected the request'],
   diagNet:['İnternete ulaşılamadı','Could not reach the internet'],
   diagHint:['Sorunu çözemezsen sonucu kopyalayıp bana gönder.','If you cannot fix it, copy the result and send it over.'],
+  diagT6:['Kurucu üyelik','Founding membership','Gründungsmitgliedschaft'],
   diagT4:['Yerel kayıt / çerçeve durumu','Local storage / frame state'],
   diagT5:['Rapor yükleme (depolama)','Report upload (storage)'],
   diagStoreBad:['Kayıt yapılamıyor: uygulama çerçeve içinde. Kendi sekmesinde açın.','Cannot save: the app is inside a frame. Open it in its own tab.'],
@@ -4401,6 +4436,12 @@ async function runDiag(){
     { n:t('diagT1'), kind:'db', r: await probe('/rest/v1/rc_reports?select=id&limit=1') },
     { n:t('diagT2'), kind:'db', r: await probe('/rest/v1/rpc/rc_listing_pulse', { method:'POST', body: JSON.stringify({p_site:'',p_listing:'0'}) }) },
     { n:t('diagT3')+' · '+CFG.fn, kind:'fn', r: await probe('/functions/v1/'+CFG.fn, { method:'POST', body: JSON.stringify({url:'https://www.mobile.de/', device:device()}) }) },
+    { n:t('diagT6'), kind:'env', r: await (async()=>{ const t0=Date.now();
+        if (!isSignedIn()) return { status:0, ok:false, body:'oturum yok — önce giriş yapın', ms:0 };
+        const f = await claimFounder();
+        if (f && f.ok) return { status:200, ok:true, body:'koltuk #'+(f.seat||'?'), ms:Date.now()-t0 };
+        return { status:0, ok:false, body: founderErr || 'kontenjan dolu', ms:Date.now()-t0 };
+      })() },
     { n:t('diagT4'), kind:'env', r:{ status: Store.ok()?200:0, ok: Store.ok(),
         body:'depo='+Store.mode+' · çerçeve='+(inFrame?'evet':'hayır'), ms:0 } },
     { n:t('diagT5'), kind:'env', r: await (async()=>{ const t0=Date.now();
