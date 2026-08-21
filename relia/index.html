@@ -545,6 +545,7 @@ const S = {
   accOutAsk:['Çıkış yapılsın mı? Bu cihazdaki garaj, yarım kalan kontrol ve Premium erişimi silinir. Tekrar giriş yaptığınızda Premium erişiminiz geri gelir.','Sign out? The garage, unfinished check and Premium access on this device will be cleared. Premium returns when you sign in again.','Abmelden? Garage, unterbrochene Prüfung und Premium-Zugang auf diesem Gerät werden gelöscht. Premium kehrt bei erneuter Anmeldung zurück.'],
   accOkIn:['Giriş yapıldı','Signed in','Angemeldet'],
   accMail:['Hesap oluşturuldu. E-postanıza gelen onay bağlantısına tıklayıp giriş yapın.','Account created. Click the confirmation link in your email, then sign in.','Konto erstellt. Klicken Sie auf den Bestätigungslink in Ihrer E-Mail und melden Sie sich an.'],
+  accRemember:['Beni hatırla','Remember me','Angemeldet bleiben'],
   accBad:['E-posta ve en az 6 karakterli parola gerekli.','Enter an email and a password of at least 6 characters.','E-Mail und mindestens 6 Zeichen Passwort erforderlich.'],
   accNeedH:['Bunun için hesap gerekli','An account is needed','Dafür wird ein Konto benötigt'],
   accNeedD:['Garaja araç kaydetmek için giriş yapın veya hesap oluşturun. Kontrolleri hesapsız da yapabilirsiniz.','Sign in or create an account to save cars to your garage. Checks work without an account.','Melden Sie sich an, um Fahrzeuge in der Garage zu speichern. Prüfungen funktionieren auch ohne Konto.'],
@@ -580,6 +581,7 @@ const S = {
   licOk:['Premium etkinleştirildi','Premium activated','Premium aktiviert'],
   licBad:['Kod geçersiz veya daha önce kullanılmış.','The code is invalid or already used.','Der Code ist ungültig oder bereits verwendet.'],
   foundErr:['Kurucu üyelik açılamadı','Could not activate founding membership','Gründungsmitgliedschaft nicht möglich'],
+  foundSeat:['Kurucu üye #{n} / 1000','Founding member #{n} of 1000','Gründungsmitglied #{n} von 1000'],
   foundH:['Kurucu üyelik','Founding member','Gründungsmitglied'],
   proNeedAccH:['Premium hesabınıza bağlanır','Premium is tied to your account','Premium ist an Ihr Konto gebunden'],
   proNeedAccD:['Önce giriş yapın veya hesap oluşturun. Böylece Premium erişiminiz cihaz değiştirdiğinizde de kalır.','Sign in or create an account first, so your Premium access survives a change of device.','Melden Sie sich zuerst an, damit Ihr Premium-Zugang beim Gerätewechsel erhalten bleibt.'],
@@ -3876,7 +3878,13 @@ function signOutAll(){
   newCheck(); updateGarageBadge();
 }
 
-function saveUser(u){ state.user = u; Store.set('user', u ? Object.assign({at:Date.now()}, u) : null); }
+function saveUser(u, remember){
+  state.user = u;
+  /* "Beni hatırla" kapalıysa oturum yalnızca uygulama açık kaldığı sürece durur */
+  const keep = (remember === undefined) ? (Store.get('remember') !== false) : remember;
+  if (u && !keep){ try{ Store.set('user', null); }catch(e){} return; }
+  Store.set('user', u ? Object.assign({at:Date.now()}, u) : null);
+}
 
 async function authCall(kind, email, pass){
   const path = kind==='in' ? '/auth/v1/token?grant_type=password' : '/auth/v1/signup';
@@ -3903,6 +3911,7 @@ function openAccount(){
     return;
   }
   let mode = 'in';
+  let remember = Store.get('remember') !== false;   // varsayılan: hatırla
   const draw = ()=>{
     openModal(`<h3 class="text-lg font-bold">${t(mode==='in'?'accIn':'accUp')}</h3>
       <p class="text-[12.5px] mt-2 leading-relaxed">${t('accD')}</p>
@@ -3913,7 +3922,11 @@ function openAccount(){
           <button id="acEye" class="shrink-0 px-4 border border-white/10 text-[11px] uppercase">${t('mdShowPw')}</button>
         </div>
         <button id="acGo" class="w-full rounded-xl py-3.5 font-extrabold text-[15px] bg-ok text-ink">${t(mode==='in'?'accIn':'accUp')}</button>
+        <button id="acRem" class="w-full text-left flex items-center gap-2.5 py-1">
+          <span id="acRemBox" style="width:18px;height:18px;flex:none;border:2px solid var(--fg);background:${remember?'var(--accent)':'transparent'}"></span>
+          <span class="text-[13px]" style="font-weight:700">${t('accRemember')}</span></button>
         <button id="acSwap" class="w-full rounded-xl py-3 font-bold text-[13.5px] bg-white/8 border border-white/10">${t(mode==='in'?'accToUp':'accToIn')}</button>
+        ${mode==='in'?`<button id="acForgot" class="w-full py-2 text-[13px] font-bold" style="color:var(--accent)">${t('mdReset')}</button>`:''}
         <p id="acErr" class="text-[12.5px] text-bad leading-relaxed hidden"></p>
         <p id="acOk" class="text-[12.5px] leading-relaxed hidden" style="color:var(--fg)">${t('accMail')}</p>
       </div>
@@ -3922,6 +3935,9 @@ function openAccount(){
     $('acEye').onclick = ()=>{ const f=$('acP'); const sh=f.type==='password';
       f.type = sh?'text':'password'; $('acEye').textContent = sh?t('mdHidePw'):t('mdShowPw'); };
     $('acSwap').onclick = ()=>{ mode = mode==='in' ? 'up' : 'in'; draw(); };
+    $('acRem').onclick = ()=>{ remember = !remember; Store.set('remember', remember);
+      $('acRemBox').style.background = remember ? 'var(--accent)' : 'transparent'; buzz(); };
+    const fg = $('acForgot'); if (fg) fg.onclick = ()=>openUserReset($('acE').value.trim());
     $('acGo').onclick = async ()=>{
       const email = $('acE').value.trim(), pass = $('acP').value;
       $('acErr').classList.add('hidden'); $('acOk').classList.add('hidden');
@@ -3930,7 +3946,7 @@ function openAccount(){
       try{
         const j = await authCall(mode, email, pass);
         if (j.access_token){
-          saveUser({ token:j.access_token, email:email, id:(j.user&&j.user.id)||'' });
+          saveUser({ token:j.access_token, email:email, id:(j.user&&j.user.id)||'' }, remember);
           closeModal();
           const f = await claimFounder();
           if (f && f.seat) showFounder(f);
@@ -3989,6 +4005,75 @@ async function founderLeft(){
   }catch(e){ return null; }
 }
 
+/* Kullanıcı parola sıfırlama — moderasyondaki ile aynı iki adımlı yol */
+function openUserReset(prefill){
+  let email = (prefill||'').trim().toLowerCase();
+  openModal(`<h3 class="text-lg font-bold">${t('mdResetH')}</h3>
+    <p class="text-[12.5px] mt-2 leading-relaxed">${t('mdResetD2')}</p>
+
+    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:var(--accent)">${t('mdStep1')}</p>
+    <input id="urE" type="email" inputmode="email" value="${esc(email)}" placeholder="${t('mdEmail')}" class="field w-full rounded-xl px-4 py-3.5 text-[15px] lower">
+    <button id="urGo" class="w-full mt-3 rounded-xl py-3.5 font-extrabold text-[15px] bg-ok text-ink">${t('mdSendCode')}</button>
+    <p id="urOk" class="text-[12.5px] mt-3 leading-relaxed hidden">${t('mdCodeSent')}</p>
+    <p id="urErr" class="text-[12.5px] text-bad mt-3 leading-relaxed hidden"></p>
+
+    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:var(--accent)">${t('mdStep2')}</p>
+    <textarea id="urC" rows="3" placeholder="${t('mdCode6')}" class="field w-full rounded-xl px-4 py-3 text-[13px] lower"></textarea>
+    <p class="text-[12px] mt-2 leading-relaxed" style="border-left:4px solid var(--accent);padding-left:10px">${t('mdOrLine')}</p>
+    <div class="flex gap-2 mt-3">
+      <input id="urP" type="password" placeholder="${t('mdNewPw')}" class="field flex-1 rounded-xl px-4 py-3.5 text-[15px]">
+      <button id="urEye" class="shrink-0 px-4 border border-white/10 text-[11px] uppercase">${t('mdShowPw')}</button>
+    </div>
+    <button id="urSave" class="w-full mt-3 rounded-xl py-3.5 font-extrabold text-[15px] bg-ok text-ink">${t('mdSavePw')}</button>
+    <p id="urErr2" class="text-[12.5px] text-bad mt-3 leading-relaxed hidden"></p>
+    <button id="urNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+
+  $('urNo').onclick = ()=>openAccount();
+  $('urEye').onclick = ()=>{ const f=$('urP'); const sh=f.type==='password';
+    f.type = sh?'text':'password'; $('urEye').textContent = sh?t('mdHidePw'):t('mdShowPw'); };
+
+  $('urGo').onclick = async ()=>{
+    email = ($('urE').value||'').trim().toLowerCase();
+    $('urErr').classList.add('hidden'); $('urOk').classList.add('hidden');
+    if(!email){ $('urErr').textContent = t('mdNeedMail'); $('urErr').classList.remove('hidden'); return; }
+    $('urGo').textContent = '...';
+    try{
+      const back = location.origin + location.pathname;
+      const res = await fetch(CFG.url + '/auth/v1/recover?redirect_to=' + encodeURIComponent(back), {
+        method:'POST', headers:{ apikey:CFG.key, 'Content-Type':'application/json' },
+        body: JSON.stringify({ email: email }) });
+      if(!res.ok) throw new Error((await res.json()).msg || 'error');
+      $('urOk').classList.remove('hidden');
+    }catch(e){ $('urErr').textContent = String(e.message).slice(0,110); $('urErr').classList.remove('hidden'); }
+    $('urGo').textContent = t('mdSendCode');
+  };
+
+  $('urSave').onclick = async ()=>{
+    const raw = ($('urC').value||'').trim(), pw = $('urP').value;
+    $('urErr2').classList.add('hidden');
+    if (pw.length < 6){ $('urErr2').textContent = t('mdPwShort'); $('urErr2').classList.remove('hidden'); return; }
+    if (!raw){ $('urErr2').textContent = t('mdBadCode'); $('urErr2').classList.remove('hidden'); return; }
+    $('urSave').textContent = '...';
+    try{
+      const tok = await recoveryToken(raw, email || ($('urE').value||'').trim().toLowerCase());
+      const res = await fetch(CFG.url + '/auth/v1/user', { method:'PUT',
+        headers:{ apikey:CFG.key, Authorization:'Bearer '+tok, 'Content-Type':'application/json' },
+        body: JSON.stringify({ password: pw }) });
+      if(!res.ok) throw new Error((await res.json()).msg || 'error');
+      saveUser({ token:tok, email: email, id:'' });
+      closeModal(); toast(t('mdPwDone'));
+      const f = await claimFounder(); if (f && f.seat) showFounder(f);
+      renderWelcome();
+      return;
+    }catch(e){
+      const msg = String(e.message);
+      $('urErr2').textContent = /expired|invalid|otp|token/i.test(msg) ? t('mdBadCode') : msg.slice(0,110);
+      $('urErr2').classList.remove('hidden');
+    }
+    $('urSave').textContent = t('mdSavePw');
+  };
+}
+
 /* Hesap gerektiren işlemler için kapı */
 function requireAccount(next){
   if (isSignedIn()){ next(); return true; }
@@ -4043,7 +4128,8 @@ function openSettings(){
         ${pro?`<span class="uppercase" style="font-size:9px;padding:3px 6px;background:var(--fg);color:var(--bg)">${t('planLifetime')}</span>`:''}
       </div>
       ${pro
-        ? `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:var(--muted)">${t('planProD')}</p>`
+        ? `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:var(--muted)">${t('planProD')}</p>
+           ${Store.get('founderSeat')?`<p class="text-[12.5px] mt-2 num" style="color:var(--accent);font-weight:700">${tf('foundSeat',{n:Store.get('founderSeat')})}</p>`:''}`
         : `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:var(--muted)">${tf('planFreeD',{g:LIMITS.garage,d:LIMITS.daily,m:LIMITS.monthly})}</p>
            <p class="text-[12px] mt-2 num" style="color:var(--fg)">${tf('planUsed',{d:usage().day,dm:LIMITS.daily+bonus(),m:usage().month,mm:LIMITS.monthly+bonus()})}${bonus()?' · '+tf('planBonus',{n:bonus()}):''}</p>
            <button id="stPro" class="w-full mt-3 rounded-xl py-3 font-extrabold text-[14px] bg-ok text-ink">${t('planUpgrade')}</button>`}
