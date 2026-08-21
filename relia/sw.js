@@ -1,5 +1,5 @@
 /* Relia service worker — her açılışta güncel sürümü getirir */
-const CACHE = 'relia-1.0.0-b9';
+const CACHE = 'relia-1.0.0-b10';
 const SHELL = ['./manifest.webmanifest','./icon-192.png','./icon-512.png','./logo.svg'];
 
 self.addEventListener('install', e => {
