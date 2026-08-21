@@ -272,9 +272,9 @@ const CFG = {
   fn:     'listing-fetch',
   /* Ücretlendirme: true yapıldığında tam kontrol ve fotoğraflı rapor kilitlenir.
      Şu an erken erişim: her şey ücretsiz, premium etiketi görünür. */
-  paywall: false,
+  paywall: true,   /* tam kontrol Premium üyelere özel */
   /* Ömür boyu lisans satış sayfası — Gumroad / Shopier / iyzico bağlantısı buraya */
-  buyUrl: 'https://ailaa.io/relia/premium',
+  buyUrl: '',
   /* MAĞAZA SÜRÜMÜ: true iken uygulama içinden dışarıya satış bağlantısı verilmez.
      Google Play, uygulama içinde kullanılan dijital içeriğin dışarıda satılmasını
      yasaklar. Play/App Store için derlerken bunu true bırakın. */
@@ -294,7 +294,7 @@ const CFG = {
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
 let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
-const BUILD = 'b6 · 2026-08-21';   // her yeni paket için artar
+const BUILD = 'b8 · 2026-08-22';   // her yeni paket için artar
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 function isPro(){ return Store.get('pro') === true; }
@@ -385,6 +385,7 @@ const S = {
   how3:['Skoru ve ustaya verilecek listeyi alın','Get the score and the checklist for your mechanic','Bewertung und Liste für Ihre Werkstatt erhalten'],
   modeFree:['Ücretsiz','Free','Kostenlos'],
   modePro:['Premium','Premium','Premium'],
+  modeLocked:['Premium üyelere özel','Premium members only','Nur für Premium-Mitglieder'],
   modeEarly:['Erken erişim · ücretsiz','Early access · free','Früher Zugang · kostenlos'],
   proH:['Premium kontrol','Premium inspection'],
   proD:['Tam kontrol, fotoğraflı rapor, ustaya not listesi ve sınırsız garaj.','Full inspection, photo report, mechanic checklist and unlimited garage.'],
@@ -412,6 +413,7 @@ const S = {
   next:['Devam','Next'], back:['Geri','Back'], buildReport:['Raporu oluştur','Build the report'],
   yes:['Evet','Yes'], no:['Hayır','No'], unknown:['Bilmiyorum / bakamadım','Don\u2019t know / couldn\u2019t check'],
   section:['Bölüm','Section'], weight:['Ağırlık','Weight'],
+  addFromGallery:['Galeriden seç','Choose from gallery','Aus Galerie wählen'],
   addPhoto:['Fotoğraf ekle','Add photo'], photoHint:['Fotoğraf rapora ve ustaya giden listeye eklenir','Photos are attached to the report and the mechanic sheet'],
   noteOpt:['Not (opsiyonel)','Note (optional)'],
   dealbreakerTitle:['Burada dur','Stop right here'],
@@ -468,12 +470,47 @@ const S = {
   compareFlags:['Bulgu','Findings','Befunde'],
   compareCrit:['Kritik','Critical','Kritisch'],
   cmpSelect:['Karşılaştırmaya ekle','Add to compare','Zum Vergleich'],
+  cmpCount:['{n} araç karşılaştırıldı','{n} cars compared','{n} Fahrzeuge verglichen'],
+  cmpFooter:['Skorlar Relia ön kontrolüne dayanır ve ekspertiz yerine geçmez.','Scores come from a Relia pre-purchase check and do not replace an inspection.','Die Werte stammen aus einer Relia-Vorprüfung und ersetzen kein Gutachten.'],
   cmpSelected:['Karşılaştırmada','In comparison','Im Vergleich'],
   noReport:['Önce kontrolü tamamlayın','Complete the check first','Zuerst die Prüfung abschließen'],
   repImgH:['Raporu görsel olarak kaydet','Save report as image','Bericht als Bild speichern'],
   pdfPrintBtn:['Yazdır / PDF','Print / PDF','Drucken / PDF'],
   exportD:['Görsel her cihazda çalışır. Yazdırma yalnızca tarayıcıda ve bazı cihazlarda çalışır.','The image works on every device. Printing works in browsers and on some devices only.','Das Bild funktioniert überall. Drucken funktioniert nur im Browser und auf manchen Geräten.'],
   doneBtn:['Kontrolü tamamla','Finish check','Prüfung abschließen'],
+  editAnswers:['Cevapları düzenle','Edit answers','Antworten bearbeiten'],
+  finish:['Kontrolü tamamla','Finish check','Prüfung abschließen'],
+  finishOk:['Kontrol tamamlandı','Check completed','Prüfung abgeschlossen'],
+  pkSearch:['Ara...','Search...','Suchen...'],
+  pkNone:['Sonuç yok','No results','Kein Ergebnis'],
+  pdfImg:['Raporu görsel olarak kaydet','Save report as image','Bericht als Bild speichern'],
+  pdfImgD:['Görsel her cihazda çalışır.','The image works on every device.','Das Bild funktioniert auf jedem Gerät.'],
+  copyList:['Listeyi kopyala','Copy the list','Liste kopieren'],
+  foundOffer:['İlk 1000 üyeye Premium ücretsiz','Premium is free for the first 1000 members','Premium kostenlos für die ersten 1000 Mitglieder'],
+  tabNego:['Pazarlık','Bargain','Verhandlung'],
+  proUnlock:['Premium ile aç','Unlock with Premium','Mit Premium freischalten'],
+  negoH:['Pazarlık gerekçeleri','Bargaining points','Verhandlungspunkte'],
+  negoD:['Aşağıdaki maddeler bu araçta pazarlık konusu edilebilir. Tutar yazılmaz; hangi maddeden pazarlık edilebileceğini siz ve ustanız belirler.','These points can be raised when bargaining for this car. No amounts are given; you and your mechanic decide what each is worth.','Diese Punkte können bei der Preisverhandlung angeführt werden. Es werden keine Beträge genannt.'],
+  negoLockD:['Bu araçta hangi bulguların pazarlık gerekçesi olduğunu ve satıcıya gönderebileceğiniz hazır mesajı gösterir.','Shows which findings you can raise when bargaining, plus a ready message to send the seller.','Zeigt, welche Befunde sich für die Verhandlung eignen, samt fertiger Nachricht an den Verkäufer.'],
+  negoNone:['Bu kontrolde pazarlık gerekçesi oluşturacak bir bulgu çıkmadı.','No findings that would serve as bargaining points came up.','Es gab keine Befunde, die als Verhandlungspunkte dienen.'],
+  negoKm:['Kilometre {n} eşiğinin üzerinde','Mileage is above the {n} threshold','Laufleistung über der Schwelle von {n}'],
+  negoKmD:['Bu motorun bilinen sorunlarının çıkmaya başladığı kilometre aşılmış. Yaklaşan bakım kalemleri pazarlık konusudur.','The car is past the mileage where this engine\u2019s known problems begin. Upcoming maintenance is fair to raise.','Das Fahrzeug liegt über der Laufleistung, ab der bekannte Probleme auftreten.'],
+  negoMsgH:['Satıcıya gönderilecek mesaj','Message for the seller','Nachricht an den Verkäufer'],
+  negoMsgD:['Bulguları maddeler halinde ileten, tutar içermeyen bir mesaj.','A message that lists the findings without naming any amount.','Eine Nachricht, die die Befunde auflistet, ohne Beträge zu nennen.'],
+  negoMsgHi:['Merhaba,','Hello,','Hallo,'],
+  negoMsgIntro:['{car} ilanınızla ilgileniyorum. Aracı yerinde inceledim ve aşağıdaki maddeleri tespit ettim:','I am interested in your {car}. I inspected it and noted the following:','Ich interessiere mich für Ihren {car}. Bei der Besichtigung sind mir folgende Punkte aufgefallen:'],
+  negoMsgAsk:['Bu maddeler ışığında fiyat konusunu görüşebilir miyiz?','Given these points, could we talk about the price?','Können wir angesichts dieser Punkte über den Preis sprechen?'],
+  depthH:['Motor derinlik raporu','Engine deep dive','Motor-Detailbericht'],
+  depthLockD:['Bu motorun bilinen arızalarını tek tek açar: ne zaman çıkar, ustaya ne sorulur, bu araçta ne kadar acil.','Breaks down each known fault of this engine: when it appears, what to ask the shop, how urgent it is for this car.','Erläutert jede bekannte Schwachstelle: wann sie auftritt, was zu fragen ist, wie dringend es ist.'],
+  depthRisk:['Risk','Risk','Risiko'],
+  depthThr:['Eşik','Threshold','Schwelle'],
+  depthPast:['Bu araç {n} eşiğinin üzerinde. Aşağıdaki maddeler bu araç için güncel risktir.','This car is past the {n} threshold. The items below are live risks for it.','Dieses Fahrzeug liegt über der Schwelle von {n}. Die Punkte unten sind akute Risiken.'],
+  depthBefore:['Eşiğe {n} var. Maddeler henüz erken ama bakım geçmişi yine de sorulmalı.','{n} to go before the threshold. Still early, but ask about service history.','Noch {n} bis zur Schwelle. Fragen Sie dennoch nach der Wartungshistorie.'],
+  depthAsk:['Ustaya sorun','Ask the shop','Werkstatt fragen'],
+  depthAskQ:['\u201c{f}\u201d için yapılmış bir işlem var mı, faturası duruyor mu?','Has any work been done for \u201c{f}\u201d, and is there an invoice?','Wurde für \u201e{f}\u201c etwas gemacht, gibt es eine Rechnung?'],
+  depthUrg:['Aciliyet','Urgency','Dringlichkeit'],
+  depthUrgHigh:['Yüksek — kilometre eşiği geçilmiş, satın almadan önce kontrol ettirin.','High — past the mileage threshold; have it checked before buying.','Hoch — Schwelle überschritten; vor dem Kauf prüfen lassen.'],
+  depthUrgLow:['Orta — henüz erken, bakım geçmişi belge ile doğrulanmalı.','Medium — still early; verify service history with paperwork.','Mittel — noch früh; Wartungshistorie belegen lassen.'],
   doneMsg:['Kontrol tamamlandı','Check completed','Prüfung abgeschlossen'],
   resumeH:['Yarım kalan kontrole devam et','Resume unfinished check','Unterbrochene Prüfung fortsetzen'],
   resumeN:['soru yanıtlandı','answers'],
@@ -542,6 +579,8 @@ const S = {
   licOk:['Premium etkinleştirildi','Premium activated','Premium aktiviert'],
   licBad:['Kod geçersiz veya daha önce kullanılmış.','The code is invalid or already used.','Der Code ist ungültig oder bereits verwendet.'],
   foundH:['Kurucu üyelik','Founding member','Gründungsmitglied'],
+  proNeedAccH:['Premium hesabınıza bağlanır','Premium is tied to your account','Premium ist an Ihr Konto gebunden'],
+  proNeedAccD:['Önce giriş yapın veya hesap oluşturun. Böylece Premium erişiminiz cihaz değiştirdiğinizde de kalır.','Sign in or create an account first, so your Premium access survives a change of device.','Melden Sie sich zuerst an, damit Ihr Premium-Zugang beim Gerätewechsel erhalten bleibt.'],
   foundBtn:['Kurucu üyelik · ilk 1000 kişiye ücretsiz','Founding member · free for the first 1000','Gründungsmitglied · für die ersten 1000 kostenlos'],
   foundGot:['Premium hesabınıza tanımlandı','Premium added to your account','Premium Ihrem Konto hinzugefügt'],
   foundD:['İlk 1000 kurucu üyeden birisiniz. Premium erişiminiz hesabınıza ömür boyu tanımlandı; cihaz değiştirseniz de aynı hesapla giriş yaptığınızda geçerli olur.','You are one of the first 1000 founding members. Premium is tied to your account for life — sign in on any device and it follows you.','Sie gehören zu den ersten 1000 Gründungsmitgliedern. Premium ist lebenslang mit Ihrem Konto verknüpft.'],
@@ -1420,7 +1459,7 @@ function renderWelcome(){
               <span class="uppercase" style="font-size:9px;padding:3px 6px;${m[3]?'background:var(--accent);color:var(--bg)':'background:var(--fg);color:var(--bg)'}">${m[3]?t('modePro'):t('modeFree')}</span>
             </span>
             <span class="block text-[12px] mt-1 num" style="color:var(--muted)">${tf(m[2],{n:n})}</span>
-            ${m[3]&&!CFG.paywall?`<span class="block text-[11px] mt-1" style="color:var(--accent)">${t('modeEarly')}</span>`:''}
+            ${m[3]&&!isPro()?`<span class="block text-[11px] mt-1" style="color:var(--accent)">${t('modeLocked')}</span>`:''}
           </span>
           <i class="fa-solid fa-arrow-right text-[15px]"></i></button>`;}).join('')}
     </div>
@@ -1739,9 +1778,14 @@ function renderQuestion(scroll){
       <label class="block text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-2">${esc(t(q.note))} — ${t('noteOpt')}</label>
       <input id="qNote" class="field w-full rounded-xl px-4 py-3 text-[14px]" value="${esc(state.notes[q.id]||'')}"></div>`:''}
     <div class="mt-4">
-      <label class="opt inline-flex items-center gap-2 rounded-xl border border-white/10 glass px-3.5 py-2.5 text-[13px] font-bold cursor-pointer">
-        <i class="fa-solid fa-camera text-ok"></i>${t('addPhoto')}
-        <input id="qPhoto" type="file" accept="image/*" capture="environment" class="hidden"></label>
+      <div class="flex gap-2 flex-wrap">
+        <label class="opt inline-flex items-center gap-2 rounded-xl border border-white/10 glass px-3.5 py-2.5 text-[13px] font-bold cursor-pointer">
+          <i class="fa-solid fa-camera"></i>${t('addPhoto')}
+          <input id="qPhoto" type="file" accept="image/*" capture="environment" class="hidden"></label>
+        <label class="opt inline-flex items-center gap-2 rounded-xl border border-white/10 glass px-3.5 py-2.5 text-[13px] font-bold cursor-pointer">
+          <i class="fa-solid fa-images"></i>${t('addFromGallery')}
+          <input id="qGallery" type="file" accept="image/*" class="hidden"></label>
+      </div>
       <p class="text-[11px] text-slate-500 mt-2">${t('photoHint')}</p>
       ${ph.length?`<div class="flex gap-2 mt-2.5">${ph.map((src,i)=>`<div class="relative"><img src="${src}" class="w-16 h-16 object-cover rounded-lg border border-white/10">
         <button data-del="${i}" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-bad text-white text-[10px] grid place-items-center">&times;</button></div>`).join('')}</div>`:''}
@@ -1759,6 +1803,7 @@ function renderQuestion(scroll){
   const hb=$('qHelp'); if(hb) hb.onclick=()=>openHelp(q);
   const nt=$('qNote'); if(nt) nt.oninput=e=>{state.notes[q.id]=e.target.value;};
   const pf=$('qPhoto'); if(pf) pf.onchange=e=>addPhoto(q.id, e.target.files[0]);
+  const gf=$('qGallery'); if(gf) gf.onchange=e=>addPhoto(q.id, e.target.files[0]);
   $('sc-wizard').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
     state.photos[q.id].splice(parseInt(b.dataset.del,10),1); renderQuestion(false); });
   const tb=$('timerBtn'); if(tb) tb.onclick=()=>{
@@ -2176,6 +2221,7 @@ function sellerTab(){
 }
 
 function summaryTab(){
+  /* motor derinliği aşağıda, özet kartlarının sonunda eklenir */
   const r=state.result, v=verdict(), p=PT[state.pt];
   const ticks=[0,25,50,75,100].map(x=>{const o=gp(x,84),i=gp(x,76);
     return `<line x1="${o[0].toFixed(1)}" y1="${o[1].toFixed(1)}" x2="${i[0].toFixed(1)}" y2="${i[1].toFixed(1)}" stroke="#B5B5B5" stroke-width="2" stroke-linecap="round"/>`;}).join('');
@@ -2253,7 +2299,7 @@ function summaryTab(){
     </div>`:''}
     <p class="text-[11.5px] text-slate-500 leading-relaxed mt-5 px-1">${t('disclaimer')}</p>
     <button id="finishBtn" class="w-full mt-6 rounded-2xl py-4 font-extrabold text-[15px] bg-ok text-ink no-print">${t('finish')}</button>
-    ${byAilaa('mt-7')}`;
+    ${byAilaa('mt-7')}${engineDepth()}`;
 }
 
 function flagsTab(){
@@ -2286,10 +2332,10 @@ function flagsTab(){
 
 function renderResult(){
   label(t('score'));
-  const tabs=[['sum','tabSummary','fa-gauge-high'],['flags','tabFlags','fa-flag'],['shop','tabShop','fa-screwdriver-wrench'],['seller','tabSeller','fa-comments']];
-  const body = state.tab==='sum'?summaryTab():state.tab==='flags'?flagsTab():state.tab==='shop'?shopSheet():sellerTab();
+  const tabs=[['sum','tabSummary','fa-gauge-high'],['flags','tabFlags','fa-flag'],['nego','tabNego','fa-scale-balanced'],['shop','tabShop','fa-screwdriver-wrench'],['seller','tabSeller','fa-comments']];
+  const body = state.tab==='sum'?summaryTab():state.tab==='flags'?flagsTab():state.tab==='nego'?negoTab():state.tab==='shop'?shopSheet():sellerTab();
   $('sc-result').innerHTML = `
-    <div class="no-print grid grid-cols-4 mb-5" style="border:2px solid var(--fg)">
+    <div class="no-print grid grid-cols-5 mb-5" style="border:2px solid var(--fg)">
       ${tabs.map((x,i)=>`<button data-tab="${x[0]}" class="tabbtn ${state.tab===x[0]?'on':''} py-3 text-[10px] uppercase"
         style="${i?'border-left:2px solid var(--fg)':''}">${t(x[1])}</button>`).join('')}
     </div>${body}`;
@@ -2312,14 +2358,21 @@ function renderResult(){
     const qy = REGION==='US' ? 'pre purchase inspection mechanic near me' : (L===0?'oto ekspertiz yakınımda':'car inspection garage near me');
     window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(qy),'_blank');
   };
-  bar(`<button id="bDone" class="w-full rounded-2xl py-3.5 font-extrabold text-[14px] bg-ok text-ink mb-2">${t('doneBtn')}</button>
+  bar(`<div class="grid grid-cols-2 gap-2 mb-2">
+      <button id="bEdit" class="rounded-2xl py-3.5 font-bold text-[13.5px] bg-white/8 border border-white/10">${t('editAnswers')}</button>
+      <button id="bDone" class="rounded-2xl py-3.5 font-extrabold text-[13.5px] bg-ok text-ink">${t('doneBtn')}</button></div>
     <div class="grid grid-cols-3 gap-2">
     <button id="bCard" class="rounded-2xl py-3.5 font-extrabold text-[13px] bg-ok text-ink active:scale-[.98] transition"><i class="fa-solid fa-images mr-1"></i>${t('cardBtn')}</button>
     <button id="bPdf" class="rounded-2xl py-3.5 font-bold text-[13px] bg-white/8 border border-white/10 active:scale-[.98] transition"><i class="fa-solid fa-file-pdf mr-1"></i>${t('savePdf')}</button>
     <button id="bSave" class="rounded-2xl py-3.5 font-bold text-[13px] bg-white/8 border border-white/10 active:scale-[.98] transition">
       <i class="fa-solid fa-${state.garageSaved?'check':'warehouse'} mr-1"></i>${state.garageSaved?t('savedAlready'):t('saveGarage')}</button></div>`);
+  bindProGates();
+  const nc = $('negoCopy'); if (nc) nc.onclick = ()=>copy(negoMessage());
   $('bCard').onclick=openCard; $('bPdf').onclick=openExport; $('bSave').onclick=saveGarage;
   $('bDone').onclick=finishCheck;
+  const be=$('bEdit'); if(be) be.onclick=()=>{
+    state.done = false; state.idx = 0; goto('wizard');
+  };
   if (state.tab==='sum') requestAnimationFrame(()=>setTimeout(()=>{
     const r = state.result;
     if (!r || r.score === null || SCREEN !== 'result') return;   // ekran değiştiyse dokunma
@@ -2551,7 +2604,7 @@ function reportText(){
   state.result.flags.filter(f=>f.lvl!=='info').forEach(f=>o.push('- '+f.t+' → '+f.a));
   (pick(PT[state.pt].f)).forEach(f=>o.push('- '+f));
   o.push(''); o.push(t('disclaimer'));
-  o.push(''); o.push('Relia — ' + t('byLine') + ' · ailaa.io');
+  o.push(''); o.push('Relia — ' + t('byLine'));
   return o.join('\n');
 }
 async function shareReport(){
@@ -2649,7 +2702,7 @@ function openGarage(i){
   state.answers = d.answers || {}; state.notes = d.notes || {};
   state.photos = {}; state.warned = {};
   state.listing = Object.assign({ site:'', no:'', url:'', reports:[] }, d.listing || {});
-  state.tab = 'sum'; state.garageSaved = true; state.pulseSent = false;
+  state.tab = 'sum'; state.garageSaved = true; state.pulseSent = false; state.done = true;
   buildResult();
   goto('result');
 }
@@ -2690,50 +2743,96 @@ function openCompare(){
 async function makeCompareCard(cars){
   openModal(`<p class="text-[14px] py-8 text-center"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>${t('cardMaking')}</p>`);
   try{
-    const W=1080, H=1350, M=84, RED='#FF3000', BLACK='#000000', WHITE='#FFFFFF', GRAY='#767676';
+    const W=1080, M=72, RED='#FF3000', BLACK='#000000', WHITE='#FFFFFF', GRAY='#767676', SOFT='#F2F2F2';
+    const rowH = 300;
+    const H = 300 + cars.length*rowH + 190;
     const c=document.createElement('canvas'); c.width=W; c.height=H;
     const x=c.getContext('2d');
     try{ if (document.fonts && document.fonts.ready) await document.fonts.ready; }catch(e){}
     const F=(sz,w)=>w+' '+sz+'px Inter, Helvetica, Arial, sans-serif';
     x.fillStyle=WHITE; x.fillRect(0,0,W,H); x.textBaseline='top';
+
     drawMark(x, M, M, 46, RED);
     x.fillStyle=BLACK; x.font=F(38,900); x.fillText('RELIA', M+64, M+4);
+    const dt=new Date().toLocaleDateString(['tr-TR','en-US','de-DE'][L]);
+    x.fillStyle=GRAY; x.font=F(22,700);
+    x.fillText(dt, W-M-x.measureText(dt).width, M+14);
     x.fillStyle=BLACK; x.fillRect(M, M+72, W-2*M, 6);
 
-    let y = M+128;
+    let y = M+120;
     x.fillStyle=RED; x.font=F(24,700); LSx(x,'4px');
     x.fillText(t('compareH').toUpperCase(), M, y); LSx(x,'0px');
-    y += 56;
+    y += 40;
+    x.fillStyle=BLACK; x.font=F(46,900);
+    x.fillText(tf('cmpCount',{n:cars.length}), M, y);
+    y += 78;
 
     const best = cars.slice().sort((a,b)=>(b.score||0)-(a.score||0))[0];
-    const rowH = Math.min(230, Math.floor((H - y - 160) / cars.length));
     cars.forEach(car=>{
       const isBest = car===best;
-      if (isBest){ x.fillStyle=BLACK; x.fillRect(M, y, W-2*M, rowH-14); }
+      const top = y;
+      if (isBest){ x.fillStyle=BLACK; x.fillRect(M, top, W-2*M, rowH-18); }
+      else { x.strokeStyle=BLACK; x.lineWidth=4; x.strokeRect(M+2, top+2, W-2*M-4, rowH-22); }
       const fg = isBest ? WHITE : BLACK;
+      const sub = isBest ? WHITE : GRAY;
+
+      /* skor */
       x.fillStyle = isBest ? WHITE : (car.vk==='ok'?BLACK:RED);
-      x.font=F(76,900); x.fillText(String(car.score), M+22, y+22);
-      x.fillStyle=fg; x.font=F(30,900);
-      const name=(car.brand+' '+car.model+(car.year?' · '+car.year:'')).toUpperCase();
-      x.fillText(wrapText(x,name,W-2*M-190,1)[0], M+170, y+26);
-      x.fillStyle = isBest ? WHITE : GRAY; x.font=F(24,500);
-      x.fillText(fmtN(car.dist)+' '+car.unit+' · '+car.flags+' '+t('compareFlags'), M+170, y+70);
-      if (car.price){ x.fillStyle=fg; x.font=F(34,900); x.fillText(fmtN(car.price), M+170, y+110); }
-      if (isBest){ x.fillStyle=RED; x.fillRect(W-M-150, y+22, 128, 34);
-        x.fillStyle=WHITE; x.font=F(18,900); LSx(x,'2px');
-        x.fillText(t('compareBest').toUpperCase().slice(0,12), W-M-140, y+30); LSx(x,'0px'); }
+      x.font=F(90,900); x.fillText(String(car.score), M+26, top+26);
+      x.fillStyle=sub; x.font=F(24,700); x.fillText('/100', M+30, top+124);
+
+      /* araç adı */
+      x.fillStyle=fg; x.font=F(32,900);
+      const name=(car.brand+' '+car.model+(car.year?' \u00b7 '+car.year:'')).toUpperCase();
+      x.fillText(wrapText(x,name,W-2*M-260,1)[0], M+230, top+30);
+
+      /* motor + km */
+      x.fillStyle=sub; x.font=F(22,500);
+      x.fillText(wrapText(x, String(car.ptName||''), W-2*M-260, 1)[0], M+230, top+76);
+      x.fillText(fmtN(car.dist)+' '+car.unit, M+230, top+108);
+
+      /* karar şeridi */
+      x.fillStyle = isBest ? RED : (car.vk==='ok'?BLACK:RED);
+      x.fillRect(M+230, top+146, W-M-(M+230)-26, 46);
+      x.fillStyle=WHITE; x.font=F(20,900); LSx(x,'1px');
+      x.fillText(wrapText(x, String(car.vt||'').toUpperCase(), W-M-(M+230)-56, 1)[0], M+244, top+159);
+      LSx(x,'0px');
+
+      /* alt satır: fiyat, bulgu, kritik, güven */
+      const cells = [
+        [t('comparePrice'), car.price ? fmtN(car.price) : '—'],
+        [t('compareFlags'), String(car.flags)],
+        [t('compareCrit'),  String(car.crit||0)],
+        [t('confidence'),   '%'+car.conf]
+      ];
+      const cw = (W-2*M-52)/4;
+      cells.forEach((cell,k)=>{
+        const cx = M+26+k*cw;
+        x.fillStyle=sub; x.font=F(16,700); LSx(x,'2px');
+        x.fillText(cell[0].toUpperCase().slice(0,12), cx, top+214); LSx(x,'0px');
+        x.fillStyle = (k===2 && (car.crit||0)>0 && !isBest) ? RED : fg;
+        x.font=F(28,900); x.fillText(cell[1], cx, top+238);
+      });
+
+      if (isBest){
+        x.fillStyle=RED; x.fillRect(W-M-176, top+26, 150, 38);
+        x.fillStyle=WHITE; x.font=F(18,900); LSx(x,'1px');
+        x.fillText(t('compareBest').toUpperCase().slice(0,14), W-M-164, top+35); LSx(x,'0px');
+      }
       y += rowH;
     });
 
-    x.fillStyle=BLACK; x.fillRect(M, H-M-92, W-2*M, 3);
-    x.fillStyle=GRAY; x.font=F(24,500); x.fillText(t('cardFooter'), M, H-M-64);
-    x.fillStyle=RED; x.font=F(26,900);
-    const by='ailaa.io'; x.fillText(by, W-M-x.measureText(by).width, H-M-64);
+    x.fillStyle=BLACK; x.fillRect(M, H-M-96, W-2*M, 3);
+    x.fillStyle=GRAY; x.font=F(22,500);
+    wrapText(x, t('cmpFooter'), W-2*M-160, 2).forEach((l,i)=>x.fillText(l, M, H-M-72+i*28));
+    x.fillStyle=RED; x.font=F(24,900);
+    const by='RELIA'; x.fillText(by, W-M-x.measureText(by).width, H-M-72);
 
     const blob = await new Promise(r=>c.toBlob(r,'image/png',0.92));
     showCardBlob(blob, t('compareCard'));
   }catch(e){ closeModal(); toast(t('cardFail')); }
 }
+
 function LSx(x,v){ try{ x.letterSpacing = v; }catch(e){} }
 
 /* Kontrolü kapatır: "yarım kalan kontrol" kaydı silinir, garajdaki kayıt kalır */
@@ -3409,7 +3508,7 @@ function pulseCard(p, compact){
 function byAilaa(cls){
   return `<div class="${cls||'mt-8'}" style="border-top:2px solid var(--fg);padding-top:14px;display:flex;align-items:center;justify-content:space-between">
     <span class="uppercase" style="font-size:10px">RELIA</span>
-    <a href="https://ailaa.io" target="_blank" rel="noopener" class="uppercase" style="font-size:10px;color:var(--accent)">${t('byLine')}</a>
+    <span class="uppercase" style="font-size:10px;color:var(--gray)">${t('byLine')}</span>
   </div>`;
 }
 
@@ -3835,6 +3934,8 @@ function openAccount(){
 async function claimFounder(){
   if (!isSignedIn()) return null;
   try{
+    /* Bu çağrı sunucuda auth.uid() okur; anahtar değil kullanıcı jetonu gerekir */
+    if (!isSignedIn()) return null;
     const res = await fetch(CFG.url + '/rest/v1/rpc/rc_claim_founder', { method:'POST',
       headers:{ apikey:CFG.key, Authorization:'Bearer '+state.user.token, 'Content-Type':'application/json' },
       body:'{}' });
@@ -3893,7 +3994,7 @@ function openSettings(){
     <p class="uppercase mt-5 mb-2" style="font-size:10px;color:var(--muted)">${t('setTheme')}</p>
     <div class="grid grid-cols-3" style="border:2px solid var(--fg)">
       ${[['system','thSystem'],['light','thLight'],['dark','thDark']].map((x,i)=>{
-        const cur = Store.get('theme') || 'system';
+        const cur = Store.get('theme') || 'light';
         return `<button data-theme="${x[0]}" class="opt py-3.5 text-[12px]"
           style="font-weight:700;${i?'border-left:2px solid var(--fg);':''}${cur===x[0]?'background:var(--fg);color:var(--bg)':''}">
           ${t(x[1])}</button>`;}).join('')}
@@ -3959,6 +4060,22 @@ function openLegal(){
 }
 
 function openPaywall(reason){
+  /* Premium hesaba bağlanır; giriş yapmadan satın alma anlamsız */
+  if (!isSignedIn()){
+    state.afterAuth = ()=>openPaywall(reason);
+    openModal(`<p class="uppercase" style="font-size:10px;color:var(--accent)">${t('foundH')}</p>
+      <h3 class="mt-2" style="font-size:21px">${t('proNeedAccH')}</h3>
+      <p class="text-[13px] mt-3 leading-relaxed">${t('proNeedAccD')}</p>
+      <p class="text-[13px] mt-3 leading-relaxed" style="border-left:4px solid var(--accent);padding-left:10px;font-weight:700">${t('foundOffer')}</p>
+      <button id="pnGo" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('accUp')} / ${t('accIn')}</button>
+      <button id="pnNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+    $('pnGo').onclick = ()=>{ closeModal(); openAccount(); };
+    $('pnNo').onclick = ()=>{ state.afterAuth = null; closeModal(); };
+    return;
+  }
+  return openPaywallInner(reason);
+}
+function openPaywallInner(reason){
   const why = reason==='daily'   ? tf('limDaily',{n:LIMITS.daily})
             : reason==='monthly' ? tf('limMonthly',{n:LIMITS.monthly})
             : reason==='garage'  ? tf('limGarage',{n:LIMITS.garage}) : '';
@@ -4247,7 +4364,7 @@ Object.assign(S, {
   diagFnName:['Edge Function adı','Edge Function name'],
   diagFnNameD:['Supabase\u2019de "Edge Functions" listesinde görünen ad. Dosya adı değil, fonksiyonun kendi adı.','The name shown in the Edge Functions list in Supabase — the function\u2019s own name, not the file name.'],
   diagSave:['Kaydet ve tekrar dene','Save and retry'],
-  byLine:['bir ailaa.io ürünü','a product by ailaa.io','ein Produkt von ailaa.io']
+  byLine:['Satın alma öncesi ön değerlendirme','Pre-purchase assessment','Bewertung vor dem Kauf']
 });
 
 async function probe(path, opts){
@@ -4799,6 +4916,109 @@ function renderMod(){
 }
 
 
+
+/* ===================================================================== */
+/*  PREMIUM: PAZARLIK RAPORU + MOTOR DERİNLİĞİ                           */
+/* ===================================================================== */
+
+/* Kilitli içerik kutusu */
+function lockedCard(title, desc){
+  return `<div class="mt-4" style="border:2px solid var(--accent);padding:18px">
+    <p class="uppercase" style="font-size:10px;color:var(--accent)">${t('planPro')}</p>
+    <h3 class="mt-2" style="font-size:17px">${esc(title)}</h3>
+    <p class="text-[13px] mt-2.5 leading-relaxed" style="color:var(--gray)">${esc(desc)}</p>
+    <button class="proGate w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14px] bg-ok text-ink">${t('proUnlock')}</button>
+  </div>`;
+}
+function bindProGates(){
+  document.querySelectorAll('.proGate').forEach(b=>b.onclick=()=>openPaywall('pro'));
+}
+
+/* Pazarlık gerekçeleri — fiyat yok, yalnızca hangi maddeden pazarlık edilebileceği */
+function negoItems(){
+  const r = state.result; if (!r) return [];
+  const out = [];
+  const crit = (r.flags||[]).filter(f=>f.lvl==='crit');
+  const warn = (r.flags||[]).filter(f=>f.lvl==='warn');
+  crit.concat(warn).slice(0, 12).forEach(f=>{
+    out.push({ crit: f.lvl==='crit', t: f.t, why: f.a || f.d });
+  });
+  const p = PT[state.pt], km = toKm(state.dist);
+  if (p && p.km && km >= p.km*1000){
+    out.push({ crit:false, t: tf('negoKm',{n:fmtN(toDisp(p.km*1000))+' '+unit()}), why: t('negoKmD') });
+  }
+  return out;
+}
+function negoMessage(){
+  const items = negoItems();
+  const L1 = state.brand+' '+state.model+(state.year?' ('+state.year+')':'');
+  const lines = [ t('negoMsgHi'), '', tf('negoMsgIntro',{car:L1}), '' ];
+  items.slice(0,8).forEach(i=> lines.push('• ' + i.t));
+  lines.push('', t('negoMsgAsk'));
+  return lines.join('\n');
+}
+function negoTab(){
+  if (!isPro()) return lockedCard(t('negoH'), t('negoLockD'));
+  const items = negoItems();
+  if (!items.length){
+    return `<div class="glass rounded-2xl p-5 mt-1">
+      <h3 style="font-size:16px">${t('negoH')}</h3>
+      <p class="text-[13px] mt-2.5 leading-relaxed">${t('negoNone')}</p></div>`;
+  }
+  return `<div class="glass rounded-2xl p-4 mt-1">
+      <p class="uppercase" style="font-size:10px;color:var(--accent)">${t('negoH')}</p>
+      <p class="text-[13px] mt-2 leading-relaxed">${t('negoD')}</p>
+    </div>
+    <div class="mt-3" style="border:2px solid var(--fg)">
+      ${items.map((i,k)=>`<div class="p-4" style="${k?'border-top:2px solid var(--fg)':''}">
+        <div class="flex items-start gap-3">
+          <span style="width:14px;height:14px;flex:none;margin-top:5px;background:${i.crit?'var(--accent)':'var(--fg)'}"></span>
+          <div class="flex-1 min-w-0">
+            <p style="font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em;line-height:1.15">${esc(i.t)}</p>
+            <p class="text-[12.5px] mt-1.5 leading-relaxed" style="color:var(--gray)">${esc(i.why)}</p>
+          </div></div></div>`).join('')}
+    </div>
+    <div class="glass rounded-2xl p-4 mt-3">
+      <h4 style="font-size:14px">${t('negoMsgH')}</h4>
+      <p class="text-[12.5px] mt-2 leading-relaxed" style="color:var(--gray)">${t('negoMsgD')}</p>
+      <button id="negoCopy" class="w-full mt-3 rounded-xl py-3 font-bold text-[13.5px] bg-white/8 border border-white/10">${t('copyList')}</button>
+    </div>`;
+}
+
+/* Motor derinliği — mevcut veriden türetilir, uydurma bilgi eklenmez */
+function engineDepth(){
+  const p = PT[state.pt]; if (!p) return '';
+  if (!isPro()) return lockedCard(t('depthH'), t('depthLockD'));
+  const km = toKm(state.dist), thr = (p.km||0)*1000;
+  const past = thr && km >= thr;
+  const faults = pick(p.f) || [];
+  return `<div class="mt-4" style="border:2px solid var(--fg)">
+    <div class="p-4" style="border-bottom:2px solid var(--fg)">
+      <p class="uppercase" style="font-size:10px;color:var(--accent)">${t('depthH')}</p>
+      <h3 class="mt-1.5" style="font-size:16px">${esc(pick(p.n))}</h3>
+      <div class="flex flex-wrap gap-2 mt-2.5 text-[11.5px] num">
+        <span style="border:2px solid var(--fg);padding:3px 8px">${t('depthRisk')}: ${p.r==='bad'?t('lvlCrit'):p.r==='warn'?t('lvlWarn'):t('vLow').split('·')[0].trim()}</span>
+        ${thr?`<span style="border:2px solid ${past?'var(--accent)':'var(--fg)'};padding:3px 8px;${past?'color:var(--accent)':''}">${t('depthThr')}: ${fmtN(toDisp(thr))} ${unit()}</span>`:''}
+      </div>
+      ${thr?`<p class="text-[12.5px] mt-2.5 leading-relaxed" style="${past?'color:var(--accent);font-weight:700':'color:var(--gray)'}">
+        ${past ? tf('depthPast',{n:fmtN(toDisp(thr))+' '+unit()}) : tf('depthBefore',{n:fmtN(toDisp(thr-km))+' '+unit()})}</p>`:''}
+    </div>
+    ${faults.map((f,i)=>`<div class="p-4" style="${i?'border-top:2px solid var(--fg)':''}">
+      <div class="flex items-start gap-3">
+        <span class="num text-[12px]" style="color:var(--accent);flex:none;margin-top:3px">0${i+1}</span>
+        <div class="flex-1 min-w-0">
+          <p style="font-size:14.5px;font-weight:900;letter-spacing:-.02em;line-height:1.2">${esc(f)}</p>
+          <p class="text-[12px] mt-2 leading-relaxed" style="color:var(--gray)">
+            <b style="color:var(--fg)">${t('depthAsk')}:</b> ${tf('depthAskQ',{f:esc(f)})}</p>
+          <p class="text-[12px] mt-1.5 leading-relaxed" style="color:var(--gray)">
+            <b style="color:var(--fg)">${t('depthUrg')}:</b> ${past?t('depthUrgHigh'):t('depthUrgLow')}</p>
+        </div></div></div>`).join('')}
+    <div class="p-4" style="border-top:2px solid var(--fg);background:var(--muted)">
+      <p class="text-[12.5px] leading-relaxed">${esc(pick(p.tip))}</p>
+    </div>
+  </div>`;
+}
+
 /* ===================================================================== */
 /*  18. PAYLAŞILABİLİR RAPOR KARTI (1080×1350 PNG)                       */
 /* ===================================================================== */
@@ -4940,7 +5160,7 @@ async function makeCard(){
   x.fillStyle = GRAY; x.font = F(24, 500);
   x.fillText(t('cardFooter'), M, H-M-64);
   x.fillStyle = RED; x.font = F(26, 900);
-  const by = 'ailaa.io';
+  const by = 'RELIA';
   x.fillText(by, W-M-x.measureText(by).width, H-M-64);
 
   return await new Promise(res=>c.toBlob(res, 'image/png', 0.92));
@@ -5088,7 +5308,7 @@ async function makeReportImage(){
   x.fillStyle = GRAY; x.font = F(19,400);
   x.fillText(wrapText(x, t('disclaimer'), W-2*M-160, 1)[0], M, y+18);
   x.fillStyle = RED; x.font = F(21,900);
-  x.fillText('ailaa.io', W-M-x.measureText('ailaa.io').width, y+18);
+  x.fillText('RELIA', W-M-x.measureText('RELIA').width, y+18);
 
   return await new Promise(res=>c.toBlob(res,'image/png',0.92));
 }
@@ -5235,8 +5455,8 @@ terms: { t:['Kullanım koşulları','Terms of use','Nutzungsbedingungen'], s:[
  'Relia bir ekspertiz raporu, muayene belgesi veya teknik rapor değildir. Ürettiği skor tamamen sizin verdiğiniz cevaplara dayanır ve bir uzmanın aracı incelemesinin yerine geçmez.\n\nAraç satın almadan önce aracı yetkili bir ekspertize veya güvendiğiniz bir ustaya lifte kaldırtarak inceletmeniz gerekir.',
  'Relia is not an inspection report, a roadworthiness certificate or a technical assessment. The score is based entirely on your own answers and does not replace an examination by a professional.\n\nBefore buying, have the car examined on a lift by a qualified shop or a mechanic you trust.'],
 ['Sorumluluk','Liability',
- 'Uygulamadaki bilgiler, kronik arıza kayıtları ve öneriler genel niteliktedir; her araç ve her bölge için doğru olmayabilir. Relia ve ailaa.io, uygulamaya dayanarak verdiğiniz satın alma kararlarından, oluşabilecek maddi zararlardan veya kaçırdığınız fırsatlardan sorumlu tutulamaz. Nihai karar ve sorumluluk kullanıcıya aittir.',
- 'The information, chronic-fault records and suggestions in the app are general in nature and may not hold for every car or region. Relia and ailaa.io cannot be held liable for purchase decisions made on the basis of the app, for financial loss, or for missed opportunities. The final decision and responsibility rest with the user.'],
+ 'Uygulamadaki bilgiler, kronik arıza kayıtları ve öneriler genel niteliktedir; her araç ve her bölge için doğru olmayabilir. Relia, uygulamaya dayanarak verdiğiniz satın alma kararlarından, oluşabilecek maddi zararlardan veya kaçırdığınız fırsatlardan sorumlu tutulamaz. Nihai karar ve sorumluluk kullanıcıya aittir.',
+ 'The information, chronic-fault records and suggestions in the app are general in nature and may not hold for every car or region. Relia cannot be held liable for purchase decisions made on the basis of the app, for financial loss, or for missed opportunities. The final decision and responsibility rest with the user.'],
 ['Topluluk bildirimleri','Community reports',
  'Dolandırıcılık bildirimleri kullanıcılar tarafından girilir ve tarafımızca doğrulanmaz. Bir bildirimin varlığı iddianın doğru olduğunu göstermez.\n\nBildirim gönderirken:\n- Yalnızca bizzat gözlemlediğiniz durumları bildirin\n- Kanıt eklemeden bildirim gönderilemez\n- Kişi adı, telefon, adres veya plaka paylaşmayın; bildirim ilana ilişkindir, kişiye değil\n- Asılsız, karalayıcı veya rekabet amaçlı bildirimler kaldırılır ve cihazınız kalıcı olarak engellenir\n\nGönderdiğiniz içeriğin uygulamada yayınlanması için gerekli izni vermiş olursunuz. Hakkında bildirim yapılan satıcı yanıt hakkını kullanabilir.',
  'Scam reports are submitted by users and are not verified by us. The existence of a report does not mean the claim is true.\n\nWhen you submit a report:\n- Report only what you observed yourself\n- Reports without evidence cannot be submitted\n- Do not include names, phone numbers, addresses or plates; a report concerns a listing, not a person\n- False, defamatory or competitively motivated reports are removed and the device is permanently blocked\n\nBy submitting, you grant us permission to publish that content in the app. The seller concerned may exercise a right of reply.'],
@@ -5259,7 +5479,7 @@ const LEGAL_DATE = '18.08.2026';
 /* --- Başlangıç --- */
 /* Tema: sistem / açık / koyu */
 function applyTheme(){
-  const pref = Store.get('theme') || 'system';
+  const pref = Store.get('theme') || 'light';   // ilk kurulumda açık tema
   const dark = pref === 'dark' ||
     (pref === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
