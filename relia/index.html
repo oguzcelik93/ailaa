@@ -37,9 +37,16 @@ tailwind.config = {
 <style>
   /* ============ SWISS INTERNATIONAL TYPOGRAPHIC STYLE ============ */
   :root{
-    --black:#000000; --white:#FFFFFF; --muted:#F2F2F2; --accent:#FF3000;
-    --gray:#767676; --gray-l:#B5B5B5; --line:#000000;
+    --bg:#FFFFFF; --fg:#000000; --muted:#767676; --muted2:#B5B5B5; --soft:#F2F2F2;
+    --accent:#FF3000; --noise:.015;
+    --black:var(--fg); --white:var(--bg); --gray:var(--muted); --gray-l:var(--muted2);
+    --line:var(--fg);
     color-scheme: light;
+  }
+  html[data-theme="dark"]{
+    --bg:#0A0A0A; --fg:#FFFFFF; --muted:#9A9A9A; --muted2:#5C5C5C; --soft:#1C1C1C;
+    --accent:#FF4322; --noise:.03;
+    color-scheme: dark;
   }
   html,body{
     -webkit-tap-highlight-color:transparent; overscroll-behavior:none;
@@ -55,77 +62,77 @@ tailwind.config = {
   }
   /* kâğıt dokusu — %1.5 noise */
   body::before{
-    content:''; position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.015;
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:1; opacity:var(--noise);
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   main{position:relative;z-index:2}
 
   /* ---------- IZGARA DOKULARI ---------- */
   .sw-grid{background-image:
-    linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,.05) 1px, transparent 1px);
+    linear-gradient(var(--soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--soft) 1px, transparent 1px);
     background-size:24px 24px}
-  .sw-dots{background-image:radial-gradient(rgba(0,0,0,.10) 1px, transparent 1px);
-    background-size:16px 16px}
+  .sw-dots{background-image:radial-gradient(var(--muted2) 1px, transparent 1px);
+    background-size:16px 16px; opacity:1}
   .sw-diag{background-image:repeating-linear-gradient(45deg,
-    rgba(0,0,0,.045) 0 1px, transparent 1px 10px)}
+    var(--soft) 0 1px, transparent 1px 10px)}
 
   /* ---------- YÜZEYLER: kenarlıkla tanımlı, köşe yok ---------- */
-  .glass{ background:var(--white); border:2px solid var(--black);
+  .glass{ background:var(--bg); border:2px solid var(--fg);
     border-radius:0!important; box-shadow:none; backdrop-filter:none;-webkit-backdrop-filter:none }
   [class*="rounded"]{border-radius:0!important}
 
   /* ---------- TİPOGRAFİ ---------- */
-  h1,h2,h3,h4{font-weight:900;letter-spacing:-.04em;line-height:1.04;text-transform:uppercase;
+  h1,h2,h3,h4{color:var(--fg);font-weight:900;letter-spacing:-.04em;line-height:1.04;text-transform:uppercase;
               padding-top:.06em;overflow-wrap:break-word}
   h2{font-size:clamp(32px,10vw,54px);line-height:1.02}
-  p{color:var(--black);font-weight:400;letter-spacing:-.006em}
+  p{color:var(--fg);font-weight:400;letter-spacing:-.006em}
   .uppercase{text-transform:uppercase;letter-spacing:.14em!important;font-weight:700;
              padding-right:.14em;line-height:1.45}
   .num{font-variant-numeric:tabular-nums;letter-spacing:-.03em;font-weight:700}
   strong,b{font-weight:900}
 
   /* metin renkleri: beyaz zeminde okunur karşılıklar */
-  .text-slate-100,.text-slate-200,.text-slate-300,.text-slate-900,.text-slate-950{color:var(--black)!important}
-  .text-slate-400,.text-slate-500{color:var(--gray)!important}
-  .text-slate-600,.text-slate-700{color:var(--gray-l)!important}
-  .text-ok{color:var(--black)!important}
+  .text-slate-100,.text-slate-200,.text-slate-300,.text-slate-900,.text-slate-950{color:var(--fg)!important}
+  .text-slate-400,.text-slate-500{color:var(--muted)!important}
+  .text-slate-600,.text-slate-700{color:var(--muted2)!important}
+  .text-ok{color:var(--fg)!important}
   .text-warn,.text-bad,.text-red-300,.text-amber-300,.text-emerald-300{color:var(--accent)!important}
-  .text-paper,.text-white{color:var(--black)!important}
-  .text-ink{color:var(--white)!important}
+  .text-paper,.text-white{color:var(--fg)!important}
+  .text-ink{color:var(--bg)!important}
 
   /* ---------- DÜĞMELER ---------- */
   button{font-weight:700;letter-spacing:.02em;transition:background-color .15s linear,color .15s linear,border-color .15s linear}
   button.bg-ok, .bg-ok.text-ink{
-    background:var(--black)!important;color:var(--white)!important;
+    background:var(--fg)!important;color:var(--bg)!important;
     border:2px solid var(--black)!important;box-shadow:none!important;text-transform:uppercase;letter-spacing:.08em}
   button.bg-ok:active{background:var(--accent)!important;border-color:var(--accent)!important}
-  button.bg-ok:disabled{background:var(--white)!important;color:var(--gray-l)!important;border-color:var(--gray-l)!important}
-  .bg-white\/8,.bg-white\/5,.bg-white\/6{background:var(--white)!important}
-  .border-white\/10,.border-white\/8,.border-white\/12{border-color:var(--black)!important;border-width:2px!important}
-  .bg-bad, button.bg-bad, .bg-bad\/90{background:var(--accent)!important;color:var(--white)!important;border:2px solid var(--accent)!important;text-transform:uppercase;letter-spacing:.08em}
-  .bg-bad\/12,.bg-bad\/10,.bg-bad\/15,.bg-warn\/12,.bg-warn\/10,.bg-warn\/15,.bg-ok\/15,.bg-ok\/12{background:var(--white)!important}
-  .border-bad\/25,.border-bad\/30,.border-bad\/35,.border-warn\/25,.border-ok\/30,.border-ok\/25,.border-ok\/20{border-color:var(--black)!important;border-width:2px!important}
+  button.bg-ok:disabled{background:var(--bg)!important;color:var(--muted2)!important;border-color:var(--muted2)!important}
+  .bg-white\/8,.bg-white\/5,.bg-white\/6{background:var(--bg)!important}
+  .border-white\/10,.border-white\/8,.border-white\/12{border-color:var(--fg)!important;border-width:2px!important}
+  .bg-bad, button.bg-bad, .bg-bad\/90{background:var(--accent)!important;color:#fff!important;border:2px solid var(--accent)!important;text-transform:uppercase;letter-spacing:.08em}
+  .bg-bad\/12,.bg-bad\/10,.bg-bad\/15,.bg-warn\/12,.bg-warn\/10,.bg-warn\/15,.bg-ok\/15,.bg-ok\/12{background:var(--bg)!important}
+  .border-bad\/25,.border-bad\/30,.border-bad\/35,.border-warn\/25,.border-ok\/30,.border-ok\/25,.border-ok\/20{border-color:var(--fg)!important;border-width:2px!important}
 
   /* ---------- FORM ---------- */
   select,input,textarea{appearance:none;-webkit-appearance:none;font-family:inherit}
-  .field{background:var(--white);border:2px solid var(--black);border-radius:0;color:var(--black);font-weight:500}
-  .field::placeholder{color:var(--gray-l)}
+  .field{background:var(--bg);border:2px solid var(--fg);border-radius:0;color:var(--fg);font-weight:500}
+  .field::placeholder{color:var(--muted2)}
   .field:focus{outline:none;border-color:var(--accent);box-shadow:none}
   select.field{background:var(--white)}
 
   /* ---------- ÇERÇEVE ---------- */
-  header{background:var(--white);border-bottom:2px solid var(--black)!important;backdrop-filter:none;-webkit-backdrop-filter:none}
-  #actionBar{background:var(--white)!important;border-top:2px solid var(--black);padding-top:14px!important}
+  header{background:var(--bg);border-bottom:2px solid var(--fg)!important;backdrop-filter:none;-webkit-backdrop-filter:none}
+  #actionBar{background:var(--bg)!important;border-top:2px solid var(--fg);padding-top:14px!important}
   #progressBar{background:var(--accent)!important}
   #progressBar~*,.h-\[2px\]{background:var(--muted)}
 
   /* ---------- SEÇENEK DURUMLARI: renk inversiyonu ---------- */
   .opt{transition:background-color .15s linear,color .15s linear,border-color .15s linear}
-  .sel-ok,.sel-neu{background:var(--black)!important;border-color:var(--black)!important}
+  .sel-ok,.sel-neu{background:var(--fg)!important;border-color:var(--fg)!important}
   .sel-warn,.sel-bad{background:var(--accent)!important;border-color:var(--accent)!important}
   .sel-ok *,.sel-neu *,.sel-warn *,.sel-bad *,
-  .sel-ok,.sel-neu,.sel-warn,.sel-bad{color:var(--white)!important}
+  .sel-ok,.sel-neu,.sel-warn,.sel-bad{color:#fff!important}
   .tabbtn.on{background:var(--black)!important;border-color:var(--black)!important;color:var(--white)!important}
   button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
@@ -149,13 +156,13 @@ tailwind.config = {
   #modal .veil{animation:veilIn .18s linear both}
   @keyframes veilIn{from{opacity:0}to{opacity:1}}
 
-  #splash{position:fixed;inset:0;z-index:100;background:var(--white);display:grid;place-items:center;
+  #splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;
     transition:opacity .25s linear,visibility .25s}
   #splash.gone{opacity:0;visibility:hidden}
   #splash .rule{height:4px;background:var(--accent);width:0;animation:rule .5s linear .1s forwards}
   @keyframes rule{to{width:120px}}
 
-  ::selection{background:var(--accent);color:var(--white)}
+  ::selection{background:var(--accent);color:#fff}
   ::-webkit-scrollbar{width:0;height:0}
   @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
@@ -187,7 +194,7 @@ tailwind.config = {
     </svg>
     <p class="mt-6" style="font-size:28px;font-weight:900;letter-spacing:-.05em;line-height:1">RELIA</p>
     <div class="rule mx-auto mt-4"></div>
-    <p class="mt-4 uppercase" style="font-size:10px;color:#767676">Pre-purchase assessment</p>
+    <p class="mt-4 uppercase" style="font-size:10px;color:var(--muted)">Pre-purchase assessment</p>
   </div>
 </div>
 
@@ -196,7 +203,7 @@ tailwind.config = {
   <div class="max-w-lg mx-auto px-4 pb-2" style="padding-top:calc(env(safe-area-inset-top) + 12px)">
     <div class="flex items-center gap-3">
       <button id="backBtn" class="shrink-0 hidden" aria-label="Geri"
-        style="width:34px;height:34px;border:2px solid #000;display:grid;place-items:center">
+        style="width:34px;height:34px;border:2px solid var(--fg);display:grid;place-items:center">
         <i class="fa-solid fa-arrow-left text-[15px]"></i></button>
       <button id="homeBtn" class="shrink-0" aria-label="Relia" style="line-height:0">
         <svg viewBox="0 0 100 100" width="30" height="30" fill="none">
@@ -209,11 +216,11 @@ tailwind.config = {
       </div>
       <button id="garageBtn" class="relative w-10 h-10 grid place-items-center border border-white/10">
         <i class="fa-solid fa-warehouse text-[16px]"></i>
-        <span id="garageCount" class="hidden absolute -top-2 -right-2 text-[10px] num" style="background:#FF3000;color:#fff;width:18px;height:18px;display:grid;place-items:center">0</span>
+        <span id="garageCount" class="hidden absolute -top-2 -right-2 text-[10px] num" style="background:var(--accent);color:var(--bg);width:18px;height:18px;display:grid;place-items:center">0</span>
       </button>
       <button id="langBtn" class="w-10 h-10 text-[11px] border border-white/10" style="font-weight:900;letter-spacing:.04em">TR</button>
     </div>
-    <div class="mt-3 h-[4px] overflow-hidden" style="background:#F2F2F2">
+    <div class="mt-3 h-[4px] overflow-hidden" style="background:var(--soft)">
       <div id="progressBar" class="h-full transition-all duration-200" style="width:4%"></div>
     </div>
   </div>
@@ -287,7 +294,7 @@ const CFG = {
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
 let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
-const BUILD = 'b5 · 2026-08-20';   // her yeni paket için artar
+const BUILD = 'b6 · 2026-08-21';   // her yeni paket için artar
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 function isPro(){ return Store.get('pro') === true; }
@@ -463,6 +470,11 @@ const S = {
   cmpSelect:['Karşılaştırmaya ekle','Add to compare','Zum Vergleich'],
   cmpSelected:['Karşılaştırmada','In comparison','Im Vergleich'],
   noReport:['Önce kontrolü tamamlayın','Complete the check first','Zuerst die Prüfung abschließen'],
+  repImgH:['Raporu görsel olarak kaydet','Save report as image','Bericht als Bild speichern'],
+  pdfPrintBtn:['Yazdır / PDF','Print / PDF','Drucken / PDF'],
+  exportD:['Görsel her cihazda çalışır. Yazdırma yalnızca tarayıcıda ve bazı cihazlarda çalışır.','The image works on every device. Printing works in browsers and on some devices only.','Das Bild funktioniert überall. Drucken funktioniert nur im Browser und auf manchen Geräten.'],
+  doneBtn:['Kontrolü tamamla','Finish check','Prüfung abschließen'],
+  doneMsg:['Kontrol tamamlandı','Check completed','Prüfung abgeschlossen'],
   resumeH:['Yarım kalan kontrole devam et','Resume unfinished check','Unterbrochene Prüfung fortsetzen'],
   resumeN:['soru yanıtlandı','answers'],
   resumeDrop:['Bu kontrolü sil','Discard this check','Diese Prüfung verwerfen'],
@@ -500,6 +512,10 @@ const S = {
   accNeedD:['Garaja araç kaydetmek için giriş yapın veya hesap oluşturun. Kontrolleri hesapsız da yapabilirsiniz.','Sign in or create an account to save cars to your garage. Checks work without an account.','Melden Sie sich an, um Fahrzeuge in der Garage zu speichern. Prüfungen funktionieren auch ohne Konto.'],
   accGuest:['Hesapsız kullanılıyor','Using without an account','Ohne Konto'],
   setLang:['Dil','Language','Sprache'],
+  setTheme:['Görünüm','Appearance','Darstellung'],
+  thSystem:['Sistem','System','System'],
+  thLight:['Açık','Light','Hell'],
+  thDark:['Koyu','Dark','Dunkel'],
   setPlan:['Üyelik','Plan','Mitgliedschaft'],
   setOther:['Diğer','Other','Sonstiges'],
   planFree:['Ücretsiz sürüm','Free plan','Kostenlose Version'],
@@ -525,6 +541,12 @@ const S = {
   licActivate:['Etkinleştir','Activate','Aktivieren'],
   licOk:['Premium etkinleştirildi','Premium activated','Premium aktiviert'],
   licBad:['Kod geçersiz veya daha önce kullanılmış.','The code is invalid or already used.','Der Code ist ungültig oder bereits verwendet.'],
+  foundH:['Kurucu üyelik','Founding member','Gründungsmitglied'],
+  foundBtn:['Kurucu üyelik · ilk 1000 kişiye ücretsiz','Founding member · free for the first 1000','Gründungsmitglied · für die ersten 1000 kostenlos'],
+  foundGot:['Premium hesabınıza tanımlandı','Premium added to your account','Premium Ihrem Konto hinzugefügt'],
+  foundD:['İlk 1000 kurucu üyeden birisiniz. Premium erişiminiz hesabınıza ömür boyu tanımlandı; cihaz değiştirseniz de aynı hesapla giriş yaptığınızda geçerli olur.','You are one of the first 1000 founding members. Premium is tied to your account for life — sign in on any device and it follows you.','Sie gehören zu den ersten 1000 Gründungsmitgliedern. Premium ist lebenslang mit Ihrem Konto verknüpft.'],
+  foundFull:['Kurucu üyelik kontenjanı doldu.','The founding member seats are gone.','Die Gründungsplätze sind vergeben.'],
+  foundLeft:['Kurucu üyelikte {n} kişilik yer kaldı','{n} founding seats left','Noch {n} Gründungsplätze'],
   billingNA:['Satın alma bu sürümde kullanılamıyor. Lisans kodunuz varsa girebilirsiniz.','Purchases are unavailable in this build. You can enter a licence code instead.','Käufe sind in dieser Version nicht verfügbar. Sie können einen Lizenzcode eingeben.'],
   bonusGot:['+{n} kontrol hakkı kazandınız','You earned +{n} checks','+{n} Prüfungen erhalten'],
   inviteBtn:['Arkadaşını davet et, hak kazan','Invite a friend, earn checks','Freunde einladen, Prüfungen erhalten'],
@@ -1329,7 +1351,8 @@ function goto(name){
       if (location.href.indexOf(want) === -1 || name !== 'mod') history.replaceState(null,'',want);
     }catch(e){}
   }
-  if (['vehicle','wizard','result'].indexOf(name)>-1) saveSession();
+  if (name === 'result'){ state.done = true; try{ Store.set('session', null); }catch(e){} }
+  else if (['vehicle','wizard'].indexOf(name)>-1 && !state.done) saveSession();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function bar(html){
@@ -1366,60 +1389,65 @@ function renderWelcome(){
   label(t('tagline'));
   const modes = [['quick','modeQuick','modeQuickD',false],['full','modeFull','modeFullD',true]];
   $('sc-welcome').innerHTML = `
-    <p class="uppercase" style="font-size:11px;color:#FF3000">01 — ${t('tagline')}</p>
+    <p class="uppercase" style="font-size:11px;color:var(--accent)">01 — ${t('tagline')}</p>
     <h2 class="mt-4 pr-1">${t('welcomeH')}</h2>
-    <div class="mt-5" style="height:4px;background:#FF3000;width:88px"></div>
+    <div class="mt-5" style="height:4px;background:var(--accent);width:88px"></div>
     <p class="text-[14.5px] mt-5 leading-relaxed pr-1" style="font-weight:500">${t('welcomeP')}</p>
 
-    <p class="uppercase mt-7 mb-3" style="font-size:10px;color:#767676">${t('howH')}</p>
-    <div style="border-top:2px solid #000">
-      ${[t('how1'),t('how2'),t('how3')].map((x,i)=>`<div class="flex gap-3 py-3" style="${i?'border-top:1px solid rgba(0,0,0,.12)':''}">
-        <span class="num text-[12px]" style="color:#FF3000;flex:none">0${i+1}</span>
+    <p class="uppercase mt-7 mb-3" style="font-size:10px;color:var(--muted)">${t('howH')}</p>
+    <div style="border-top:2px solid var(--fg)">
+      ${[t('how1'),t('how2'),t('how3')].map((x,i)=>`<div class="flex gap-3 py-3" style="${i?'border-top:1px solid var(--soft)':''}">
+        <span class="num text-[12px]" style="color:var(--accent);flex:none">0${i+1}</span>
         <span class="text-[13px] leading-snug">${x}</span></div>`).join('')}
     </div>
 
     ${resumeCard()}
 
-    <p class="uppercase mt-7 mb-3" style="font-size:11px;color:#FF3000">02 — ${t('pickMode')}</p>
-    <div style="border:2px solid #000">
+    ${(!isPro() && state.foundLeft)?`<button id="wFound" class="opt w-full text-left mt-6" style="border:2px solid var(--accent);padding:14px">
+      <span class="block uppercase" style="font-size:10px;color:var(--accent)">${t('foundH')}</span>
+      <span class="block mt-1.5" style="font-size:14.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${tf('foundLeft',{n:state.foundLeft})}</span>
+      <span class="block text-[12px] mt-1" style="color:var(--muted)">${t('foundBtn')} →</span></button>`:''}
+
+    <p class="uppercase mt-7 mb-3" style="font-size:11px;color:var(--accent)">02 — ${t('pickMode')}</p>
+    <div style="border:2px solid var(--fg)">
       ${modes.map((m,i)=>{
         const n = Q.filter(q=> m[0]==='full' || q.quick).length;
-        return `<button data-mode="${m[0]}" class="opt w-full text-left p-4 flex items-center gap-4" style="${i?'border-top:2px solid #000;':''}">
-          <span class="num text-[13px]" style="color:#767676">0${i+1}</span>
+        return `<button data-mode="${m[0]}" class="opt w-full text-left p-4 flex items-center gap-4" style="${i?'border-top:2px solid var(--fg);':''}">
+          <span class="num text-[13px]" style="color:var(--muted)">0${i+1}</span>
           <span class="flex-1 min-w-0">
             <span class="flex items-center gap-2 flex-wrap">
               <span style="font-size:15.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${t(m[1])}</span>
-              <span class="uppercase" style="font-size:9px;padding:3px 6px;${m[3]?'background:#FF3000;color:#fff':'background:#000;color:#fff'}">${m[3]?t('modePro'):t('modeFree')}</span>
+              <span class="uppercase" style="font-size:9px;padding:3px 6px;${m[3]?'background:var(--accent);color:var(--bg)':'background:var(--fg);color:var(--bg)'}">${m[3]?t('modePro'):t('modeFree')}</span>
             </span>
-            <span class="block text-[12px] mt-1 num" style="color:#767676">${tf(m[2],{n:n})}</span>
-            ${m[3]&&!CFG.paywall?`<span class="block text-[11px] mt-1" style="color:#FF3000">${t('modeEarly')}</span>`:''}
+            <span class="block text-[12px] mt-1 num" style="color:var(--muted)">${tf(m[2],{n:n})}</span>
+            ${m[3]&&!CFG.paywall?`<span class="block text-[11px] mt-1" style="color:var(--accent)">${t('modeEarly')}</span>`:''}
           </span>
           <i class="fa-solid fa-arrow-right text-[15px]"></i></button>`;}).join('')}
     </div>
 
-    <div class="mt-7" style="border-top:2px solid #000">
+    <div class="mt-7" style="border-top:2px solid var(--fg)">
       ${CFG.community?`<button id="wGuard" class="opt w-full text-left py-4 flex items-center gap-3">
-        <span style="width:8px;height:8px;background:#FF3000;flex:none"></span>
+        <span style="width:8px;height:8px;background:var(--accent);flex:none"></span>
         <span class="flex-1" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${t('guardCta')}</span>
         <i class="fa-solid fa-arrow-right text-[14px]"></i></button>`:''}
-      <button id="wGarage" class="opt w-full text-left py-4 flex items-center gap-3" style="${CFG.community?'border-top:2px solid #000':''}">
-        <span style="width:8px;height:8px;background:#000;flex:none"></span>
+      <button id="wGarage" class="opt w-full text-left py-4 flex items-center gap-3" style="${CFG.community?'border-top:2px solid var(--fg)':''}">
+        <span style="width:8px;height:8px;background:var(--fg);flex:none"></span>
         <span class="flex-1" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${t('garageH')}</span>
-        <span class="num text-[13px]" style="color:#767676">${state.garage.length||''}</span>
+        <span class="num text-[13px]" style="color:var(--muted)">${state.garage.length||''}</span>
         <i class="fa-solid fa-arrow-right text-[14px]"></i></button>
     </div>
 
-    <p class="text-[11.5px] mt-6 leading-relaxed" style="color:#767676">
-      <b style="color:#000">${t('notMechanic')}.</b> ${t('notMechanicD')}</p>
+    <p class="text-[11.5px] mt-6 leading-relaxed" style="color:var(--muted)">
+      <b style="color:var(--fg)">${t('notMechanic')}.</b> ${t('notMechanicD')}</p>
 
     ${installCard()}
-    ${(!Store.ok() || inFrame)?`<button id="wFrame" class="opt w-full text-left mt-4" style="border:2px solid #FF3000;padding:12px">
-      <span class="block" style="font-size:12px;font-weight:900;text-transform:uppercase;color:#FF3000">${t('frameH')}</span>
-      <span class="block text-[11.5px] mt-1 leading-relaxed" style="color:#767676">${t('frameOpen')} →</span></button>`:''}
-    <div class="mt-8" style="border-top:2px solid #000">
+    ${(!Store.ok() || inFrame)?`<button id="wFrame" class="opt w-full text-left mt-4" style="border:2px solid var(--accent);padding:12px">
+      <span class="block" style="font-size:12px;font-weight:900;text-transform:uppercase;color:var(--accent)">${t('frameH')}</span>
+      <span class="block text-[11.5px] mt-1 leading-relaxed" style="color:var(--muted)">${t('frameOpen')} →</span></button>`:''}
+    <div class="mt-8" style="border-top:2px solid var(--fg)">
       <button id="wLegal" class="opt w-full text-left py-3.5 flex items-center gap-3">
-        <span class="flex-1 uppercase" style="font-size:11px;color:#767676">${t('legalH')}</span>
-        <i class="fa-solid fa-chevron-right text-[12px]" style="color:#767676"></i></button>
+        <span class="flex-1 uppercase" style="font-size:11px;color:var(--muted)">${t('legalH')}</span>
+        <i class="fa-solid fa-chevron-right text-[12px]" style="color:var(--muted)"></i></button>
     </div>
     ${byAilaa('mt-6')}`;
 
@@ -1432,6 +1460,7 @@ function renderWelcome(){
     buzz(); newCheck(); state.mode = md; goto('vehicle');
   });
   const wg=$('wGarage'); if(wg) wg.onclick = ()=>goto('garage');
+  const wfd=$('wFound'); if(wfd) wfd.onclick = ()=>openPaywall();
   const wl=$('wLegal'); if(wl) wl.onclick = ()=>{ state.doc='privacy'; goto('doc'); };
 
   const wr=$('wResume'); if(wr) wr.onclick = ()=>{
@@ -1478,13 +1507,13 @@ function openPicker(title, items, current, onPick){
     const list = items.filter(x => !nq || norm(x).indexOf(nq) > -1).slice(0, 150);
     box.innerHTML = list.length
       ? list.map((x,i)=>`<button data-pk="${esc(x)}" class="opt w-full text-left p-3.5"
-          style="${i?'border-top:2px solid #000;':''}${x===current?'background:#000;color:#fff;':''}font-size:15px;font-weight:700">${esc(x)}</button>`).join('')
-      : `<p class="p-4 text-[13px]" style="color:#767676">${t('pkNone')}</p>`;
+          style="${i?'border-top:2px solid var(--fg);':''}${x===current?'background:var(--fg);color:var(--bg);':''}font-size:15px;font-weight:700">${esc(x)}</button>`).join('')
+      : `<p class="p-4 text-[13px]" style="color:var(--muted)">${t('pkNone')}</p>`;
     box.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{ closeModal(); onPick(b.dataset.pk); });
   };
   openModal(`<h3 class="text-lg font-bold">${esc(title)}</h3>
     <input id="pkQ" placeholder="${t('pkSearch')}" class="field w-full rounded-xl px-4 py-3.5 text-[15px] mt-3">
-    <div id="pkList" style="border:2px solid #000;margin-top:12px;max-height:46vh;overflow:auto"></div>
+    <div id="pkList" style="border:2px solid var(--fg);margin-top:12px;max-height:46vh;overflow:auto"></div>
     <button id="pkNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
   $('pkQ').addEventListener('input', e=>{ q = e.target.value; draw(); });
   $('pkNo').onclick = closeModal;
@@ -1496,20 +1525,20 @@ function renderVehicle(){
   const db = getDB();
   const years = []; for (let y=2026;y>=1996;y--) years.push(y);
   $('sc-vehicle').innerHTML = `
-    <p class="uppercase mb-3" style="font-size:11px;color:#FF3000">01 / 03</p>
+    <p class="uppercase mb-3" style="font-size:11px;color:var(--accent)">01 / 03</p>
     <h2>${t('vehicleH')}</h2>
     <p class="text-[13.5px] mt-3.5 mb-5 leading-relaxed">${t('vehicleP')}</p>
     <div class="glass rounded-2xl p-4 space-y-4">
       <div>
         <label class="block text-[10px] uppercase text-slate-500 mb-2">${t('brand')}</label>
         <button id="pkBrand" class="opt w-full text-left field rounded-xl px-4 py-3.5 text-[15px] flex items-center gap-3" style="font-weight:700">
-          <span class="flex-1 truncate" style="${state.brand?'':'color:#B5B5B5'}">${state.brand?esc(state.brand):t('pickOne')}</span>
+          <span class="flex-1 truncate" style="${state.brand?'':'color:var(--muted2)'}">${state.brand?esc(state.brand):t('pickOne')}</span>
           <i class="fa-solid fa-chevron-down text-[13px]"></i></button>
       </div>
       <div>
         <label class="block text-[10px] uppercase text-slate-500 mb-2">${t('model')}</label>
         <button id="pkModel" ${state.brand?'':'disabled'} class="opt w-full text-left field rounded-xl px-4 py-3.5 text-[15px] flex items-center gap-3" style="font-weight:700;${state.brand?'':'opacity:.45'}">
-          <span class="flex-1 truncate" style="${state.model?'':'color:#B5B5B5'}">${state.model?esc(state.model):(state.brand?t('pickOne'):t('brandFirst'))}</span>
+          <span class="flex-1 truncate" style="${state.model?'':'color:var(--muted2)'}">${state.model?esc(state.model):(state.brand?t('pickOne'):t('brandFirst'))}</span>
           <i class="fa-solid fa-chevron-down text-[13px]"></i></button>
       </div>
       <div class="grid grid-cols-2 gap-3">
@@ -1520,7 +1549,7 @@ function renderVehicle(){
         <div>
           <label class="block text-[10px] uppercase text-slate-500 mb-2">${t('year')}</label>
           <button id="pkYear" class="opt w-full text-left field rounded-xl px-4 py-3.5 text-[15px] flex items-center gap-2 num" style="font-weight:700">
-            <span class="flex-1" style="${state.year?'':'color:#B5B5B5'}">${state.year?state.year:t('pickOne')}</span>
+            <span class="flex-1" style="${state.year?'':'color:var(--muted2)'}">${state.year?state.year:t('pickOne')}</span>
             <i class="fa-solid fa-chevron-down text-[13px]"></i></button>
         </div>
       </div>
@@ -1687,19 +1716,19 @@ function renderQuestion(scroll){
       <span class="w-8 h-8 rounded-xl grid place-items-center border" style="background:${s.c}1f;border-color:${s.c}40">
         <i class="fa-solid ${s.i} text-[13px]" style="color:${s.c}"></i></span>
       <div class="flex-1 min-w-0">
-        <p class="text-[10px] uppercase truncate" style="color:#FF3000">${t(s.n)}</p>
+        <p class="text-[10px] uppercase truncate" style="color:var(--accent)">${t(s.n)}</p>
         <p class="text-[11px] text-slate-400 num mt-1">${pos}/${inSec.length} · ${t('weight')} %${s.w}</p>
       </div>
-      <span class="num" style="font-size:22px;font-weight:900;letter-spacing:-.04em">${String(state.idx+1).padStart(2,'0')}<span style="color:#B5B5B5">/${String(list.length).padStart(2,'0')}</span></span>
+      <span class="num" style="font-size:22px;font-weight:900;letter-spacing:-.04em">${String(state.idx+1).padStart(2,'0')}<span style="color:var(--muted2)">/${String(list.length).padStart(2,'0')}</span></span>
     </div>
     <div class="mb-5">
       <div class="flex items-start gap-3">
         <h2 class="flex-1" style="font-size:clamp(24px,7.5vw,34px)">${esc(t(qText(q)))}</h2>
         ${HELP[q.id]?`<button id="qHelp" aria-label="${t('helpH')}"
-          style="flex:none;width:38px;height:38px;border:2px solid #000;border-radius:50%;font-weight:900;font-size:18px;line-height:1;margin-top:4px">?</button>`:''}
+          style="flex:none;width:38px;height:38px;border:2px solid var(--fg);border-radius:50%;font-weight:900;font-size:18px;line-height:1;margin-top:4px">?</button>`:''}
       </div>
-      ${q.crit?`<span class="inline-block mt-3 uppercase" style="font-size:10px;background:#FF3000;color:#fff;padding:5px 8px">${t('criticalItem')}</span>`:''}
-      <p class="text-[13px] mt-4 leading-relaxed" style="border-left:4px solid #FF3000;padding-left:12px">${esc(t(q.h))}</p>
+      ${q.crit?`<span class="inline-block mt-3 uppercase" style="font-size:10px;background:var(--accent);color:var(--bg);padding:5px 8px">${t('criticalItem')}</span>`:''}
+      <p class="text-[13px] mt-4 leading-relaxed" style="border-left:4px solid var(--accent);padding-left:12px">${esc(t(q.h))}</p>
       ${q.timer?`<div class="mt-3 flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
         <i class="fa-solid fa-stopwatch text-ok"></i>
         <span class="flex-1 text-[12.5px] font-semibold">${t('coldStartTimer')}</span>
@@ -1721,7 +1750,7 @@ function renderQuestion(scroll){
   $('sc-wizard').querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{
     const raw=b.dataset.v;
     state.answers[q.id] = (q.type==='yn'||q.type==='choice') ? raw : parseInt(raw,10);
-    buzz(); saveSession();
+    buzz(); if(!state.done) saveSession();
     const hit = q.db!==undefined && state.answers[q.id]===q.db;
     renderQuestion(false);
     if (hit && !state.warned[q.id]){ state.warned[q.id]=1; dealbreakerModal(q); return; }
@@ -1755,12 +1784,12 @@ function openHelp(q){
     [t('helpBad'),   parts[1]],
     [t('helpWhy'),   parts[2]]
   ];
-  openModal(`<p class="uppercase" style="font-size:10px;color:#FF3000">${t('helpH')}</p>
+  openModal(`<p class="uppercase" style="font-size:10px;color:var(--accent)">${t('helpH')}</p>
     <h3 class="mt-2" style="font-size:19px">${esc(t(qText(q)))}</h3>
-    <div class="mt-4" style="border:2px solid #000">
-      ${rows.map((r,i)=>`<div class="p-4" style="${i?'border-top:2px solid #000':''}">
-        <p class="uppercase" style="font-size:10px;color:${i===1?'#FF3000':'#767676'}">${r[0]}</p>
-        <p class="text-[13.5px] mt-2 leading-relaxed" style="color:#000">${esc(r[1]||'')}</p>
+    <div class="mt-4" style="border:2px solid var(--fg)">
+      ${rows.map((r,i)=>`<div class="p-4" style="${i?'border-top:2px solid var(--fg)':''}">
+        <p class="uppercase" style="font-size:10px;color:${i===1?'var(--accent)':'var(--muted)'}">${r[0]}</p>
+        <p class="text-[13.5px] mt-2 leading-relaxed" style="color:var(--fg)">${esc(r[1]||'')}</p>
       </div>`).join('')}
     </div>
     <button id="hpNo" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('helpGot')}</button>`);
@@ -1784,7 +1813,11 @@ function dealbreakerModal(q){
 function nextQ(){
   const list=activeQ(), q=list[state.idx];
   if (state.answers[q.id]===undefined) return;
-  if (state.idx===list.length-1){ buildResult(); bumpUsage(); goto('result'); return; }
+  if (state.idx===list.length-1){
+    buildResult(); bumpUsage(); state.done = true;
+    try{ Store.set('session', null); }catch(e){}
+    goto('result'); return;
+  }
   state.idx++; renderQuestion(true);
 }
 function prevQ(){ if(state.idx===0){ goto('vehicle'); return; } state.idx--; renderQuestion(true); }
@@ -2043,7 +2076,7 @@ function rustMap(){
     {x:212,y:84, v:a.floor,   n:['Taban sacı / bagaj havuzu','Floor pan / boot well']},
     {x:160,y:70, v:a.lines,   n:['Fren ve yakıt boruları','Brake and fuel lines']}
   ];
-  return `<div class="mt-5 sw-dots" style="border:2px solid #000;padding:16px">
+  return `<div class="mt-5 sw-dots" style="border:2px solid var(--fg);padding:16px">
     <h3 class="text-[15px]">${t('rustMap')}</h3>
     <p class="text-[12px] text-slate-400 mt-1.5 leading-relaxed">${t('rustMapD')}</p>
     <svg viewBox="0 0 320 130" class="w-full mt-2">
@@ -2153,15 +2186,15 @@ function summaryTab(){
         <span class="text-[12.5px] font-bold text-slate-300"><i class="fa-solid ${SEC[k].i} mr-2 text-[11px]" style="color:${SEC[k].c}"></i>${t(SEC[k].n)}</span>
         <span class="text-[12.5px] font-extrabold num" style="color:${bc}">${s}<span class="text-slate-500">/100</span></span>
       </div>
-      <div class="h-3 overflow-hidden" style="background:#F2F2F2"><div class="barfill h-full" data-w="${s}" style="width:0%;background:${bc};opacity:${op}"></div></div>
+      <div class="h-3 overflow-hidden" style="background:var(--soft)"><div class="barfill h-full" data-w="${s}" style="width:0%;background:${bc};opacity:${op}"></div></div>
       <p class="text-[10.5px] text-slate-500 mt-1">${t('weight')} %${Math.round(r.W[k])}</p></div>`;}).join('');
   return `
-    <div class="text-center sw-grid" style="border:2px solid #000;padding:20px 16px 24px">
-      ${v.k==='stop'?`<div style="background:#FF3000;color:#fff;padding:14px;margin:-20px -16px 18px;text-align:left">
+    <div class="text-center sw-grid" style="border:2px solid var(--fg);padding:20px 16px 24px">
+      ${v.k==='stop'?`<div style="background:var(--accent);color:var(--bg);padding:14px;margin:-20px -16px 18px;text-align:left">
         <p class="uppercase" style="font-size:11px;opacity:.75">${t('lvlCrit')}</p>
         <p style="font-weight:900;font-size:19px;line-height:1.05;letter-spacing:-.03em;margin-top:6px">${v.t}</p>
-        <p style="font-size:12.5px;margin-top:8px;line-height:1.5;color:#fff">${v.d}</p></div>`:''}
-      <p class="uppercase" style="font-size:10px;color:#FF3000">${t('score')}</p>
+        <p style="font-size:12.5px;margin-top:8px;line-height:1.5;color:var(--bg)">${v.d}</p></div>`:''}
+      <p class="uppercase" style="font-size:10px;color:var(--accent)">${t('score')}</p>
       <svg viewBox="0 0 200 122" class="w-full max-w-[290px] mx-auto mt-1">
         <path d="${ga(0,64,88)}"   stroke="#FF3000" stroke-width="6" fill="none"/>
         <path d="${ga(65,84,88)}"  stroke="#FF3000" stroke-opacity=".35" stroke-width="6" fill="none"/>
@@ -2173,9 +2206,9 @@ function summaryTab(){
         <circle cx="100" cy="100" r="9" fill="#FFFFFF" stroke="${v.c}" stroke-width="3"/>
         <text id="gaugeNum" x="100" y="92" text-anchor="middle" font-size="46" font-weight="900" fill="#000000" letter-spacing="-2.5" style="font-family:Inter,Helvetica,Arial,sans-serif">0</text>
       </svg>
-      ${v.k!=='stop'?`<div class="inline-block uppercase" style="font-size:12px;padding:9px 14px;${v.k==='ok'?'background:#000;color:#fff':'background:#FF3000;color:#fff'}">${v.t}</div>
+      ${v.k!=='stop'?`<div class="inline-block uppercase" style="font-size:12px;padding:9px 14px;${v.k==='ok'?'background:var(--fg);color:var(--bg)':'background:var(--accent);color:var(--bg)'}">${v.t}</div>
       <p class="text-[13.5px] mt-4 leading-relaxed px-1">${v.d}</p>`:''}
-      <div class="mt-5 pt-4 flex items-center justify-center gap-2 text-[12px] text-slate-400 flex-wrap num" style="border-top:2px solid #000">
+      <div class="mt-5 pt-4 flex items-center justify-center gap-2 text-[12px] text-slate-400 flex-wrap num" style="border-top:2px solid var(--fg)">
         <span class="font-bold text-slate-200">${esc(state.brand+' '+state.model)}</span><span class="text-slate-600">|</span>
         <span>${esc(pick(p.n))}</span><span class="text-slate-600">|</span>
         <span>${fmtN(state.dist)} ${unit()}</span>${state.year?`<span class="text-slate-600">|</span><span>${state.year}</span>`:''}
@@ -2187,7 +2220,7 @@ function summaryTab(){
         <span class="text-[12.5px] font-bold text-slate-300"><i class="fa-solid fa-gauge-simple-high mr-2 text-slate-400"></i>${t('confidence')}</span>
         <span class="text-[13px] font-extrabold num ${r.conf>=75?'text-ok':r.conf>=50?'text-warn':'text-bad'}">%${r.conf}</span>
       </div>
-      <div class="h-3 overflow-hidden" style="background:#F2F2F2"><div class="barfill h-full" data-w="${r.conf}" style="width:0%;background:#000"></div></div>
+      <div class="h-3 overflow-hidden" style="background:var(--soft)"><div class="barfill h-full" data-w="${r.conf}" style="width:0%;background:var(--fg)"></div></div>
       <p class="text-[12px] text-slate-400 mt-2 leading-relaxed">
         ${r.unknowns?tf('confidenceD',{n:r.unknowns}):''} ${state.mode==='quick'?t('confidenceQuick'):''}</p>
     </div>
@@ -2219,6 +2252,7 @@ function summaryTab(){
       <button id="repFromResult" class="w-full mt-3 rounded-xl py-3 font-bold text-[14px] bg-bad/15 border border-bad/30 text-red-300">${t('gReportBtn')}</button>
     </div>`:''}
     <p class="text-[11.5px] text-slate-500 leading-relaxed mt-5 px-1">${t('disclaimer')}</p>
+    <button id="finishBtn" class="w-full mt-6 rounded-2xl py-4 font-extrabold text-[15px] bg-ok text-ink no-print">${t('finish')}</button>
     ${byAilaa('mt-7')}`;
 }
 
@@ -2233,13 +2267,13 @@ function flagsTab(){
     const c=f.lvl==='crit'?'#FF3000':f.lvl==='warn'?'#FF3000':'#767676';
     const lb=f.lvl==='crit'?t('lvlCrit'):f.lvl==='warn'?t('lvlWarn'):t('lvlInfo');
     const inv = f.lvl==='crit';
-    return `<div style="border:2px solid #000;padding:16px;${inv?'background:#FF3000;border-color:#FF3000;color:#fff':''}">
+    return `<div style="border:2px solid var(--fg);padding:16px;${inv?'background:var(--accent);border-color:var(--accent);color:var(--bg)':''}">
       <div class="flex items-start gap-2.5">
         <div class="flex-1 min-w-0">
-          <span class="uppercase" style="font-size:10px;${inv?'color:#fff;opacity:.8':'color:#FF3000'}">${lb}</span>
-          <h4 class="mt-1.5" style="font-size:16px;font-weight:900;letter-spacing:-.03em;line-height:1.1;${inv?'color:#fff':''}">${esc(f.t)}</h4>
-          <p class="text-[12.5px] mt-2.5 leading-relaxed" style="${inv?'color:#fff;opacity:.9':'color:#767676'}">${esc(f.d)}</p>
-          <p class="text-[12.5px] mt-3 leading-relaxed" style="${inv?'border-top:2px solid rgba(255,255,255,.35);color:#fff':'border-top:2px solid #000'};padding-top:10px">${esc(f.a)}</p>
+          <span class="uppercase" style="font-size:10px;${inv?'color:var(--bg);opacity:.8':'color:var(--accent)'}">${lb}</span>
+          <h4 class="mt-1.5" style="font-size:16px;font-weight:900;letter-spacing:-.03em;line-height:1.1;${inv?'color:var(--bg)':''}">${esc(f.t)}</h4>
+          <p class="text-[12.5px] mt-2.5 leading-relaxed" style="${inv?'color:var(--bg);opacity:.9':'color:var(--muted)'}">${esc(f.d)}</p>
+          <p class="text-[12.5px] mt-3 leading-relaxed" style="${inv?'border-top:2px solid rgba(255,255,255,.35);color:var(--bg)':'border-top:2px solid var(--fg)'};padding-top:10px">${esc(f.a)}</p>
 
         </div></div></div>`;}).join('')}
     ${photos.length?`<div class="glass rounded-2xl p-4">
@@ -2255,12 +2289,17 @@ function renderResult(){
   const tabs=[['sum','tabSummary','fa-gauge-high'],['flags','tabFlags','fa-flag'],['shop','tabShop','fa-screwdriver-wrench'],['seller','tabSeller','fa-comments']];
   const body = state.tab==='sum'?summaryTab():state.tab==='flags'?flagsTab():state.tab==='shop'?shopSheet():sellerTab();
   $('sc-result').innerHTML = `
-    <div class="no-print grid grid-cols-4 mb-5" style="border:2px solid #000">
+    <div class="no-print grid grid-cols-4 mb-5" style="border:2px solid var(--fg)">
       ${tabs.map((x,i)=>`<button data-tab="${x[0]}" class="tabbtn ${state.tab===x[0]?'on':''} py-3 text-[10px] uppercase"
-        style="${i?'border-left:2px solid #000':''}">${t(x[1])}</button>`).join('')}
+        style="${i?'border-left:2px solid var(--fg)':''}">${t(x[1])}</button>`).join('')}
     </div>${body}`;
   $('sc-result').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ state.tab=b.dataset.tab; renderResult(); });
   const cs=$('copySeller'); if(cs) cs.onclick=()=>copy(sellerQuestions().map((q,i)=>(i+1)+'. '+q).join('\n'));
+  const fb=$('finishBtn'); if(fb) fb.onclick = ()=>{
+    buzz();
+    try{ Store.set('session', null); }catch(e){}
+    newCheck(); goto('welcome'); toast(t('finishOk'));
+  };
   const pb=$('pulseBtn'); if(pb) pb.onclick=async()=>{
     pb.disabled=true; pb.innerHTML='<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>'+t('gSending');
     const ok=await API.logCheck();
@@ -2273,12 +2312,14 @@ function renderResult(){
     const qy = REGION==='US' ? 'pre purchase inspection mechanic near me' : (L===0?'oto ekspertiz yakınımda':'car inspection garage near me');
     window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(qy),'_blank');
   };
-  bar(`<div class="grid grid-cols-3 gap-2">
+  bar(`<button id="bDone" class="w-full rounded-2xl py-3.5 font-extrabold text-[14px] bg-ok text-ink mb-2">${t('doneBtn')}</button>
+    <div class="grid grid-cols-3 gap-2">
     <button id="bCard" class="rounded-2xl py-3.5 font-extrabold text-[13px] bg-ok text-ink active:scale-[.98] transition"><i class="fa-solid fa-images mr-1"></i>${t('cardBtn')}</button>
     <button id="bPdf" class="rounded-2xl py-3.5 font-bold text-[13px] bg-white/8 border border-white/10 active:scale-[.98] transition"><i class="fa-solid fa-file-pdf mr-1"></i>${t('savePdf')}</button>
     <button id="bSave" class="rounded-2xl py-3.5 font-bold text-[13px] bg-white/8 border border-white/10 active:scale-[.98] transition">
       <i class="fa-solid fa-${state.garageSaved?'check':'warehouse'} mr-1"></i>${state.garageSaved?t('savedAlready'):t('saveGarage')}</button></div>`);
-  $('bCard').onclick=openCard; $('bPdf').onclick=printAll; $('bSave').onclick=saveGarage;
+  $('bCard').onclick=openCard; $('bPdf').onclick=openExport; $('bSave').onclick=saveGarage;
+  $('bDone').onclick=finishCheck;
   if (state.tab==='sum') requestAnimationFrame(()=>setTimeout(()=>{
     const r = state.result;
     if (!r || r.score === null || SCREEN !== 'result') return;   // ekran değiştiyse dokunma
@@ -2353,7 +2394,7 @@ function reportDoc(){
     + '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">\n'
     + '<style>'+REPORT_CSS+'</style>\n</head>\n<body>\n<div class="wrap">\n'
     + '<div class="hdr"><b><span class="mark"></span>RELIA</b>'
-    + '<span class="num" style="font-size:12px;color:#767676">'+esc(when)+'</span></div>\n'
+    + '<span class="num" style="font-size:12px;color:var(--muted)">'+esc(when)+'</span></div>\n'
     + reportHtml()
     + '\n</div>\n</body>\n</html>';
 }
@@ -2361,26 +2402,46 @@ function reportDoc(){
    ve boş sayfa basıyor. Bu yüzden rapor ekranda gerçekten görünür hale getirilip
    yazdırılıyor, sonra eski görünüme dönülüyor. */
 function doPrint(){
-  const pa = $('printArea');
-  const r = state.result;
+  const doc = reportDoc();
+  try{
+    const w = window.open('', '_blank');
+    if (w && w.document){
+      w.document.open(); w.document.write(doc); w.document.close();
+      const go = ()=>{ try{ w.focus(); w.print(); }catch(e){} };
+      if (w.document.readyState === 'complete') setTimeout(go, 500);
+      else w.onload = ()=>setTimeout(go, 500);
+      return;
+    }
+  }catch(e){}
+  const pa = $('printArea'), r = state.result;
   pa.innerHTML = reportHtml();
   document.body.classList.add('printing');
   pa.style.display = 'block';
-  /* animasyonlu öğeleri son değerlerine sabitle, yoksa boş görünür */
   try{
-    const g = pa.querySelector('#gaugeFill') || pa.querySelector('path[pathLength]');
+    const g = pa.querySelector('path[pathLength]');
     if (g && r){ g.style.transition='none'; g.style.strokeDashoffset = (100 - r.score); }
     pa.querySelectorAll('.barfill').forEach(b=>{ b.style.transition='none';
       if (b.dataset && b.dataset.w) b.style.width = b.dataset.w + '%'; });
   }catch(e){}
   window.scrollTo({top:0});
+  let printed = false;
   setTimeout(()=>{
-    try{ window.print(); }catch(e){ toast(t('pdfFail')); }
+    try{ window.print(); printed = true; }catch(e){}
     setTimeout(()=>{
       document.body.classList.remove('printing');
       pa.style.display = ''; pa.innerHTML = '';
+      if (!printed) offerReportImage();
     }, 1200);
   }, 400);
+}
+
+function offerReportImage(){
+  openModal(`<h3 class="text-lg font-bold">${t('pdfH')}</h3>
+    <p class="text-[12.5px] mt-2 leading-relaxed">${t('pdfImgD')}</p>
+    <button id="piGo" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('pdfImg')}</button>
+    <button id="piNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+  $('piNo').onclick = closeModal;
+  $('piGo').onclick = ()=>{ closeModal(); openCard(); };
 }
 function doDownload(){
   try{
@@ -2530,35 +2591,35 @@ function renderGarage(){
   label(t('garageH'));
   const g=state.garage;
   $('sc-garage').innerHTML = `
-    <p class="uppercase" style="font-size:11px;color:#FF3000">${t('garageH')}</p>
+    <p class="uppercase" style="font-size:11px;color:var(--accent)">${t('garageH')}</p>
     <h2 class="mt-3">${t('garageH')}</h2>
     <p class="text-[13px] mt-3 leading-relaxed">${t('garageP')}</p>
-    ${!g.length?`<div class="mt-6" style="border:2px solid #000;padding:22px;text-align:center">
+    ${!g.length?`<div class="mt-6" style="border:2px solid var(--fg);padding:22px;text-align:center">
       <p class="text-[13px] leading-relaxed">${t('garageEmpty')}</p></div>`
     : `<div class="mt-6 space-y-3">${g.map((c,i)=>{
         const col = c.vk==='ok' ? '#000000' : '#FF3000';
         const sel = state.cmp.indexOf(i) > -1;
-        return `<div style="border:2px solid #000">
+        return `<div style="border:2px solid var(--fg)">
           <button data-open="${i}" class="opt w-full text-left p-4 ${c.snap?'':'pointer-events-none'}">
             <div class="flex items-center gap-3.5">
               <span class="num" style="font-size:26px;font-weight:900;letter-spacing:-.04em;color:${col};flex:none">${c.score}</span>
               <span class="flex-1 min-w-0">
                 <span class="block truncate" style="font-size:14.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${esc(c.brand+' '+c.model)}${c.year?' · '+c.year:''}</span>
-                <span class="block text-[11.5px] num truncate mt-0.5" style="color:#767676">${esc(c.ptName)} · ${fmtN(c.dist)} ${c.unit}${c.price?' · '+fmtN(c.price):''}</span>
+                <span class="block text-[11.5px] num truncate mt-0.5" style="color:var(--muted)">${esc(c.ptName)} · ${fmtN(c.dist)} ${c.unit}${c.price?' · '+fmtN(c.price):''}</span>
                 <span class="block text-[11px] mt-1" style="color:${col};font-weight:700">${esc(c.vt)}</span>
               </span>
-              ${c.snap?'<i class="fa-solid fa-chevron-right text-[13px]" style="color:#767676"></i>':''}
+              ${c.snap?'<i class="fa-solid fa-chevron-right text-[13px]" style="color:var(--muted)"></i>':''}
             </div></button>
-          <div class="flex flex-wrap items-center gap-1.5 px-4 pb-3 text-[11px] num" style="color:#767676">
+          <div class="flex flex-wrap items-center gap-1.5 px-4 pb-3 text-[11px] num" style="color:var(--muted)">
             <span>${t('confidence')} %${c.conf}</span>
-            ${c.crit?`<span style="color:#FF3000">${c.crit} ${t('lvlCrit')}</span>`:''}
+            ${c.crit?`<span style="color:var(--accent)">${c.crit} ${t('lvlCrit')}</span>`:''}
             <span>${c.flags} ${t('flags')}</span>
             <span>${c.date}</span>
-            <button data-del="${i}" class="ml-auto uppercase" style="font-size:10px;color:#FF3000">${t('del')}</button>
+            <button data-del="${i}" class="ml-auto uppercase" style="font-size:10px;color:var(--accent)">${t('del')}</button>
           </div>
           <button data-cmp="${i}" class="opt w-full text-left px-4 py-3 flex items-center gap-2.5"
-            style="border-top:2px solid #000;${sel?'background:#000;color:#fff':''}">
-            <span style="width:13px;height:13px;flex:none;border:2px solid ${sel?'#fff':'#000'};background:${sel?'#FF3000':'transparent'}"></span>
+            style="border-top:2px solid var(--fg);${sel?'background:var(--fg);color:var(--bg)':''}">
+            <span style="width:13px;height:13px;flex:none;border:2px solid ${sel?'var(--bg)':'var(--fg)'};background:${sel?'var(--accent)':'transparent'}"></span>
             <span class="uppercase" style="font-size:10px">${sel?t('cmpSelected'):t('cmpSelect')}</span></button>
         </div>`;}).join('')}</div>`}`;
   $('sc-garage').querySelectorAll('[data-del]').forEach(b=>b.onclick=async(e)=>{
@@ -2607,16 +2668,16 @@ function openCompare(){
   const best = cars.slice().sort((a,b)=>(b.score||0)-(a.score||0))[0];
   const col = c => c.vk==='ok' ? '#000000' : '#FF3000';
   openModal(`<h3 class="text-lg font-bold">${t('compareH')}</h3>
-    <div class="mt-4" style="border:2px solid #000">
-      ${cars.map((c,i)=>`<div class="p-4" style="${i?'border-top:2px solid #000':''};${c===best?'background:#000;color:#fff':''}">
+    <div class="mt-4" style="border:2px solid var(--fg)">
+      ${cars.map((c,i)=>`<div class="p-4" style="${i?'border-top:2px solid var(--fg)':''};${c===best?'background:var(--fg);color:var(--bg)':''}">
         <div class="flex items-start gap-3">
-          <span class="num" style="font-size:30px;font-weight:900;letter-spacing:-.04em;color:${c===best?'#fff':col(c)}">${c.score}</span>
+          <span class="num" style="font-size:30px;font-weight:900;letter-spacing:-.04em;color:${c===best?'var(--bg)':col(c)}">${c.score}</span>
           <div class="flex-1 min-w-0">
             <p style="font-size:14.5px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${esc(c.brand+' '+c.model)}${c.year?' · '+c.year:''}</p>
             <p class="text-[11.5px] num mt-1" style="opacity:.65">${fmtN(c.dist)} ${c.unit} · ${c.flags} ${t('compareFlags')}${c.crit?' · '+c.crit+' '+t('compareCrit'):''}</p>
             ${c.price?`<p class="num mt-1.5" style="font-size:15px;font-weight:900">${fmtN(c.price)}</p>`:''}
           </div>
-          ${c===best?`<span class="uppercase" style="font-size:9px;padding:3px 6px;background:#FF3000;color:#fff;flex:none">${t('compareBest')}</span>`:''}
+          ${c===best?`<span class="uppercase" style="font-size:9px;padding:3px 6px;background:var(--accent);color:var(--bg);flex:none">${t('compareBest')}</span>`:''}
         </div></div>`).join('')}
     </div>
     <button id="cmCard" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('compareCard')}</button>
@@ -2675,10 +2736,19 @@ async function makeCompareCard(cars){
 }
 function LSx(x,v){ try{ x.letterSpacing = v; }catch(e){} }
 
+/* Kontrolü kapatır: "yarım kalan kontrol" kaydı silinir, garajdaki kayıt kalır */
+function finishCheck(){
+  state.done = true;
+  try{ Store.set('session', null); }catch(e){}
+  toast(t('doneMsg'));
+  newCheck();
+  goto('welcome');
+}
+
 function newCheck(listing){
   state.answers={}; state.notes={}; state.photos={}; state.warned={}; state.idx=0; state.result=null; state.tab='sum';
   state.brand=''; state.model=''; state.pt=''; state.dist=0; state.year=''; state.price=0;
-  state.menu=false;
+  state.menu=false; state.done=false; state.done=false;
   state.listing = listing || { site:'', no:'', url:'', reports:[] };
   state.pulseSent = false; state.garageSaved = false;
 state.menu = false;
@@ -3337,9 +3407,9 @@ function pulseCard(p, compact){
 }
 /* Marka imzası — sade, tek satır */
 function byAilaa(cls){
-  return `<div class="${cls||'mt-8'}" style="border-top:2px solid #000;padding-top:14px;display:flex;align-items:center;justify-content:space-between">
+  return `<div class="${cls||'mt-8'}" style="border-top:2px solid var(--fg);padding-top:14px;display:flex;align-items:center;justify-content:space-between">
     <span class="uppercase" style="font-size:10px">RELIA</span>
-    <a href="https://ailaa.io" target="_blank" rel="noopener" class="uppercase" style="font-size:10px;color:#FF3000">${t('byLine')}</a>
+    <a href="https://ailaa.io" target="_blank" rel="noopener" class="uppercase" style="font-size:10px;color:var(--accent)">${t('byLine')}</a>
   </div>`;
 }
 
@@ -3637,14 +3707,14 @@ function resumeCard(){
   let d; try{ d = Store.get('session'); }catch(e){}
   if (!d || !d.brand || !d.pt) return '';
   const n = Object.keys(d.answers||{}).length;
-  return `<div class="mt-3" style="border:2px solid #000">
+  return `<div class="mt-3" style="border:2px solid var(--fg)">
     <button id="wResume" class="opt w-full text-left p-4 flex items-center gap-4">
-      <span style="width:34px;height:34px;background:#000;flex:none"></span>
+      <span style="width:34px;height:34px;background:var(--fg);flex:none"></span>
       <span class="flex-1 min-w-0">
         <span class="block" style="font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${t('resumeH')}</span>
-        <span class="block text-[12px] mt-1 num" style="color:#767676">${esc(d.brand+' '+d.model)} · ${n} ${t('resumeN')}</span></span>
+        <span class="block text-[12px] mt-1 num" style="color:var(--muted)">${esc(d.brand+' '+d.model)} · ${n} ${t('resumeN')}</span></span>
       <i class="fa-solid fa-arrow-right text-[15px]"></i></button>
-    <button id="wDrop" class="w-full text-left p-3 uppercase" style="border-top:2px solid #000;font-size:11px;color:#FF3000">${t('resumeDrop')}</button>
+    <button id="wDrop" class="w-full text-left p-3 uppercase" style="border-top:2px solid var(--fg);font-size:11px;color:var(--accent)">${t('resumeDrop')}</button>
   </div>`;
 }
 
@@ -3662,21 +3732,21 @@ function renderDoc(){
       if (lines[0].indexOf('- ') === 0){
         return '<ul style="list-style:none;padding:0;margin:10px 0">' + lines.map(l=>
           `<li style="display:flex;gap:10px;margin:8px 0;font-size:13.5px;line-height:1.55">
-            <span style="width:7px;height:7px;background:#FF3000;flex:none;margin-top:7px"></span>
+            <span style="width:7px;height:7px;background:var(--accent);flex:none;margin-top:7px"></span>
             <span>${esc(l.replace(/^- /,''))}</span></li>`).join('') + '</ul>';
       }
       return `<p class="text-[13.5px] leading-relaxed" style="margin:10px 0">${esc(part)}</p>`;
     }).join('');
-    return `<div style="${i?'border-top:2px solid #000;':''}padding:16px 0">
+    return `<div style="${i?'border-top:2px solid var(--fg);':''}padding:16px 0">
       <h3 style="font-size:14px">${esc(head)}</h3>${blocks}</div>`;
   }).join('');
 
   $('sc-doc').innerHTML = `
-    <button id="dcBack" class="text-[12px] font-bold mb-5" style="color:#FF3000">← ${t('gBack')}</button>
-    <p class="uppercase" style="font-size:11px;color:#FF3000">${t('legalH')}</p>
+    <button id="dcBack" class="text-[12px] font-bold mb-5" style="color:var(--accent)">← ${t('gBack')}</button>
+    <p class="uppercase" style="font-size:11px;color:var(--accent)">${t('legalH')}</p>
     <h2 class="mt-3">${t(doc.t)}</h2>
-    <div class="mt-4" style="height:4px;background:#FF3000;width:72px"></div>
-    <p class="text-[11.5px] num mt-4" style="color:#767676">${t('legalUpdated')} ${LEGAL_DATE}</p>
+    <div class="mt-4" style="height:4px;background:var(--accent);width:72px"></div>
+    <p class="text-[11.5px] num mt-4" style="color:var(--muted)">${t('legalUpdated')} ${LEGAL_DATE}</p>
     <div class="mt-5">${body}</div>
     ${byAilaa('mt-6')}`;
   $('dcBack').onclick = ()=>goto('welcome');
@@ -3710,7 +3780,7 @@ function openAccount(){
   if (isSignedIn()){
     openModal(`<h3 class="text-lg font-bold">${t('accH')}</h3>
       <p class="text-[13px] mt-3 num" style="word-break:break-all">${esc(state.user.email)}</p>
-      <p class="text-[12.5px] mt-2 leading-relaxed" style="color:#767676">${t('accInD')}</p>
+      <p class="text-[12.5px] mt-2 leading-relaxed" style="color:var(--muted)">${t('accInD')}</p>
       <button id="acOut" class="w-full mt-4 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('accOut')}</button>
       <button id="acNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
     $('acNo').onclick = closeModal;
@@ -3730,7 +3800,7 @@ function openAccount(){
         <button id="acGo" class="w-full rounded-xl py-3.5 font-extrabold text-[15px] bg-ok text-ink">${t(mode==='in'?'accIn':'accUp')}</button>
         <button id="acSwap" class="w-full rounded-xl py-3 font-bold text-[13.5px] bg-white/8 border border-white/10">${t(mode==='in'?'accToUp':'accToIn')}</button>
         <p id="acErr" class="text-[12.5px] text-bad leading-relaxed hidden"></p>
-        <p id="acOk" class="text-[12.5px] leading-relaxed hidden" style="color:#000">${t('accMail')}</p>
+        <p id="acOk" class="text-[12.5px] leading-relaxed hidden" style="color:var(--fg)">${t('accMail')}</p>
       </div>
       <button id="acNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
     $('acNo').onclick = closeModal;
@@ -3746,8 +3816,12 @@ function openAccount(){
         const j = await authCall(mode, email, pass);
         if (j.access_token){
           saveUser({ token:j.access_token, email:email, id:(j.user&&j.user.id)||'' });
-          closeModal(); toast(t('accOkIn')); renderWelcome();
-          if (state.afterAuth){ const f = state.afterAuth; state.afterAuth = null; f(); }
+          closeModal();
+          const f = await claimFounder();
+          if (f && f.seat) showFounder(f);
+          else toast(t('accOkIn'));
+          renderWelcome();
+          if (state.afterAuth){ const g = state.afterAuth; state.afterAuth = null; g(); }
           return;
         }
         $('acOk').classList.remove('hidden');
@@ -3757,6 +3831,32 @@ function openAccount(){
   };
   draw();
 }
+/* Kurucu üyelik: ilk 1000 kayıtlı kullanıcı ömür boyu Premium alır */
+async function claimFounder(){
+  if (!isSignedIn()) return null;
+  try{
+    const res = await fetch(CFG.url + '/rest/v1/rpc/rc_claim_founder', { method:'POST',
+      headers:{ apikey:CFG.key, Authorization:'Bearer '+state.user.token, 'Content-Type':'application/json' },
+      body:'{}' });
+    const out = await res.json();
+    const row = Array.isArray(out) ? out[0] : out;
+    if (row && row.ok){
+      Store.set('pro', true);
+      Store.set('founderSeat', row.seat);
+      return row;
+    }
+  }catch(e){}
+  return null;
+}
+async function founderLeft(){
+  try{
+    const res = await fetch(CFG.url + '/rest/v1/rpc/rc_founder_left', { method:'POST',
+      headers:{ apikey:CFG.key, Authorization:'Bearer '+CFG.key, 'Content-Type':'application/json' }, body:'{}' });
+    const n = await res.json();
+    return typeof n === 'number' ? n : null;
+  }catch(e){ return null; }
+}
+
 /* Hesap gerektiren işlemler için kapı */
 function requireAccount(next){
   if (isSignedIn()){ next(); return true; }
@@ -3770,44 +3870,64 @@ function requireAccount(next){
   return false;
 }
 
+function showFounder(f){
+  openModal(`<p class="uppercase" style="font-size:10px;color:var(--accent)">${t('foundH')}</p>
+    <h3 class="mt-2" style="font-size:22px">${t('foundGot')}</h3>
+    <p class="num mt-4" style="font-size:44px;font-weight:900;letter-spacing:-.04em">#${f.seat}</p>
+    <p class="text-[13px] mt-3 leading-relaxed">${t('foundD')}</p>
+    <button id="fdNo" class="w-full mt-5 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('helpGot')}</button>`);
+  $('fdNo').onclick = closeModal;
+}
+
 function openSettings(){
   const pro = isPro();
   openModal(`<h3 class="text-lg font-bold">${t('setH')}</h3>
 
-    <p class="uppercase mt-5 mb-2" style="font-size:10px;color:#767676">${t('setLang')}</p>
-    <div class="grid" style="border:2px solid #000;grid-template-columns:repeat(${CFG.langs.length},1fr)">
+    <p class="uppercase mt-5 mb-2" style="font-size:10px;color:var(--muted)">${t('setLang')}</p>
+    <div class="grid" style="border:2px solid var(--fg);grid-template-columns:repeat(${CFG.langs.length},1fr)">
       ${CFG.langs.map((i,k)=>`<button data-lang="${i}" class="opt py-3.5 text-[12px]"
-        style="font-weight:700;${k?'border-left:2px solid #000;':''}${L===i?'background:#000;color:#fff':''}">
+        style="font-weight:700;${k?'border-left:2px solid var(--fg);':''}${L===i?'background:var(--fg);color:var(--bg)':''}">
         ${LANG_NAMES[i]}</button>`).join('')}
     </div>
 
-    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:#767676">${t('setAcc')}</p>
-    <button id="stAcc" class="opt w-full text-left" style="border:2px solid #000;padding:14px">
-      <span class="block" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${isSignedIn()?esc(state.user.email):t('accGuest')}</span>
-      <span class="block text-[12px] mt-1" style="color:#767676">${isSignedIn()?t('accOut'):t('accIn')+' / '+t('accUp')} →</span></button>
+    <p class="uppercase mt-5 mb-2" style="font-size:10px;color:var(--muted)">${t('setTheme')}</p>
+    <div class="grid grid-cols-3" style="border:2px solid var(--fg)">
+      ${[['system','thSystem'],['light','thLight'],['dark','thDark']].map((x,i)=>{
+        const cur = Store.get('theme') || 'system';
+        return `<button data-theme="${x[0]}" class="opt py-3.5 text-[12px]"
+          style="font-weight:700;${i?'border-left:2px solid var(--fg);':''}${cur===x[0]?'background:var(--fg);color:var(--bg)':''}">
+          ${t(x[1])}</button>`;}).join('')}
+    </div>
 
-    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:#767676">${t('setPlan')}</p>
-    <div style="border:2px solid ${pro?'#000':'#FF3000'};padding:14px">
+    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:var(--muted)">${t('setAcc')}</p>
+    <button id="stAcc" class="opt w-full text-left" style="border:2px solid var(--fg);padding:14px">
+      <span class="block" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${isSignedIn()?esc(state.user.email):t('accGuest')}</span>
+      <span class="block text-[12px] mt-1" style="color:var(--muted)">${isSignedIn()?t('accOut'):t('accIn')+' / '+t('accUp')} →</span></button>
+
+    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:var(--muted)">${t('setPlan')}</p>
+    <div style="border:2px solid ${pro?'var(--fg)':'var(--accent)'};padding:14px">
       <div class="flex items-center gap-2 flex-wrap">
         <span style="font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${pro?t('planPro'):t('planFree')}</span>
-        ${pro?`<span class="uppercase" style="font-size:9px;padding:3px 6px;background:#000;color:#fff">${t('planLifetime')}</span>`:''}
+        ${pro?`<span class="uppercase" style="font-size:9px;padding:3px 6px;background:var(--fg);color:var(--bg)">${t('planLifetime')}</span>`:''}
       </div>
       ${pro
-        ? `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:#767676">${t('planProD')}</p>`
-        : `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:#767676">${tf('planFreeD',{g:LIMITS.garage,d:LIMITS.daily,m:LIMITS.monthly})}</p>
-           <p class="text-[12px] mt-2 num" style="color:#000">${tf('planUsed',{d:usage().day,dm:LIMITS.daily+bonus(),m:usage().month,mm:LIMITS.monthly+bonus()})}${bonus()?' · '+tf('planBonus',{n:bonus()}):''}</p>
+        ? `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:var(--muted)">${t('planProD')}</p>`
+        : `<p class="text-[12.5px] mt-2 leading-relaxed" style="color:var(--muted)">${tf('planFreeD',{g:LIMITS.garage,d:LIMITS.daily,m:LIMITS.monthly})}</p>
+           <p class="text-[12px] mt-2 num" style="color:var(--fg)">${tf('planUsed',{d:usage().day,dm:LIMITS.daily+bonus(),m:usage().month,mm:LIMITS.monthly+bonus()})}${bonus()?' · '+tf('planBonus',{n:bonus()}):''}</p>
            <button id="stPro" class="w-full mt-3 rounded-xl py-3 font-extrabold text-[14px] bg-ok text-ink">${t('planUpgrade')}</button>`}
     </div>
 
-    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:#767676">${t('setOther')}</p>
-    <div style="border:2px solid #000">
+    <p class="uppercase mt-6 mb-2" style="font-size:10px;color:var(--muted)">${t('setOther')}</p>
+    <div style="border:2px solid var(--fg)">
       <button id="stLegal" class="opt w-full text-left p-4" style="font-size:14px;font-weight:700">${t('legalH')} →</button>
     </div>
-    <p class="text-[11.5px] mt-3 num" style="color:#767676">Relia ${APP_VERSION} · ${BUILD}</p>
+    <p class="text-[11.5px] mt-3 num" style="color:var(--muted)">Relia ${APP_VERSION} · ${BUILD}</p>
     <button id="stNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
 
   $('modalBody').querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{
     buzz(); closeModal(); setLang(+b.dataset.lang); });
+  $('modalBody').querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{
+    Store.set('theme', b.dataset.theme); applyTheme(); buzz(); openSettings(); });
   $('stAcc').onclick   = ()=>{ closeModal(); openAccount(); };
   $('stLegal').onclick = ()=>{ closeModal(); openLegal(); };
 
@@ -3817,13 +3937,13 @@ function openSettings(){
 
 function openLegal(){
   openModal(`<h3 class="text-lg font-bold">${t('legalH')}</h3>
-    <div class="mt-4" style="border:2px solid #000">
+    <div class="mt-4" style="border:2px solid var(--fg)">
       <button id="lgPriv" class="opt w-full text-left p-4" style="font-size:14px;font-weight:700">${t('legalPrivacy')} →</button>
-      <button id="lgTerm" class="opt w-full text-left p-4" style="border-top:2px solid #000;font-size:14px;font-weight:700">${t('legalTerms')} →</button>
-      <a href="mailto:info.ailaa.io@gmail.com" class="opt block p-4" style="border-top:2px solid #000;font-size:14px;font-weight:700">${t('legalContact')} · info.ailaa.io@gmail.com</a>
-      <button id="lgDel" class="opt w-full text-left p-4" style="border-top:2px solid #000;font-size:14px;font-weight:700;color:#FF3000">${t('legalData')}</button>
+      <button id="lgTerm" class="opt w-full text-left p-4" style="border-top:2px solid var(--fg);font-size:14px;font-weight:700">${t('legalTerms')} →</button>
+      <a href="mailto:info.ailaa.io@gmail.com" class="opt block p-4" style="border-top:2px solid var(--fg);font-size:14px;font-weight:700">${t('legalContact')} · info.ailaa.io@gmail.com</a>
+      <button id="lgDel" class="opt w-full text-left p-4" style="border-top:2px solid var(--fg);font-size:14px;font-weight:700;color:var(--accent)">${t('legalData')}</button>
     </div>
-    <p class="text-[11.5px] mt-3 num" style="color:#767676">${t('versionL')} ${APP_VERSION}</p>
+    <p class="text-[11.5px] mt-3 num" style="color:var(--muted)">${t('versionL')} ${APP_VERSION}</p>
     <button id="lgNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
   $('lgNo').onclick = closeModal;
   $('lgPriv').onclick = ()=>{ closeModal(); state.doc='privacy'; goto('doc'); };
@@ -3842,20 +3962,21 @@ function openPaywall(reason){
   const why = reason==='daily'   ? tf('limDaily',{n:LIMITS.daily})
             : reason==='monthly' ? tf('limMonthly',{n:LIMITS.monthly})
             : reason==='garage'  ? tf('limGarage',{n:LIMITS.garage}) : '';
-  openModal(`<p class="uppercase" style="font-size:10px;color:#FF3000">${t('planLifetime')}</p>
+  openModal(`<p class="uppercase" style="font-size:10px;color:var(--accent)">${t('planLifetime')}</p>
     <h3 class="mt-2" style="font-size:22px">${t('proH')}</h3>
-    ${why?`<p class="text-[13px] mt-3 leading-relaxed" style="border-left:4px solid #FF3000;padding-left:10px">${why}</p>`:''}
-    <div class="mt-4" style="border:2px solid #000">
-      ${[t('proF1'),t('proF2'),t('proF3'),t('proF4')].map((f,i)=>`<div class="p-3.5 flex gap-3" style="${i?'border-top:1px solid rgba(0,0,0,.12)':''}">
-        <span style="width:8px;height:8px;background:#FF3000;flex:none;margin-top:6px"></span>
+    ${why?`<p class="text-[13px] mt-3 leading-relaxed" style="border-left:4px solid var(--accent);padding-left:10px">${why}</p>`:''}
+    <div class="mt-4" style="border:2px solid var(--fg)">
+      ${[t('proF1'),t('proF2'),t('proF3'),t('proF4')].map((f,i)=>`<div class="p-3.5 flex gap-3" style="${i?'border-top:1px solid var(--soft)':''}">
+        <span style="width:8px;height:8px;background:var(--accent);flex:none;margin-top:6px"></span>
         <span class="text-[13.5px]">${f}</span></div>`).join('')}
     </div>
     ${CFG.store
       ? (CFG.billing==='play'
           ? `<button id="pwPlay" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('proBuy')}</button>`
-          : `<p class="text-[12.5px] mt-4 leading-relaxed" style="color:#767676">${t('proStoreNote')}</p>`)
+          : `<p class="text-[12.5px] mt-4 leading-relaxed" style="color:var(--muted)">${t('proStoreNote')}</p>`)
       : `<button id="pwBuy" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('proBuy')}</button>`}
     <button id="pwCode" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('proHaveCode')}</button>
+    ${!isPro()?`<button id="pwFound" class="w-full mt-3 rounded-2xl py-3.5 font-extrabold text-[14px] bg-bad text-white">${t('foundBtn')}</button>`:''}
     ${!isPro()?`<button id="pwInv" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('inviteBtn')}</button>`:''}
     <button id="pwNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
   const pbuy = $('pwPlay');
@@ -3875,6 +3996,13 @@ function openPaywall(reason){
     const w = window.open(u,'_blank'); if(!w){ try{ window.top.location.href=u; }catch(e){ location.href=u; } } };
   $('pwCode').onclick = openLicense;
   const pi=$('pwInv'); if(pi) pi.onclick = openInvite;
+  const pf=$('pwFound'); if(pf) pf.onclick = async ()=>{
+    if (!isSignedIn()){ closeModal(); requireAccount(async()=>{ const f = await claimFounder(); if (f) showFounder(f); }); return; }
+    pf.textContent = '...';
+    const f = await claimFounder();
+    closeModal();
+    if (f && f.seat) showFounder(f); else toast(t('foundFull'));
+  };
   $('pwNo').onclick = closeModal;
 }
 
@@ -3884,7 +4012,7 @@ function openInvite(){
   const link = inviteLink();
   openModal(`<h3 class="text-lg font-bold">${t('inviteH')}</h3>
     <p class="text-[13px] mt-3 leading-relaxed">${t('inviteD')}</p>
-    <p class="text-[11.5px] mt-3 num" style="color:#767676;word-break:break-all">${esc(link)}</p>
+    <p class="text-[11.5px] mt-3 num" style="color:var(--muted);word-break:break-all">${esc(link)}</p>
     <button id="ivShare" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('inviteShare')}</button>
     <button id="ivCopy" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('pdfCopyLink')}</button>
     <button id="ivNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
@@ -4283,6 +4411,8 @@ Object.assign(S, {
 });
 
 state.price = 0;
+state.done = false;
+state.foundLeft = 0;
 state.doc = 'privacy';
 state.mod = { token:null, email:'', recovery:false, view:'login', rows:[], stats:null, team:[], boot:false, filter:'flagged', isMod:false, code:'', term:'' };
 const MD_KIND = { odo:['Kilometre düşürülmüş','Odometer rollback'], damage:['Gizlenen ağır hasar','Hidden structural damage'],
@@ -4374,11 +4504,11 @@ function renderMod(){
   /* Parola sıfırlama: 6 haneli kod + yeni parola */
   if (m.view === 'reset' && !m.recovery){
     el.innerHTML = `
-      <button id="mdBk" class="text-[12px] font-bold mb-5" style="color:#FF3000">← ${t('gBack')}</button>
+      <button id="mdBk" class="text-[12px] font-bold mb-5" style="color:var(--accent)">← ${t('gBack')}</button>
       <h2>${t('mdResetH')}</h2>
       <p class="text-[13px] mt-4 leading-relaxed">${t('mdResetD2')}</p>
 
-      <p class="uppercase mt-8 mb-3" style="font-size:11px;color:#FF3000">${t('mdStep1')}</p>
+      <p class="uppercase mt-8 mb-3" style="font-size:11px;color:var(--accent)">${t('mdStep1')}</p>
       <div class="glass" style="padding:16px">
         <input id="rsE" type="email" inputmode="email" value="${esc(m.email)}" placeholder="${t('mdEmail')}" class="field w-full rounded-xl px-4 py-3.5 text-[15px]">
         <button id="rsGo" class="w-full mt-3 rounded-xl py-3.5 font-extrabold text-[15px] bg-ok text-ink">${t('mdSendCode')}</button>
@@ -4386,10 +4516,10 @@ function renderMod(){
         <p id="rsErr" class="text-[12.5px] text-bad mt-3 leading-relaxed hidden"></p>
       </div>
 
-      <p class="uppercase mt-8 mb-3" style="font-size:11px;color:#FF3000">${t('mdStep2')}</p>
+      <p class="uppercase mt-8 mb-3" style="font-size:11px;color:var(--accent)">${t('mdStep2')}</p>
       <div class="glass" style="padding:16px">
         <textarea id="rsC" rows="3" placeholder="${t('mdCode6')}" class="field w-full rounded-xl px-4 py-3 text-[13px]"></textarea>
-        <p class="text-[12px] mt-2.5 leading-relaxed" style="border-left:4px solid #FF3000;padding-left:10px">${t('mdOrLine')}</p>
+        <p class="text-[12px] mt-2.5 leading-relaxed" style="border-left:4px solid var(--accent);padding-left:10px">${t('mdOrLine')}</p>
         <div class="flex gap-2 mt-3">
           <input id="rsP" type="password" placeholder="${t('mdNewPw')}" class="field flex-1 rounded-xl px-4 py-3.5 text-[15px]">
           <button id="rsEye" class="shrink-0 px-4 border border-white/10 text-[11px] uppercase">${t('mdShowPw')}</button>
@@ -4447,7 +4577,7 @@ function renderMod(){
   /* E-postadaki sıfırlama bağlantısından gelindiyse: yeni parola belirle */
   if (m.recovery){
     el.innerHTML = `
-      <p class="uppercase mb-3" style="font-size:11px;color:#FF3000">${t('mdReset')}</p>
+      <p class="uppercase mb-3" style="font-size:11px;color:var(--accent)">${t('mdReset')}</p>
       <h2>${t('mdNewPw')}</h2>
       <p class="text-[13px] mt-3 leading-relaxed">${t('mdNewPwD')}</p>
       <div class="glass mt-6" style="padding:16px">
@@ -4491,9 +4621,9 @@ function renderMod(){
         </div>
         <button id="mdGo" class="w-full rounded-xl py-3.5 font-extrabold text-[15px] bg-ok text-ink">${t('mdIn')}</button>
         <button id="mdSu" class="w-full rounded-xl py-3 font-bold text-[13.5px] bg-white/8 border border-white/10">${t('mdUp')}</button>
-        <button id="mdRp" class="w-full text-[12.5px] font-bold" style="color:#FF3000;padding:6px 0">${t('mdReset')}</button>
+        <button id="mdRp" class="w-full text-[12.5px] font-bold" style="color:var(--accent);padding:6px 0">${t('mdReset')}</button>
         <p id="mdErr" class="text-[12.5px] text-bad leading-relaxed hidden"></p>
-        <p id="mdOk2" class="text-[12.5px] leading-relaxed hidden" style="color:#000">${t('mdResetSent')}</p>
+        <p id="mdOk2" class="text-[12.5px] leading-relaxed hidden" style="color:var(--fg)">${t('mdResetSent')}</p>
       </div>`;
     const run = async (kind)=>{
       const btn = $(kind==='in'?'mdGo':'mdSu'); const old = btn.textContent;
@@ -4845,11 +4975,11 @@ function shareSheet(text, link){
     ['E-posta',   'mailto:?subject=' + encodeURIComponent('Relia') + '&body=' + enc]
   ];
   openModal(`<h3 class="text-lg font-bold">${t('shareVia')}</h3>
-    ${link?`<p class="text-[11.5px] mt-2 num" style="color:#767676;word-break:break-all">${esc(link)}</p>`:''}
-    <div class="mt-4" style="border:2px solid #000">
+    ${link?`<p class="text-[11.5px] mt-2 num" style="color:var(--muted);word-break:break-all">${esc(link)}</p>`:''}
+    <div class="mt-4" style="border:2px solid var(--fg)">
       ${apps.map((a,i)=>`<button data-sh="${i}" class="opt w-full text-left p-4 flex items-center gap-3"
-        style="${i?'border-top:2px solid #000;':''}">
-        <span style="width:20px;height:20px;background:#FF3000;flex:none"></span>
+        style="${i?'border-top:2px solid var(--fg);':''}">
+        <span style="width:20px;height:20px;background:var(--accent);flex:none"></span>
         <span class="flex-1" style="font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${a[0]}</span>
         <i class="fa-solid fa-arrow-ur text-[14px]"></i></button>`).join('')}
     </div>
@@ -4862,6 +4992,127 @@ function shareSheet(text, link){
   });
   $('shCopy').onclick = ()=>{ copy(full); rewardShare(); };
   $('shNo').onclick = closeModal;
+}
+
+
+/* Tam raporu tek bir uzun görsele çizer — yazdırma desteği olmayan
+   uygulama sarmalayıcılarında PDF yerine bu kullanılır. */
+async function makeReportImage(){
+  const r = state.result, v = verdict(), p = PT[state.pt];
+  const W = 1080, M = 72;
+  const RED='#FF3000', BLACK='#000000', WHITE='#FFFFFF', GRAY='#767676', SOFT='#F2F2F2';
+  const c = document.createElement('canvas');
+  const x = c.getContext('2d');
+  try{ if (document.fonts && document.fonts.ready) await document.fonts.ready; }catch(e){}
+  const F = (sz,w)=> w+' '+sz+'px Inter, Helvetica, Arial, sans-serif';
+
+  const flags = (r.flags||[]).filter(f=>f.lvl!=='info');
+  let shop = [];
+  try{ shop = shopList().slice(0,10); }catch(e){}
+  const secKeys = Object.keys(SEC).filter(k=>r.secs[k]!==null);
+  let H = 660 + secKeys.length*92 + 120 + flags.length*150 + 120 + shop.length*62 + 140;
+  c.width = W; c.height = H;
+
+  x.fillStyle = WHITE; x.fillRect(0,0,W,H);
+  x.textBaseline = 'top';
+  let y = M;
+
+  drawMark(x, M, y, 44, RED);
+  x.fillStyle = BLACK; x.font = F(34,900); x.fillText('RELIA', M+60, y+4);
+  const dt = new Date().toLocaleDateString(['tr-TR','en-US','de-DE'][L]);
+  x.fillStyle = GRAY; x.font = F(20,700);
+  x.fillText(dt, W-M-x.measureText(dt).width, y+12);
+  y += 62; x.fillStyle = BLACK; x.fillRect(M, y, W-2*M, 5); y += 40;
+
+  x.fillStyle = RED; x.font = F(20,700); x.fillText(t('score').toUpperCase(), M, y); y += 30;
+  const isOk = v.k === 'ok';
+  x.textBaseline = 'alphabetic';
+  x.fillStyle = isOk ? BLACK : RED; x.font = F(140,900);
+  x.fillText(String(r.score), M-6, y+112);
+  const sw = x.measureText(String(r.score)).width;
+  x.fillStyle = GRAY; x.font = F(32,700); x.fillText('/100', M-6+sw+16, y+112);
+  x.textBaseline = 'top';
+  x.fillStyle = isOk ? BLACK : RED; x.fillRect(M+sw+130, y+26, W-M-(M+sw+130), 60);
+  x.fillStyle = WHITE; x.font = F(23,900);
+  x.fillText(wrapText(x, v.t.toUpperCase(), W-M-(M+sw+150), 1)[0], M+sw+146, y+44);
+  y += 150;
+
+  x.fillStyle = BLACK; x.font = F(30,900);
+  x.fillText(wrapText(x,(state.brand+' '+state.model+(state.year?' \u00b7 '+state.year:'')).toUpperCase(),W-2*M,1)[0], M, y);
+  y += 40;
+  x.fillStyle = GRAY; x.font = F(21,500);
+  wrapText(x, pick(p.n)+'  \u00b7  '+fmtN(state.dist)+' '+unit()+(state.price?'  \u00b7  '+fmtN(state.price):''), W-2*M, 2)
+    .forEach((l,i)=>x.fillText(l, M, y+i*28));
+  y += 78;
+
+  x.fillStyle = BLACK; x.fillRect(M, y, W-2*M, 3); y += 24;
+  x.fillStyle = RED; x.font = F(19,700); x.fillText(t('breakdown').toUpperCase(), M, y); y += 34;
+  secKeys.forEach(k=>{
+    const val = Math.round(r.secs[k]), col = val>=85 ? BLACK : RED;
+    x.fillStyle = BLACK; x.font = F(23,700); x.fillText(t(SEC[k].n), M, y);
+    x.fillStyle = col; x.font = F(23,900);
+    const st = val+'/100'; x.fillText(st, W-M-x.measureText(st).width, y);
+    x.fillStyle = SOFT; x.fillRect(M, y+34, W-2*M, 14);
+    x.fillStyle = col; x.globalAlpha = (val>=65&&val<85) ? .35 : 1;
+    x.fillRect(M, y+34, (W-2*M)*val/100, 14); x.globalAlpha = 1;
+    y += 92;
+  });
+
+  y += 8; x.fillStyle = BLACK; x.fillRect(M, y, W-2*M, 3); y += 24;
+  x.fillStyle = RED; x.font = F(19,700); x.fillText(t('flags').toUpperCase(), M, y); y += 34;
+  if (!flags.length){ x.fillStyle = BLACK; x.font = F(23,700); x.fillText(t('cardNone'), M, y); y += 50; }
+  flags.forEach(f=>{
+    const crit = f.lvl === 'crit';
+    x.fillStyle = crit ? RED : BLACK; x.fillRect(M, y+8, 16, 16);
+    x.fillStyle = BLACK; x.font = F(25,900);
+    const tl = wrapText(x, f.t, W-2*M-34, 2); tl.forEach((l,i)=>x.fillText(l, M+34, y+i*32));
+    let yy = y + tl.length*32 + 4;
+    x.fillStyle = GRAY; x.font = F(20,400);
+    const dl = wrapText(x, f.a || f.d, W-2*M-34, 2); dl.forEach((l,i)=>x.fillText(l, M+34, yy+i*26));
+    y = yy + dl.length*26 + 26;
+  });
+
+  if (shop.length){
+    y += 8; x.fillStyle = BLACK; x.fillRect(M, y, W-2*M, 3); y += 24;
+    x.fillStyle = RED; x.font = F(19,700); x.fillText(t('shopH').toUpperCase(), M, y); y += 34;
+    shop.forEach(item=>{
+      x.strokeStyle = BLACK; x.lineWidth = 3; x.strokeRect(M+1, y+4, 20, 20);
+      x.fillStyle = BLACK; x.font = F(21,500);
+      x.fillText(wrapText(x, String(item), W-2*M-36, 1)[0], M+36, y+3);
+      y += 62;
+    });
+  }
+
+  y = H - M - 56;
+  x.fillStyle = BLACK; x.fillRect(M, y, W-2*M, 3);
+  x.fillStyle = GRAY; x.font = F(19,400);
+  x.fillText(wrapText(x, t('disclaimer'), W-2*M-160, 1)[0], M, y+18);
+  x.fillStyle = RED; x.font = F(21,900);
+  x.fillText('ailaa.io', W-M-x.measureText('ailaa.io').width, y+18);
+
+  return await new Promise(res=>c.toBlob(res,'image/png',0.92));
+}
+
+async function openReportImage(){
+  if (!state.result || state.result.score === null){ toast(t('noReport')); return; }
+  openModal(`<p class="text-[14px] py-8 text-center"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>${t('cardMaking')}</p>`);
+  try{
+    const blob = await makeReportImage();
+    showCardBlob(blob, t('repImgH'));
+  }catch(e){ closeModal(); toast(t('cardFail')+' \u00b7 '+String(e.message).slice(0,40)); }
+}
+
+/* PDF düğmesi: cihaza göre iki yol da sunulur */
+function openExport(){
+  if (!state.result || state.result.score === null){ toast(t('noReport')); return; }
+  openModal(`<h3 class="text-lg font-bold">${t('pdfH')}</h3>
+    <p class="text-[12.5px] mt-2 leading-relaxed">${t('exportD')}</p>
+    <button id="exImg" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('repImgH')}</button>
+    <button id="exPrint" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('pdfPrintBtn')}</button>
+    <button id="exNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+  $('exNo').onclick = closeModal;
+  $('exImg').onclick = ()=>{ closeModal(); openReportImage(); };
+  $('exPrint').onclick = ()=>{ closeModal(); doPrint(); };
 }
 
 async function openCard(){
@@ -4878,8 +5129,8 @@ async function openCard(){
 function showCardBlob(blob, title, existingUrl){
   const url = existingUrl || URL.createObjectURL(blob);
   openModal(`<h3 class="text-lg font-bold">${esc(title)}</h3>
-    <img src="${url}" alt="" style="width:100%;border:2px solid #000;margin-top:12px;display:block">
-    <p class="text-[12px] mt-3 leading-relaxed" style="border-left:4px solid #FF3000;padding-left:10px">${t('cardHold')}</p>
+    <img src="${url}" alt="" style="width:100%;border:2px solid var(--fg);margin-top:12px;display:block">
+    <p class="text-[12px] mt-3 leading-relaxed" style="border-left:4px solid var(--accent);padding-left:10px">${t('cardHold')}</p>
     <button id="cdShare" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('cardShare')}</button>
     <button id="cdLink" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('cardLink')}</button>
     <button id="cdSave" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('cardSave')}</button>
@@ -5006,6 +5257,26 @@ terms: { t:['Kullanım koşulları','Terms of use','Nutzungsbedingungen'], s:[
 const LEGAL_DATE = '18.08.2026';
 
 /* --- Başlangıç --- */
+/* Tema: sistem / açık / koyu */
+function applyTheme(){
+  const pref = Store.get('theme') || 'system';
+  const dark = pref === 'dark' ||
+    (pref === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  try{
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', dark ? '#0A0A0A' : '#FFFFFF');
+  }catch(e){}
+  return dark;
+}
+try{
+  if (window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+      if ((Store.get('theme')||'system') === 'system') applyTheme();
+    });
+  }
+}catch(e){}
+
 function detect(){
   const nav=(navigator.language||'en').toLowerCase();
   const saved = Store.get('lang');
@@ -5112,14 +5383,21 @@ window.addEventListener('unhandledrejection', e=>{
   try{ toast('Hata: ' + String((e.reason&&e.reason.message)||e.reason||'').slice(0,60)); }catch(x){}
 });
 
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveSession(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden && !state.done) saveSession(); });
 window.addEventListener('pagehide', saveSession);
 
 loadUser();
+applyTheme();
 detect();
 updateGarageBadge();
 claimReferral();
 collectReferrals();
+(async()=>{
+  if (isPro()) return;
+  const n = await founderLeft();
+  if (n && n > 0){ state.foundLeft = n; if (SCREEN === 'welcome') renderWelcome(); }
+  if (isSignedIn()){ const f = await claimFounder(); if (f && f.seat && SCREEN==='welcome') renderWelcome(); }
+})();
 if (!restoreSession()) goto('welcome');
 swapIcons();
 setTimeout(()=>{ const sp=$('splash'); if(sp) sp.classList.add('gone'); }, 900);
