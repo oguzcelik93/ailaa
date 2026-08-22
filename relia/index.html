@@ -301,7 +301,7 @@ const CFG = {
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
 let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
-const BUILD = 'b16 · 2026-08-22';
+const BUILD = 'b17 · 2026-08-22';
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 /* Premium: giriş yapılmışsa sunucu durumu, değilse yalnızca lisans kodu */
@@ -3897,6 +3897,7 @@ function isMod(){ return !!state.status.moderator; }
 function seatNo(){ return isSignedIn() ? state.status.seat : null; }
 
 /* Oturumu kaydeder. Jeton süresi de saklanır ki açılışta yenilenebilsin. */
+let sessionWriteFailed = false;
 function setSession(j, email, remember){
   if (!j || !j.access_token){ clearSession(); return; }
   state.user = {
@@ -3906,9 +3907,15 @@ function setSession(j, email, remember){
     email:   (email || (j.user && j.user.email) || '').toLowerCase(),
     id:      (j.user && j.user.id) || ''
   };
-  const keep = (remember === undefined) ? (Store.get('remember') !== false) : remember;
-  Store.set('remember', keep);
+  /* Varsayılan her zaman "hatırla". Kullanıcı bu girişte kapatırsa yalnız
+     o oturum için geçerli olur; tercih kalıcı olarak saklanmaz. */
+  const keep = (remember === undefined) ? true : !!remember;
   Store.set('user', keep ? state.user : null);
+  if (keep){
+    let ok = false;
+    try{ const back = Store.get('user'); ok = !!(back && back.access); }catch(e){}
+    sessionWriteFailed = !ok;
+  }
 }
 function clearSession(){
   state.user = null;
@@ -4022,15 +4029,8 @@ async function afterSignIn(){
     if (f && f.ok){ await refreshStatus(); }
     else toast(t('accOkIn'));
   }
-  /* Kutlama penceresi hesap başına yalnızca bir kez gösterilir */
-  if (state.status.pro && state.status.seat && !founderSeen(state.user.email)){
-    markFounderSeen(state.user.email);
-    showFounder({ seat: state.status.seat });
-  } else if (!state.status.pro) {
-    /* toast zaten verildi */
-  } else {
-    toast(t('accOkIn'));
-  }
+  /* Kutlama penceresi hesap başına yalnızca bir kez */
+  if (!(state.status.pro && showFounderOnce(state.status.seat))) toast(t('accOkIn'));
   await pullGarage();
   updateGarageBadge();
   renderWelcome();
@@ -4084,7 +4084,7 @@ function openAccount(){
     return;
   }
   let mode = 'in';
-  let remember = Store.get('remember') !== false;   // varsayılan: hatırla
+  let remember = true;   // her girişte varsayılan açık
   const draw = ()=>{
     openModal(`<h3 class="text-lg font-bold">${t(mode==='in'?'accIn':'accUp')}</h3>
       <p class="text-[12.5px] mt-2 leading-relaxed">${t('accD')}</p>
@@ -4108,7 +4108,7 @@ function openAccount(){
     $('acEye').onclick = ()=>{ const f=$('acP'); const sh=f.type==='password';
       f.type = sh?'text':'password'; $('acEye').textContent = sh?t('mdHidePw'):t('mdShowPw'); };
     $('acSwap').onclick = ()=>{ mode = mode==='in' ? 'up' : 'in'; draw(); };
-    $('acRem').onclick = ()=>{ remember = !remember; Store.set('remember', remember);
+    $('acRem').onclick = ()=>{ remember = !remember;
       $('acRemBox').style.background = remember ? 'var(--accent)' : 'transparent'; buzz(); };
     const fg = $('acForgot'); if (fg) fg.onclick = ()=>openUserReset($('acE').value.trim());
     $('acGo').onclick = async ()=>{
@@ -4123,7 +4123,7 @@ function openAccount(){
           await afterSignIn();
           closeModal();
           const f = await claimFounder();
-          if (f && f.seat) showFounder(f);
+          if (f && f.seat) showFounderOnce(f.seat);
           else toast(t('accOkIn'));
           renderWelcome();
           if (state.afterAuth){ const g = state.afterAuth; state.afterAuth = null; g(); }
@@ -4259,6 +4259,16 @@ function requireAccount(next){
   return false;
 }
 
+/* Kutlama penceresinin TEK giriş noktası — "bir kez göster" kuralı
+   hiçbir çağrı yolundan atlanamaz. */
+function showFounderOnce(seat){
+  const mail = (state.user && state.user.email) || '';
+  if (!mail || founderSeen(mail)) return false;
+  markFounderSeen(mail);
+  showFounder({ seat: seat || (state.status && state.status.seat) || 0 });
+  return true;
+}
+
 function showFounder(f){
   openModal(`<p class="uppercase" style="font-size:10px;color:var(--accent)">${t('foundH')}</p>
     <h3 class="mt-2" style="font-size:22px">${t('foundGot')}</h3>
@@ -4285,6 +4295,7 @@ function diagDump(){
     lines.push('  süre doldu mu: ' + (state.user.exp ? (Date.now() > state.user.exp) : 'exp yok'));
   }
   lines.push('  durum: ' + JSON.stringify(state.status));
+  lines.push('  diske yazma: ' + (sessionWriteFailed ? 'BAŞARISIZ' : 'tamam'));
   lines.push('');
   lines.push('YEREL KAYIT');
   keys.forEach(k=>{
@@ -4465,11 +4476,11 @@ function openPaywallInner(reason){
   $('pwCode').onclick = openLicense;
   const pi=$('pwInv'); if(pi) pi.onclick = openInvite;
   const pf=$('pwFound'); if(pf) pf.onclick = async ()=>{
-    if (!isSignedIn()){ closeModal(); requireAccount(async()=>{ const f = await claimFounder(); if (f) showFounder(f); }); return; }
+    if (!isSignedIn()){ closeModal(); requireAccount(async()=>{ const f = await claimFounder(); await refreshStatus(); if (f) showFounderOnce(f.seat); }); return; }
     pf.textContent = '...';
     const f = await claimFounder();
     closeModal();
-    if (f && f.ok) showFounder(f);
+    if (f && f.ok) showFounderOnce(f.seat);
     else toast(founderErr && founderErr !== 'full'
       ? t('foundErr') + ' · ' + founderErr
       : t('foundFull'));
@@ -6116,6 +6127,7 @@ window.addEventListener('unhandledrejection', e=>{
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden && !state.done) saveSession(); });
 window.addEventListener('pagehide', saveSession);
 
+try{ Store.set('remember', null); delete Store.data.remember; }catch(e){}   // eski yapışmış tercihi at
 loadUser();
 applyTheme();
 detect();
