@@ -301,7 +301,7 @@ const CFG = {
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
 let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
-const BUILD = 'b10 · 2026-08-23';   // her yeni paket için artar
+const BUILD = 'b16 · 2026-08-22';
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 /* Premium: giriş yapılmışsa sunucu durumu, değilse yalnızca lisans kodu */
@@ -487,6 +487,7 @@ const S = {
   noReport:['Önce kontrolü tamamlayın','Complete the check first','Zuerst die Prüfung abschließen'],
   repImgH:['Raporu görsel olarak kaydet','Save report as image','Bericht als Bild speichern'],
   pdfPrintBtn:['Yazdır / PDF','Print / PDF','Drucken / PDF'],
+  exportWv:['Bu uygulamada yazdırma desteklenmiyor. Görsel kaydedip paylaşabilir veya tarayıcıda açıp PDF alabilirsiniz.','Printing is not supported in this app. Save the image, or open the report in a browser to make a PDF.','Drucken wird in dieser App nicht unterstützt. Speichern Sie das Bild oder öffnen Sie den Bericht im Browser.'],
   exportHint:['Yazdırma penceresi açılmazsa görsel seçeneğini kullanın.','If the print dialog does not open, use the image option.','Falls der Druckdialog nicht erscheint, nutzen Sie die Bild-Option.'],
   exportD:['Görsel her cihazda çalışır. Yazdırma yalnızca tarayıcıda ve bazı cihazlarda çalışır.','The image works on every device. Printing works in browsers and on some devices only.','Das Bild funktioniert überall. Drucken funktioniert nur im Browser und auf manchen Geräten.'],
   doneBtn:['Kontrolü tamamla','Finish check','Prüfung abschließen'],
@@ -563,6 +564,7 @@ const S = {
   accNeedD:['Garaja araç kaydetmek için giriş yapın veya hesap oluşturun. Kontrolleri hesapsız da yapabilirsiniz.','Sign in or create an account to save cars to your garage. Checks work without an account.','Melden Sie sich an, um Fahrzeuge in der Garage zu speichern. Prüfungen funktionieren auch ohne Konto.'],
   accGuest:['Hesapsız kullanılıyor','Using without an account','Ohne Konto'],
   setLang:['Dil','Language','Sprache'],
+  diagDumpH:['Teşhis dökümü','Diagnostic dump','Diagnosebericht'],
   setUpdate:['Güncelle','Update','Aktualisieren'],
   setUpdating:['Güncel sürüm alınıyor...','Fetching the latest version...','Neueste Version wird geladen...'],
   setTheme:['Görünüm','Appearance','Darstellung'],
@@ -3915,14 +3917,23 @@ function clearSession(){
 }
 function loadUser(){
   const u = Store.get('user');
-  if (u && u.access) state.user = u;
+  if (!u) return;
+  if (u.access){ state.user = u; return; }
+  /* eski biçim: { token } — yeni biçime çevir, oturum kopmasın */
+  if (u.token){
+    state.user = { access:u.token, refresh:u.refresh||'', exp:0, email:(u.email||'').toLowerCase(), id:u.id||'' };
+    Store.set('user', state.user);
+  }
 }
 
 /* Geçerli bir jeton döndürür; süresi dolduysa sessizce yeniler. */
+let _refreshing = null;
 async function ensureToken(){
   if (!state.user) return null;
   if (state.user.exp && Date.now() < state.user.exp) return state.user.access;
   if (!state.user.refresh){ return state.user.access; }
+  if (_refreshing) return _refreshing;          // eşzamanlı çağrılar tek yenilemeyi bekler
+  _refreshing = (async ()=>{
   try{
     const res = await fetch(CFG.url + '/auth/v1/token?grant_type=refresh_token', {
       method:'POST', headers:{ apikey:CFG.key, 'Content-Type':'application/json' },
@@ -3931,7 +3942,14 @@ async function ensureToken(){
     const j = await res.json();
     setSession(j, state.user.email);
     return state.user.access;
-  }catch(e){ clearSession(); return null; }
+  }catch(e){
+    /* Ağ hatasıysa oturumu düşürme; yalnızca sunucu reddettiyse çıkış yap */
+    const net = !navigator.onLine || String(e.message).indexOf('Failed to fetch') > -1;
+    if (!net) clearSession();
+    return net ? state.user && state.user.access : null;
+  }
+  })();
+  try{ return await _refreshing; } finally { _refreshing = null; }
 }
 
 /* Oturum jetonuyla sunucu çağrısı */
@@ -3971,10 +3989,17 @@ async function refreshStatus(){
    tekrar giriş yapıldığında geri gelir. */
 function signOutAll(){
   clearSession();
-  ['garage','session','pro','proEmail','founderSeat','usage','bonus','sharedOn','refUsed','user']
-    .forEach(k=>{ try{ Store.set(k, null); delete Store.data[k]; }catch(e){} });
+  const wipe = ['garage','session','pro','proEmail','founderSeat','usage','bonus','sharedOn','refUsed','user'];
+  wipe.forEach(k=>{
+    try{ Store.set(k, null); }catch(e){}
+    try{ delete Store.data[k]; }catch(e){}
+    try{ if (window.localStorage) localStorage.removeItem('rc_'+k); }catch(e){}
+    try{ document.cookie = 'rc_'+k+'=;path=/;max-age=0'; }catch(e){}
+  });
   state.garage = []; state.cmp = []; state.mod.token = null;
+  state.status = { signed_in:false, pro:false, seat:null, moderator:false };
   newCheck(); updateGarageBadge();
+  if (SCREEN === 'garage' || SCREEN === 'result') goto('welcome'); else renderWelcome();
 }
 
 /* Kutlama penceresi kaydı — çıkış yapılsa da silinmez, bir kez gösterilir */
@@ -4243,6 +4268,49 @@ function showFounder(f){
   $('fdNo').onclick = closeModal;
 }
 
+/* Teşhis dökümü — sorun bildirirken kopyalanıp gönderilir */
+function diagDump(){
+  const keys = ['user','garage','session','remember','pro','license','founderSeat','foundSeen','theme','lang','vFix'];
+  const lines = [];
+  lines.push('Relia ' + APP_VERSION + ' ' + BUILD);
+  lines.push('depo: ' + Store.mode + ' · çerçeve: ' + (inFrame?'evet':'hayır') + ' · webview: ' + (isWebView?'evet':'hayır'));
+  lines.push('adres: ' + location.href);
+  lines.push('');
+  lines.push('OTURUM');
+  lines.push('  isSignedIn: ' + isSignedIn());
+  if (state.user){
+    lines.push('  email: ' + state.user.email);
+    lines.push('  access var mı: ' + (!!state.user.access));
+    lines.push('  refresh var mı: ' + (!!state.user.refresh));
+    lines.push('  süre doldu mu: ' + (state.user.exp ? (Date.now() > state.user.exp) : 'exp yok'));
+  }
+  lines.push('  durum: ' + JSON.stringify(state.status));
+  lines.push('');
+  lines.push('YEREL KAYIT');
+  keys.forEach(k=>{
+    let raw = null;
+    try{ raw = (Store.mode === 'local' || Store.mode === 'top') ? localStorage.getItem('rc_'+k) : null; }catch(e){}
+    const inMem = Store.data[k];
+    lines.push('  ' + k + ': diskte=' + (raw==null?'yok':(raw.length+' bayt')) +
+               ' · bellekte=' + (inMem===undefined?'yok':(JSON.stringify(inMem)||'').length+' bayt'));
+  });
+  lines.push('');
+  lines.push('GARAJ: ' + (state.garage||[]).length + ' araç');
+  return lines.join('\n');
+}
+async function openDiagDump(){
+  let srv = '';
+  try{ const st = await userRpc('rc_my_status'); srv = JSON.stringify(st); }
+  catch(e){ srv = 'HATA: ' + String(e.message).slice(0,160); }
+  const txt = diagDump() + '\n\nSUNUCU rc_my_status\n  ' + srv;
+  openModal(`<h3 class="text-lg font-bold">${t('diagDumpH')}</h3>
+    <textarea rows="14" class="field w-full rounded-xl px-3 py-2.5 text-[11.5px] lower mt-3" style="font-family:ui-monospace,monospace">${esc(txt)}</textarea>
+    <button id="ddCp" class="w-full mt-3 rounded-2xl py-3.5 font-extrabold text-[14px] bg-ok text-ink">${t('copyList')}</button>
+    <button id="ddNo" class="w-full mt-2 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+  $('ddCp').onclick = ()=>copy(txt);
+  $('ddNo').onclick = closeModal;
+}
+
 function openSettings(){
   const pro = isPro();
   openModal(`<h3 class="text-lg font-bold">${t('setH')}</h3>
@@ -4288,6 +4356,7 @@ function openSettings(){
     <p class="uppercase mt-6 mb-2" style="font-size:10px;color:var(--muted)">${t('setOther')}</p>
     <div style="border:2px solid var(--fg)">
       <button id="stLegal" class="opt w-full text-left p-4" style="font-size:14px;font-weight:700">${t('legalH')} →</button>
+      ${(DEV||isMod())?`<button id="stDump" class="opt w-full text-left p-4" style="border-top:2px solid var(--fg);font-size:14px;font-weight:700;color:var(--accent)">${t('diagDumpH')} →</button>`:''}
     </div>
     <div class="flex items-center gap-3 mt-3">
       <p class="text-[11.5px] num flex-1" style="color:var(--muted)">Relia ${APP_VERSION} · ${BUILD}</p>
@@ -4300,6 +4369,7 @@ function openSettings(){
   $('modalBody').querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{
     Store.set('theme', b.dataset.theme); applyTheme(); buzz(); openSettings(); });
   const sp2=$('stPanel'); if(sp2) sp2.onclick = ()=>{ closeModal(); PANEL_MODE = true; goto('mod'); };
+  const sd=$('stDump'); if(sd) sd.onclick = ()=>{ closeModal(); openDiagDump(); };
   $('stFresh').onclick = async ()=>{
     toast(t('setUpdating'));
     try{ if ('serviceWorker' in navigator){
@@ -5748,21 +5818,31 @@ async function openReportImage(){
 }
 
 /* PDF düğmesi: cihaza göre iki yol da sunulur */
+/* Uygulama sarmalayıcısı mı? WebView kullanıcı diziminde "; wv)" taşır. */
+const isWebView = (()=>{ try{
+  const ua = navigator.userAgent || '';
+  if (/; wv\)/.test(ua)) return true;
+  if (window.Android || window.ReliaBilling) return true;
+  return false;
+}catch(e){ return false; } })();
+
 function openExport(){
   if (!state.result || state.result.score === null){ toast(t('noReport')); return; }
   openModal(`<h3 class="text-lg font-bold">${t('pdfH')}</h3>
     <p class="text-[12.5px] mt-2 leading-relaxed">${t('exportD')}</p>
     <button id="exImg" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('repImgH')}</button>
-    <button id="exPrint" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('pdfPrintBtn')}</button>
-    <p class="text-[11.5px] mt-2 leading-relaxed" style="color:var(--muted)">${t('exportHint')}</p>
+    ${isWebView?'':`<button id="exPrint" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('pdfPrintBtn')}</button>`}
+    <p id="exHint" class="text-[11.5px] mt-2 leading-relaxed" style="color:var(--muted)">${t('exportHint')}</p>
     <button id="exNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
   $('exNo').onclick = closeModal;
   $('exImg').onclick = ()=>{ closeModal(); openReportImage(); };
-  $('exPrint').onclick = ()=>{
+  const ep = $('exPrint');
+  if (ep) ep.onclick = ()=>{
     /* pencereyi kapat ve aynı dokunuş içinde yazdır */
     $('modal').classList.add('hidden');
     doPrint();
   };
+  if (isWebView){ const h=$('exHint'); if(h) h.textContent = t('exportWv'); }
 }
 
 async function openCard(){
@@ -6041,7 +6121,11 @@ applyTheme();
 detect();
 checkVersion();
 if (isSignedIn()){
-  refreshStatus().then(async ()=>{ await pullGarage(); updateGarageBadge(); renderWelcome(); });
+  (async ()=>{
+    await refreshStatus();
+    if (isSignedIn()){ await pullGarage(); }
+    updateGarageBadge(); renderWelcome();
+  })();
 }
 updateGarageBadge();
 claimReferral();
