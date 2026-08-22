@@ -173,7 +173,12 @@ tailwind.config = {
   body.printing #modal,
   body.printing #toast,
   body.printing main > section{display:none!important}
-  body.printing #printArea{display:block!important;padding:16px 14px}
+  body.printing #printArea{display:block!important;padding:16px 14px;position:static!important}
+  body.printing, body.printing html{height:auto!important;overflow:visible!important}
+  @media print{
+    #printArea{display:block!important;position:static!important}
+    html,body{height:auto!important;overflow:visible!important}
+  }
   body.printing{overflow:visible}
   @media print{
     .no-print{display:none!important}
@@ -558,6 +563,8 @@ const S = {
   accNeedD:['Garaja araç kaydetmek için giriş yapın veya hesap oluşturun. Kontrolleri hesapsız da yapabilirsiniz.','Sign in or create an account to save cars to your garage. Checks work without an account.','Melden Sie sich an, um Fahrzeuge in der Garage zu speichern. Prüfungen funktionieren auch ohne Konto.'],
   accGuest:['Hesapsız kullanılıyor','Using without an account','Ohne Konto'],
   setLang:['Dil','Language','Sprache'],
+  setUpdate:['Güncelle','Update','Aktualisieren'],
+  setUpdating:['Güncel sürüm alınıyor...','Fetching the latest version...','Neueste Version wird geladen...'],
   setTheme:['Görünüm','Appearance','Darstellung'],
   thSystem:['Sistem','System','System'],
   thLight:['Açık','Light','Hell'],
@@ -4282,7 +4289,10 @@ function openSettings(){
     <div style="border:2px solid var(--fg)">
       <button id="stLegal" class="opt w-full text-left p-4" style="font-size:14px;font-weight:700">${t('legalH')} →</button>
     </div>
-    <p class="text-[11.5px] mt-3 num" style="color:var(--muted)">Relia ${APP_VERSION} · ${BUILD}</p>
+    <div class="flex items-center gap-3 mt-3">
+      <p class="text-[11.5px] num flex-1" style="color:var(--muted)">Relia ${APP_VERSION} · ${BUILD}</p>
+      <button id="stFresh" class="uppercase" style="font-size:10px;color:var(--accent)">${t('setUpdate')}</button>
+    </div>
     <button id="stNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
 
   $('modalBody').querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{
@@ -4290,6 +4300,16 @@ function openSettings(){
   $('modalBody').querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{
     Store.set('theme', b.dataset.theme); applyTheme(); buzz(); openSettings(); });
   const sp2=$('stPanel'); if(sp2) sp2.onclick = ()=>{ closeModal(); PANEL_MODE = true; goto('mod'); };
+  $('stFresh').onclick = async ()=>{
+    toast(t('setUpdating'));
+    try{ if ('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }}catch(e){}
+    try{ if (window.caches){ const ks = await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){}
+    Store.set('vFix', null);
+    setTimeout(()=>location.replace(location.pathname + '?v=' + Date.now()), 400);
+  };
   $('stAcc').onclick   = ()=>{ closeModal(); openAccount(); };
   $('stLegal').onclick = ()=>{ closeModal(); openLegal(); };
 
@@ -4477,6 +4497,30 @@ async function handleShared(){
   toast(p ? t('shGot') : t('shNothing'));
   return true;
 }
+/* Uygulama sarmalayıcıları ve WebView, HTML dosyasını inatla önbellekte
+   tutabiliyor. Bu denetim sunucudaki sürümü okur; farklıysa adrese sürüm
+   ekleyip bir kez yeniden yükler, böylece önbellek atlanır. */
+const BUILD_ID = BUILD.split(' ')[0];
+async function checkVersion(){
+  try{
+    const res = await fetch('version.json?ts=' + Date.now(), { cache:'no-store' });
+    if (!res.ok) return;
+    const j = await res.json();
+    if (!j || !j.build) return;
+    if (j.build === BUILD_ID) { Store.set('vFix', null); return; }
+    /* sonsuz döngüye girmemek için tek deneme */
+    const tried = Store.get('vFix');
+    if (tried === j.build) return;
+    Store.set('vFix', j.build);
+    try{ if ('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }}catch(e){}
+    try{ if (window.caches){ const ks = await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){}
+    location.replace(location.pathname + '?v=' + encodeURIComponent(j.build));
+  }catch(e){}
+}
+
 function registerSW(){
   if (!('serviceWorker' in navigator)) return;
   if (location.protocol === 'file:') return;              // APK içi dosya modunda gerekmez
@@ -5995,6 +6039,7 @@ window.addEventListener('pagehide', saveSession);
 loadUser();
 applyTheme();
 detect();
+checkVersion();
 if (isSignedIn()){
   refreshStatus().then(async ()=>{ await pullGarage(); updateGarageBadge(); renderWelcome(); });
 }

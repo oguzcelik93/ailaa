@@ -1,5 +1,6 @@
 /* Relia service worker — her açılışta güncel sürümü getirir */
-const CACHE = 'relia-1.0.0-b14';
+const CACHE = 'relia-1.0.0-b15';
+/* version.json asla önbelleğe alınmaz */
 const SHELL = ['./manifest.webmanifest','./icon-192.png','./icon-512.png','./logo.svg'];
 
 self.addEventListener('install', e => {
@@ -22,6 +23,10 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
+  if (url.pathname.endsWith('version.json')){
+    e.respondWith(fetch(req, { cache:'no-store' }).catch(()=>new Response('{}',{headers:{'Content-Type':'application/json'}})));
+    return;
+  }
   const isHTML = req.mode === 'navigate' ||
                  (req.headers.get('accept') || '').includes('text/html') ||
                  url.pathname.endsWith('.html') || url.pathname.endsWith('/');
