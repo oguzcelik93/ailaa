@@ -218,7 +218,9 @@ tailwind.config = {
         <i class="fa-solid fa-warehouse text-[16px]"></i>
         <span id="garageCount" class="hidden absolute -top-2 -right-2 text-[10px] num" style="background:var(--accent);color:var(--bg);width:18px;height:18px;display:grid;place-items:center">0</span>
       </button>
-      <button id="langBtn" class="w-10 h-10 text-[11px] border border-white/10" style="font-weight:900;letter-spacing:.04em">TR</button>
+      <button id="langBtn" class="relative w-10 h-10 text-[11px] border border-white/10" style="font-weight:900;letter-spacing:.04em">TR
+        <span id="modDot" class="hidden absolute -top-1.5 -right-1.5" style="width:10px;height:10px;background:var(--accent)"></span>
+      </button>
     </div>
     <div class="mt-3 h-[4px] overflow-hidden" style="background:var(--soft)">
       <div id="progressBar" class="h-full transition-all duration-200" style="width:4%"></div>
@@ -297,7 +299,11 @@ let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
 const BUILD = 'b10 · 2026-08-23';   // her yeni paket için artar
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
-function isPro(){ return Store.get('pro') === true; }
+/* Premium: giriş yapılmışsa sunucu durumu, değilse yalnızca lisans kodu */
+function isPro(){
+  if (isSignedIn()) return !!state.status.pro || Store.get('license') ? (!!state.status.pro || !!Store.get('license')) : false;
+  return !!Store.get('license');
+}
 function usage(){
   const u = Store.get('usage') || {};
   const today = new Date().toISOString().slice(0,10);
@@ -1379,6 +1385,8 @@ function goto(name){
   if (name==='detail') renderDetail();
   if (name==='mod') renderMod();
   if (name==='doc') renderDoc();
+  const md2 = $('modDot');
+  if (md2) md2.classList.toggle('hidden', !isMod());
   const bb = $('backBtn');
   if (bb){
     const show = name !== 'welcome';
@@ -3860,31 +3868,138 @@ function renderDoc(){
   $('dcHome').onclick = ()=>goto('welcome');
 }
 
-/* ---------- Kullanıcı hesabı (isteğe bağlı) ---------- */
-state.user = null;                       // { token, email, id }
-function isSignedIn(){ return !!(state.user && state.user.token); }
+/* =====================================================================
+   KİMLİK KATMANI — tek doğruluk kaynağı
+   state.user   : oturum (access + refresh jetonu)
+   state.status : sunucudan gelen { pro, seat, moderator }
+   Premium, kurucu koltuğu ve moderatörlük yalnızca sunucudan okunur;
+   yerelde saklanan hiçbir değer bunların yerine geçmez.
+   ===================================================================== */
+state.user = null;
+state.status = { signed_in:false, pro:false, seat:null, moderator:false };
+
+function isSignedIn(){ return !!(state.user && state.user.access); }
+function isMod(){ return !!state.status.moderator; }
+function seatNo(){ return isSignedIn() ? state.status.seat : null; }
+
+/* Oturumu kaydeder. Jeton süresi de saklanır ki açılışta yenilenebilsin. */
+function setSession(j, email, remember){
+  if (!j || !j.access_token){ clearSession(); return; }
+  state.user = {
+    access:  j.access_token,
+    refresh: j.refresh_token || '',
+    exp:     Date.now() + ((j.expires_in || 3600) * 1000) - 60000,
+    email:   (email || (j.user && j.user.email) || '').toLowerCase(),
+    id:      (j.user && j.user.id) || ''
+  };
+  const keep = (remember === undefined) ? (Store.get('remember') !== false) : remember;
+  Store.set('remember', keep);
+  Store.set('user', keep ? state.user : null);
+}
+function clearSession(){
+  state.user = null;
+  state.status = { signed_in:false, pro:false, seat:null, moderator:false };
+  try{ Store.set('user', null); }catch(e){}
+}
 function loadUser(){
   const u = Store.get('user');
-  if (u && u.token && u.at && Date.now() - u.at < 1000*60*60*24*25) state.user = u;
+  if (u && u.access) state.user = u;
 }
-/* Çıkışta cihazdaki kişisel veriler temizlenir: garaj, yarım kalan kontrol,
-   Premium durumu ve kurucu koltuğu. Dil ve tema tercihi korunur. */
+
+/* Geçerli bir jeton döndürür; süresi dolduysa sessizce yeniler. */
+async function ensureToken(){
+  if (!state.user) return null;
+  if (state.user.exp && Date.now() < state.user.exp) return state.user.access;
+  if (!state.user.refresh){ return state.user.access; }
+  try{
+    const res = await fetch(CFG.url + '/auth/v1/token?grant_type=refresh_token', {
+      method:'POST', headers:{ apikey:CFG.key, 'Content-Type':'application/json' },
+      body: JSON.stringify({ refresh_token: state.user.refresh }) });
+    if (!res.ok) throw new Error('refresh');
+    const j = await res.json();
+    setSession(j, state.user.email);
+    return state.user.access;
+  }catch(e){ clearSession(); return null; }
+}
+
+/* Oturum jetonuyla sunucu çağrısı */
+async function userRpc(fn, body){
+  const tok = await ensureToken();
+  if (!tok) throw new Error('no_session');
+  const res = await fetch(CFG.url + '/rest/v1/rpc/' + fn, { method:'POST',
+    headers:{ apikey:CFG.key, Authorization:'Bearer '+tok, 'Content-Type':'application/json' },
+    body: JSON.stringify(body || {}) });
+  const txt = await res.text();
+  let out; try{ out = JSON.parse(txt); }catch(e){ out = txt; }
+  if (!res.ok) throw new Error(String(txt).slice(0,140));
+  return out;
+}
+
+/* Sunucudan hesap durumunu çeker ve arayüzü ona göre kurar */
+async function refreshStatus(){
+  if (!isSignedIn()){
+    state.status = { signed_in:false, pro:false, seat:null, moderator:false };
+    return state.status;
+  }
+  try{
+    const st = await userRpc('rc_my_status');
+    state.status = {
+      signed_in: !!st.signed_in, pro: !!st.pro,
+      seat: st.seat || null, moderator: !!st.moderator,
+      left: st.left
+    };
+    if (st.email) state.user.email = String(st.email).toLowerCase();
+  }catch(e){
+    /* jeton geçersizse oturumu düşür */
+    if (String(e.message).indexOf('no_session') > -1) clearSession();
+  }
+  return state.status;
+}
+/* Çıkış: cihazdaki kopya temizlenir. Garaj ve Premium sunucuda durur,
+   tekrar giriş yapıldığında geri gelir. */
 function signOutAll(){
-  saveUser(null);
-  ['garage','session','pro','proEmail','license','founderSeat','usage','bonus','sharedOn','refUsed']
-    .forEach(k=>{ try{ Store.set(k, null); }catch(e){} });
-  try{ delete Store.data.pro; }catch(e){}
-  state.garage = []; state.cmp = []; state.user = null;
+  clearSession();
+  ['garage','session','pro','proEmail','founderSeat','usage','bonus','sharedOn','refUsed','user']
+    .forEach(k=>{ try{ Store.set(k, null); delete Store.data[k]; }catch(e){} });
+  state.garage = []; state.cmp = []; state.mod.token = null;
   newCheck(); updateGarageBadge();
 }
 
-function saveUser(u, remember){
-  state.user = u;
-  /* "Beni hatırla" kapalıysa oturum yalnızca uygulama açık kaldığı sürece durur */
-  const keep = (remember === undefined) ? (Store.get('remember') !== false) : remember;
-  if (u && !keep){ try{ Store.set('user', null); }catch(e){} return; }
-  Store.set('user', u ? Object.assign({at:Date.now()}, u) : null);
+/* Girişten sonra: durum çekilir, kurucu koltuğu istenir, garaj indirilir */
+async function afterSignIn(){
+  await refreshStatus();
+  if (!state.status.pro){
+    const f = await claimFounder();
+    if (f && f.ok){ await refreshStatus(); showFounder({ seat: (f.seat || state.status.seat || 0) }); }
+    else toast(t('accOkIn'));
+  } else toast(t('accOkIn'));
+  await pullGarage();
+  updateGarageBadge();
+  renderWelcome();
 }
+
+/* ---------- Bulut garaj ---------- */
+async function pullGarage(){
+  if (!isSignedIn()) return;
+  try{
+    const rows = await userRpc('rc_garage_get');
+    const cloud = Array.isArray(rows) ? rows : [];
+    const local = Array.isArray(state.garage) ? state.garage : [];
+    const seen = {}, merged = [];
+    cloud.concat(local).forEach(c=>{
+      if (!c || !c.key || seen[c.key]) return;
+      seen[c.key] = 1; merged.push(c);
+    });
+    state.garage = merged.slice(0, 60);
+    Store.set('garage', state.garage);
+    if (local.length) await pushGarage();
+  }catch(e){}
+}
+async function pushGarage(){
+  if (!isSignedIn()) return;
+  try{ await userRpc('rc_garage_put', { p_cars: state.garage }); }catch(e){}
+}
+
 
 async function authCall(kind, email, pass){
   const path = kind==='in' ? '/auth/v1/token?grant_type=password' : '/auth/v1/signup';
@@ -3946,7 +4061,8 @@ function openAccount(){
       try{
         const j = await authCall(mode, email, pass);
         if (j.access_token){
-          saveUser({ token:j.access_token, email:email, id:(j.user&&j.user.id)||'' }, remember);
+          setSession(j, email, remember);
+          await afterSignIn();
           closeModal();
           const f = await claimFounder();
           if (f && f.seat) showFounder(f);
@@ -3974,19 +4090,18 @@ async function claimFounder(){
     { body:'{}' },
     { body: JSON.stringify({ p_email: state.user.email }) }
   ];
+  const tok = await ensureToken();
+  if (!tok){ founderErr = 'no_session'; return null; }
   for (const a of attempts){
     try{
       const res = await fetch(CFG.url + '/rest/v1/rpc/rc_claim_founder', { method:'POST',
-        headers:{ apikey:CFG.key, Authorization:'Bearer '+state.user.token, 'Content-Type':'application/json' },
+        headers:{ apikey:CFG.key, Authorization:'Bearer '+tok, 'Content-Type':'application/json' },
         body: a.body });
       const txt = await res.text();
       let out; try{ out = JSON.parse(txt); }catch(e){ out = txt; }
       if (!res.ok){ founderErr = res.status + ' ' + String(txt).slice(0,120); continue; }
       const row = Array.isArray(out) ? out[0] : out;
       if (row === true || (row && row.ok)){
-        Store.set('pro', true);
-        if (row && row.seat) Store.set('founderSeat', row.seat);
-        if (isSignedIn()) Store.set('proEmail', state.user.email);
         founderErr = '';
         return (row === true) ? { ok:true, seat:0 } : row;
       }
@@ -4060,10 +4175,9 @@ function openUserReset(prefill){
         headers:{ apikey:CFG.key, Authorization:'Bearer '+tok, 'Content-Type':'application/json' },
         body: JSON.stringify({ password: pw }) });
       if(!res.ok) throw new Error((await res.json()).msg || 'error');
-      saveUser({ token:tok, email: email, id:'' });
+      setSession({ access_token: tok, expires_in: 3600 }, email);
+      await afterSignIn();
       closeModal(); toast(t('mdPwDone'));
-      const f = await claimFounder(); if (f && f.seat) showFounder(f);
-      renderWelcome();
       return;
     }catch(e){
       const msg = String(e.message);
@@ -4117,6 +4231,9 @@ function openSettings(){
     </div>
 
     <p class="uppercase mt-6 mb-2" style="font-size:10px;color:var(--muted)">${t('setAcc')}</p>
+    ${isMod()?`<button id="stPanel" class="opt w-full text-left mb-2" style="border:2px solid var(--accent);padding:12px">
+      <span class="uppercase" style="font-size:10px;color:var(--accent)">${t('admBadge')}</span>
+      <span class="block mt-1" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${t('admOpen')} →</span></button>`:''}
     <button id="stAcc" class="opt w-full text-left" style="border:2px solid var(--fg);padding:14px">
       <span class="block" style="font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${isSignedIn()?esc(state.user.email):t('accGuest')}</span>
       <span class="block text-[12px] mt-1" style="color:var(--muted)">${isSignedIn()?t('accOut'):t('accIn')+' / '+t('accUp')} →</span></button>
@@ -4146,6 +4263,7 @@ function openSettings(){
     buzz(); closeModal(); setLang(+b.dataset.lang); });
   $('modalBody').querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{
     Store.set('theme', b.dataset.theme); applyTheme(); buzz(); openSettings(); });
+  const sp2=$('stPanel'); if(sp2) sp2.onclick = ()=>{ closeModal(); PANEL_MODE = true; goto('mod'); };
   $('stAcc').onclick   = ()=>{ closeModal(); openAccount(); };
   $('stLegal').onclick = ()=>{ closeModal(); openLegal(); };
 
@@ -4610,6 +4728,8 @@ Object.assign(S, {
   mdCancel:['Vazgeç','Cancel','Abbrechen'],
   mdNoAuth:['Bu hesabın yetkisi yok','This account has no access'],
   mdNoAuthD:['Yetki yalnızca mevcut bir yönetici tarafından verilir. Hesap adresinizi yöneticiye iletin.','Access is granted by an existing moderator. Send them your account address.'],
+  admBadge:['Yönetici','Administrator','Administrator'],
+  admOpen:['Yönetim panelini aç','Open the admin panel','Adminbereich öffnen'],
   admH:['Üyelik ve istatistik','Members and stats','Mitglieder und Statistik'],
   admLoad:['Yükleniyor...','Loading...','Wird geladen...'],
   admUsers:['Üye','Users','Nutzer'],
@@ -4959,7 +5079,13 @@ function renderMod(){
       try{
         m.email = $('mdE').value.trim();
         const j = await modAuth(kind, m.email, $('mdP').value);
-        if (j.access_token){ m.token = j.access_token; await modRefresh(); return; }
+        if (j.access_token){
+          m.token = j.access_token;
+          setSession(j, m.email);          /* panel girişi uygulama girişi sayılır */
+          await refreshStatus();
+          await pullGarage(); updateGarageBadge();
+          await modRefresh(); return;
+        }
         $('mdErr').textContent = t('mdMailWait'); $('mdErr').classList.remove('hidden');
       }catch(e){ $('mdErr').textContent = String(e.message).slice(0,120); $('mdErr').classList.remove('hidden'); }
       btn.textContent = old;
@@ -5838,6 +5964,9 @@ window.addEventListener('pagehide', saveSession);
 loadUser();
 applyTheme();
 detect();
+if (isSignedIn()){
+  refreshStatus().then(async ()=>{ await pullGarage(); updateGarageBadge(); renderWelcome(); });
+}
 updateGarageBadge();
 claimReferral();
 collectReferrals();
