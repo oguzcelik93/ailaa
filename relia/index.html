@@ -482,6 +482,7 @@ const S = {
   noReport:['Önce kontrolü tamamlayın','Complete the check first','Zuerst die Prüfung abschließen'],
   repImgH:['Raporu görsel olarak kaydet','Save report as image','Bericht als Bild speichern'],
   pdfPrintBtn:['Yazdır / PDF','Print / PDF','Drucken / PDF'],
+  exportHint:['Yazdırma penceresi açılmazsa görsel seçeneğini kullanın.','If the print dialog does not open, use the image option.','Falls der Druckdialog nicht erscheint, nutzen Sie die Bild-Option.'],
   exportD:['Görsel her cihazda çalışır. Yazdırma yalnızca tarayıcıda ve bazı cihazlarda çalışır.','The image works on every device. Printing works in browsers and on some devices only.','Das Bild funktioniert überall. Drucken funktioniert nur im Browser und auf manchen Geräten.'],
   doneBtn:['Kontrolü tamamla','Finish check','Prüfung abschließen'],
   editAnswers:['Cevapları düzenle','Edit answers','Antworten bearbeiten'],
@@ -2466,38 +2467,42 @@ function reportDoc(){
 /* Yazdırma: bazı uygulama sarmalayıcıları @media print kurallarını uygulamıyor
    ve boş sayfa basıyor. Bu yüzden rapor ekranda gerçekten görünür hale getirilip
    yazdırılıyor, sonra eski görünüme dönülüyor. */
+/* Yazdırma. Uygulama sarmalayıcıları window.print() çağrısını yalnızca
+   kullanıcının dokunuşuyla AYNI anda yapılırsa kabul eder; gecikmeli çağrı
+   sessizce yok sayılır. Bu yüzden hazırlık eşzamanlı yapılır ve print()
+   hemen çağrılır. Yeni pencere açma yolu yalnızca tarayıcıda denenir. */
 function doPrint(){
-  const doc = reportDoc();
-  try{
-    const w = window.open('', '_blank');
-    if (w && w.document){
-      w.document.open(); w.document.write(doc); w.document.close();
-      const go = ()=>{ try{ w.focus(); w.print(); }catch(e){} };
-      if (w.document.readyState === 'complete') setTimeout(go, 500);
-      else w.onload = ()=>setTimeout(go, 500);
-      return;
-    }
-  }catch(e){}
   const pa = $('printArea'), r = state.result;
+  if (!pa || !r) return;
+
+  /* 1) Sayfayı eşzamanlı hazırla */
   pa.innerHTML = reportHtml();
   document.body.classList.add('printing');
   pa.style.display = 'block';
   try{
     const g = pa.querySelector('path[pathLength]');
-    if (g && r){ g.style.transition='none'; g.style.strokeDashoffset = (100 - r.score); }
+    if (g){ g.style.transition='none'; g.style.strokeDashoffset = (100 - r.score); }
     pa.querySelectorAll('.barfill').forEach(b=>{ b.style.transition='none';
       if (b.dataset && b.dataset.w) b.style.width = b.dataset.w + '%'; });
+    pa.querySelectorAll('#needle').forEach(n=>{ n.style.transition='none';
+      n.style.transform = 'rotate(' + (-90 + r.score*1.8) + 'deg)'; });
+    const num = pa.querySelector('#gaugeNum'); if (num) num.textContent = r.score;
   }catch(e){}
   window.scrollTo({top:0});
-  let printed = false;
-  setTimeout(()=>{
-    try{ window.print(); printed = true; }catch(e){}
-    setTimeout(()=>{
-      document.body.classList.remove('printing');
-      pa.style.display = ''; pa.innerHTML = '';
-      if (!printed) offerReportImage();
-    }, 1200);
-  }, 400);
+
+  const restore = ()=>{
+    document.body.classList.remove('printing');
+    pa.style.display = ''; pa.innerHTML = '';
+  };
+
+  /* 2) Dokunuşla aynı anda yazdır */
+  let ok = false;
+  try{
+    if (typeof window.print === 'function'){ window.print(); ok = true; }
+  }catch(e){ ok = false; }
+
+  if (!ok){ restore(); offerReportImage(); return; }
+  setTimeout(restore, 1500);
 }
 
 function offerReportImage(){
@@ -3965,14 +3970,35 @@ function signOutAll(){
   newCheck(); updateGarageBadge();
 }
 
+/* Kutlama penceresi kaydı — çıkış yapılsa da silinmez, bir kez gösterilir */
+function founderSeen(email){
+  const list = Store.get('foundSeen') || [];
+  return Array.isArray(list) && list.indexOf(String(email||'').toLowerCase()) > -1;
+}
+function markFounderSeen(email){
+  const list = Store.get('foundSeen') || [];
+  const e = String(email||'').toLowerCase();
+  if (Array.isArray(list) && list.indexOf(e) === -1){ list.push(e); Store.set('foundSeen', list.slice(-20)); }
+  else if (!Array.isArray(list)) Store.set('foundSeen', [e]);
+}
+
 /* Girişten sonra: durum çekilir, kurucu koltuğu istenir, garaj indirilir */
 async function afterSignIn(){
   await refreshStatus();
   if (!state.status.pro){
     const f = await claimFounder();
-    if (f && f.ok){ await refreshStatus(); showFounder({ seat: (f.seat || state.status.seat || 0) }); }
+    if (f && f.ok){ await refreshStatus(); }
     else toast(t('accOkIn'));
-  } else toast(t('accOkIn'));
+  }
+  /* Kutlama penceresi hesap başına yalnızca bir kez gösterilir */
+  if (state.status.pro && state.status.seat && !founderSeen(state.user.email)){
+    markFounderSeen(state.user.email);
+    showFounder({ seat: state.status.seat });
+  } else if (!state.status.pro) {
+    /* toast zaten verildi */
+  } else {
+    toast(t('accOkIn'));
+  }
   await pullGarage();
   updateGarageBadge();
   renderWelcome();
@@ -5684,10 +5710,15 @@ function openExport(){
     <p class="text-[12.5px] mt-2 leading-relaxed">${t('exportD')}</p>
     <button id="exImg" class="w-full mt-4 rounded-2xl py-3.5 font-extrabold text-[14.5px] bg-ok text-ink">${t('repImgH')}</button>
     <button id="exPrint" class="w-full mt-3 rounded-2xl py-3.5 font-bold text-[14px] bg-white/8 border border-white/10">${t('pdfPrintBtn')}</button>
+    <p class="text-[11.5px] mt-2 leading-relaxed" style="color:var(--muted)">${t('exportHint')}</p>
     <button id="exNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
   $('exNo').onclick = closeModal;
   $('exImg').onclick = ()=>{ closeModal(); openReportImage(); };
-  $('exPrint').onclick = ()=>{ closeModal(); doPrint(); };
+  $('exPrint').onclick = ()=>{
+    /* pencereyi kapat ve aynı dokunuş içinde yazdır */
+    $('modal').classList.add('hidden');
+    doPrint();
+  };
 }
 
 async function openCard(){
