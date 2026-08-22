@@ -301,7 +301,7 @@ const CFG = {
    Açmak için ya adrese ?diag=1 ekle ya da üstteki logoya arka arkaya 5 kez dokun. */
 const APP_VERSION = '1.0.0';
 let PANEL_MODE = false;      // ?panel=1 ile açıldıysa adres korunur
-const BUILD = 'b17 · 2026-08-22';
+const BUILD = 'b19 · 2026-08-22';
 const LIMITS = { garage:3, daily:3, monthly:10 };   // ücretsiz sürüm sınırları
 
 /* Premium: giriş yapılmışsa sunucu durumu, değilse yalnızca lisans kodu */
@@ -648,6 +648,14 @@ const unit = () => isMi() ? t('unitMi') : t('unitKm');
 const toDisp = km => isMi() ? Math.round(km * 0.6214) : km;      // veri km cinsinden saklanır
 const toKm  = d => isMi() ? Math.round(d / 0.6214) : d;
 const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+/* Dışarıdan gelen bağlantıyı güvenli hale getirir: yalnızca http/https geçer,
+   javascript: ve data: gibi şemalar engellenir. */
+const safeUrl = u => {
+  const v = String(u || '').trim();
+  if (!/^https?:\/\//i.test(v)) return '';
+  return v.replace(/["'<>]/g, encodeURIComponent);
+};
 const $ = id => document.getElementById(id);
 
 /* ===================================================================== */
@@ -2237,7 +2245,7 @@ function sellerTab(){
       ${RECORDS[REGION].map(r=>`<div class="py-2.5 border-b border-white/8 last:border-0">
         <p class="font-bold text-[13.5px]">${esc(t(r.n))}</p>
         <p class="text-[12px] text-slate-400 mt-1 leading-relaxed">${esc(t(r.d))}</p>
-        ${r.u?`<a href="${r.u}" target="_blank" rel="noopener" class="inline-block mt-1.5 text-[12px] font-bold text-ok">${r.u.replace('https://','')} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>`:''}
+        ${safeUrl(r.u)?`<a href="${safeUrl(r.u)}" target="_blank" rel="noopener noreferrer" class="inline-block mt-1.5 text-[12px] font-bold text-ok">${esc(String(r.u).replace(/^https?:\/\//,''))} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>`:''}
       </div>`).join('')}
     </div>`;
 }
@@ -3450,6 +3458,13 @@ Object.assign(API, {
     }catch(e){ ONLINE = false; NETFAIL = true; return DEV ? LocalDB.search(q) : []; }
   },
   async submit(rep){
+    /* Sunucu tarafı hız sınırı: cihaz başına saatte 5 bildirim */
+    try{
+      const chk = await fetch(CFG.url + '/rest/v1/rpc/rc_can_report', { method:'POST',
+        headers:{ apikey:CFG.key, Authorization:'Bearer '+CFG.key, 'Content-Type':'application/json' },
+        body: JSON.stringify({ p_device: device() }) });
+      if (chk.ok && (await chk.json()) === false) throw new Error('rate_limit');
+    }catch(e){ if (String(e.message) === 'rate_limit') throw e; }
     const li = norm.listing(listingFromUrl(rep.listing));
     try{
       const urls = [];
@@ -4771,7 +4786,7 @@ async function probe(path, opts){
 }
 function diagVerdict(r, kind, netOk){
   if (kind === 'env'){
-    if (r.ok) return { c:'#000000', txt:t('diagOk')+' · '+(r.body||'') };
+    if (r.ok) return { c:'#000000', txt:t('diagOk')+' · '+esc(String(r.body||'')) };
     return { c:'#FF3000', txt: r.status===415 ? t('diagStorageBad')
              : (r.status===0 && !r.body.indexOf) ? t('diagStoreBad') : (r.body || t('diagStoreBad')) };
   }
@@ -4896,6 +4911,11 @@ Object.assign(S, {
   admNoUser:['Bu e-posta ile kayıtlı kullanıcı yok','No user with that email','Kein Nutzer mit dieser E-Mail'],
   admJoined:['Kayıt','Joined','Beigetreten'],
   admDone:['İşlem tamam','Done','Erledigt'],
+  admUsersH:['Üyeler','Members','Mitglieder'],
+  admOnlyPro:['Yalnızca Premium üyeler','Premium members only','Nur Premium-Mitglieder'],
+  admLastSeen:['Son giriş','Last seen','Zuletzt'],
+  admGarageN:['araç','cars','Fahrzeuge'],
+  admUnconfirmed:['e-posta onaysız','email unconfirmed','E-Mail unbestätigt'],
   admLic:['10 lisans kodu üret','Generate 10 licence codes','10 Lizenzcodes erzeugen'],
   mdTeam:['Yöneticiler','Moderators'],
   mdAdd:['E-posta ile yönetici ekle','Add moderator by email'],
@@ -5038,6 +5058,65 @@ async function adminRpc(fn, body){
   if (!res.ok) throw new Error(String(txt).slice(0,140));
   return out;
 }
+/* Üye listesi — arama, Premium süzgeci, satırdan Premium ver/al */
+function openUsers(){
+  let q = '', onlyPro = false;
+  const draw = async ()=>{
+    const box = $('usList'); if (!box) return;
+    box.innerHTML = `<p class="p-4 text-[12.5px]" style="color:var(--muted)">${t('admLoad')}</p>`;
+    try{
+      const rows = await adminRpc('rc_admin_users', { p_limit: 100, p_q: q, p_only_pro: onlyPro });
+      const list = Array.isArray(rows) ? rows : [];
+      if (!list.length){ box.innerHTML = `<p class="p-4 text-[12.5px]" style="color:var(--muted)">${t('admNoUser')}</p>`; return; }
+      const d = x => x ? new Date(x).toLocaleDateString(['tr-TR','en-US','de-DE'][L]) : '—';
+      box.innerHTML = list.map((u,i)=>`<div class="p-3.5" style="${i?'border-top:2px solid var(--fg)':''}">
+        <div class="flex items-start gap-2.5">
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] lower truncate" style="font-weight:700">${esc(String(u.email||'').toLowerCase())}</p>
+            <p class="text-[11px] num mt-1" style="color:var(--muted)">
+              ${t('admJoined')}: ${d(u.joined)} · ${t('admLastSeen')}: ${d(u.last_seen)}
+              ${u.garage?' · '+u.garage+' '+t('admGarageN'):''}
+              ${u.confirmed?'':' · '+t('admUnconfirmed')}
+            </p>
+          </div>
+          ${u.pro
+            ? `<span class="uppercase shrink-0" style="font-size:9px;padding:3px 6px;background:var(--fg);color:var(--bg)">#${u.seat||'—'}</span>`
+            : ''}
+        </div>
+        <button data-uacc="${esc(String(u.email||'').toLowerCase())}" data-upro="${u.pro?1:0}"
+          class="opt w-full mt-2.5 py-2 text-[11.5px] uppercase" style="border:2px solid ${u.pro?'var(--fg)':'var(--accent)'};${u.pro?'':'color:var(--accent)'}">
+          ${u.pro ? t('admRevoke') : t('admGrant')}</button>
+      </div>`).join('');
+      box.querySelectorAll('[data-uacc]').forEach(b=>b.onclick=async()=>{
+        const mail = b.dataset.uacc, has = b.dataset.upro === '1';
+        if (has && !(await askConfirm(t('admRevokeAsk')))) return;
+        b.textContent = '...';
+        try{
+          await adminRpc(has ? 'rc_admin_revoke_pro' : 'rc_admin_grant_pro', { p_email: mail });
+          toast(t('admDone')); draw(); bindAdmin();
+        }catch(e){ toast(String(e.message).slice(0,90)); }
+      });
+    }catch(e){
+      box.innerHTML = `<p class="p-4 text-[12.5px]" style="color:var(--accent)">${esc(String(e.message).slice(0,140))}</p>`;
+    }
+  };
+
+  openModal(`<h3 class="text-lg font-bold">${t('admUsersH')}</h3>
+    <input id="usQ" placeholder="${t('pkSearch')}" class="field w-full rounded-xl px-4 py-3 text-[14px] lower mt-3">
+    <button id="usPro" class="opt w-full text-left mt-2 py-2.5 px-3 flex items-center gap-2.5" style="border:2px solid var(--fg)">
+      <span id="usProBox" style="width:16px;height:16px;flex:none;border:2px solid var(--fg);background:transparent"></span>
+      <span class="text-[12.5px]" style="font-weight:700">${t('admOnlyPro')}</span></button>
+    <div id="usList" style="border:2px solid var(--fg);margin-top:12px;max-height:52vh;overflow:auto"></div>
+    <button id="usNo" class="w-full mt-3 rounded-2xl py-3 font-bold text-[13px] text-slate-400">${t('mdCancel')}</button>`);
+  $('usNo').onclick = closeModal;
+  $('usPro').onclick = ()=>{ onlyPro = !onlyPro;
+    $('usProBox').style.background = onlyPro ? 'var(--accent)' : 'transparent'; draw(); };
+  let tm = null;
+  $('usQ').addEventListener('input', e=>{ q = e.target.value.trim();
+    clearTimeout(tm); tm = setTimeout(draw, 350); });
+  draw();
+}
+
 function bindAdmin(){
   const box = $('admStats'); if (!box) return;
   adminRpc('rc_admin_stats').then(st=>{
@@ -5082,6 +5161,7 @@ function bindAdmin(){
       bindAdmin();
     }catch(e){ say(`<span style="color:var(--accent)">${esc(String(e.message).slice(0,120))}</span>`); }
   };
+  const au=$('admUsers'); if(au) au.onclick = openUsers;
   $('admLic').onclick = async ()=>{
     try{
       const codes = await adminRpc('rc_admin_new_licenses', { p_count: 10, p_note: 'panel' });
@@ -5325,6 +5405,7 @@ function renderMod(){
         <button id="admGrant" class="rounded-xl py-2.5 text-[12.5px] font-bold bg-ok text-ink">${t('admGrant')}</button>
         <button id="admRevoke" class="rounded-xl py-2.5 text-[12.5px] font-bold bg-white/8 border border-white/10">${t('admRevoke')}</button>
       </div>
+      <button id="admUsers" class="w-full mt-2 rounded-xl py-2.5 text-[12.5px] font-bold bg-ok text-ink">${t('admUsersH')} →</button>
       <button id="admLic" class="w-full mt-2 rounded-xl py-2.5 text-[12.5px] font-bold bg-white/8 border border-white/10">${t('admLic')}</button>
     </div>
 
